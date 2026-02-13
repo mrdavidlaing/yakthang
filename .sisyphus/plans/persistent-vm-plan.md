@@ -782,7 +782,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 6: VM Provisioning Script
 **yx task:** `persistent-vm/vm-provisioning`
 
-- [ ] 6. Create setup-vm.sh provisioning script for GCP
+- [x] 6. Create setup-vm.sh provisioning script for GCP
 
   **What to do**:
   1. **START**: `yx state persistent-vm/vm-provisioning wip` + report `wip: starting`
@@ -883,7 +883,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 7: Credential Management
 **yx task:** `persistent-vm/credential-management`
 
-- [ ] 7. Document credential management layers
+- [x] 7. Document credential management layers
 
   **What to do**:
   1. **START**: `yx state persistent-vm/credential-management wip` + report `wip: starting`
