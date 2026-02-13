@@ -109,7 +109,7 @@ install_system_packages() {
 		log "Zellij already installed: $(zellij --version)"
 	else
 		log "Installing Zellij from GitHub releases..."
-		local ZELLIJ_VERSION="0.40.1"
+		local ZELLIJ_VERSION="0.43.1"
 		local ZELLIJ_URL="https://github.com/zellij-org/zellij/releases/download/v${ZELLIJ_VERSION}/zellij-x86_64-unknown-linux-musl.tar.gz"
 
 		curl -fsSL "$ZELLIJ_URL" | tar xz -C /usr/local/bin
@@ -145,7 +145,32 @@ install_gh_cli() {
 }
 
 #------------------------------------------------------------------------------
-# 4. Install OpenCode CLI
+# 4. Install Node.js 22 (required for OpenClaw Gateway)
+#------------------------------------------------------------------------------
+
+install_nodejs() {
+	log "Installing Node.js 22..."
+
+	if command -v node &>/dev/null; then
+		local node_version=$(node --version | cut -d'v' -f2 | cut -d'.' -f1)
+		if [[ "$node_version" -ge 22 ]]; then
+			log "Node.js already installed: $(node --version)"
+			return 0
+		else
+			log "Node.js version too old: v$node_version (need v22+), upgrading..."
+		fi
+	fi
+
+	# Install Node.js 22 from NodeSource
+	log "Adding NodeSource repository for Node.js 22..."
+	curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+	apt-get install -y nodejs
+
+	log "Node.js installed: $(node --version)"
+}
+
+#------------------------------------------------------------------------------
+# 5. Install OpenCode CLI
 #------------------------------------------------------------------------------
 
 install_opencode() {
@@ -164,7 +189,25 @@ install_opencode() {
 }
 
 #------------------------------------------------------------------------------
-# 5. Install yx (Yak task manager) from source
+# 6. Install OpenClaw Gateway
+#------------------------------------------------------------------------------
+
+install_openclaw() {
+	log "Installing OpenClaw Gateway..."
+
+	if command -v openclaw &>/dev/null; then
+		log "OpenClaw already installed: $(openclaw --version)"
+		return 0
+	fi
+
+	log "Installing OpenClaw via npm..."
+	npm install -g openclaw@latest
+
+	log "OpenClaw installed: $(openclaw --version)"
+}
+
+#------------------------------------------------------------------------------
+# 7. Install yx (Yak task manager) from source
 #------------------------------------------------------------------------------
 
 install_yx() {
@@ -200,7 +243,7 @@ install_yx() {
 }
 
 #------------------------------------------------------------------------------
-# 6. Security Hardening
+# 8. Security Hardening
 #------------------------------------------------------------------------------
 
 configure_security() {
@@ -250,7 +293,7 @@ DOCKER_EOF
 }
 
 #------------------------------------------------------------------------------
-# 7. Create yakob user (if not exists)
+# 9. Create yakob user (if not exists)
 #------------------------------------------------------------------------------
 
 create_yakob_user() {
@@ -280,7 +323,7 @@ create_yakob_user() {
 }
 
 #------------------------------------------------------------------------------
-# 8. Configure yakob's git identity
+# 10. Configure yakob's git identity
 #------------------------------------------------------------------------------
 
 configure_yakob_git() {
@@ -316,7 +359,7 @@ configure_yakob_git() {
 }
 
 #------------------------------------------------------------------------------
-# 9. Create workspace directory
+# 11. Create workspace directory
 #------------------------------------------------------------------------------
 
 setup_workspace() {
@@ -336,7 +379,58 @@ setup_workspace() {
 }
 
 #------------------------------------------------------------------------------
-# 10. Copy worker.Dockerfile and build image
+# 12. Setup OpenClaw workspace
+#------------------------------------------------------------------------------
+
+setup_openclaw_workspace() {
+	log "Setting up OpenClaw workspace..."
+
+	local openclaw_workspace="/home/yakob/yakthang/.openclaw/workspace"
+	local yaks_source="/home/yakob/yakthang/.yaks"
+
+	# Create OpenClaw workspace directory
+	if [[ -d "$openclaw_workspace" ]]; then
+		log "OpenClaw workspace already exists: $openclaw_workspace"
+	else
+		mkdir -p "$openclaw_workspace"
+		log "Created OpenClaw workspace: $openclaw_workspace"
+	fi
+
+	# Symlink .yaks directory
+	local yaks_link="$openclaw_workspace/.yaks"
+	if [[ -L "$yaks_link" ]]; then
+		log ".yaks symlink already exists"
+	elif [[ -e "$yaks_link" ]]; then
+		log "WARNING: $yaks_link exists but is not a symlink, skipping"
+	else
+		ln -s "$yaks_source" "$yaks_link"
+		log "Created symlink: $yaks_link -> $yaks_source"
+	fi
+
+	# Create OpenClaw agent directories (required by openclaw doctor)
+	local agent_sessions_dir="/home/yakob/.openclaw/agents/main/sessions"
+	local credentials_dir="/home/yakob/.openclaw/credentials"
+
+	if [[ ! -d "$agent_sessions_dir" ]]; then
+		mkdir -p "$agent_sessions_dir"
+		log "Created agent sessions directory: $agent_sessions_dir"
+	fi
+
+	if [[ ! -d "$credentials_dir" ]]; then
+		mkdir -p "$credentials_dir"
+		chmod 700 "$credentials_dir"
+		log "Created credentials directory: $credentials_dir"
+	fi
+
+	# Ensure correct ownership
+	chown -R yakob:yakob /home/yakob/yakthang/.openclaw
+	chown -R yakob:yakob /home/yakob/.openclaw
+
+	log "OpenClaw workspace setup complete"
+}
+
+#------------------------------------------------------------------------------
+# 13. Copy worker.Dockerfile and build image
 #------------------------------------------------------------------------------
 
 build_worker_image() {
@@ -373,7 +467,7 @@ build_worker_image() {
 }
 
 #------------------------------------------------------------------------------
-# 11. Create systemd service file (but don't enable/start)
+# 14. Create systemd service file (but don't enable/start)
 #------------------------------------------------------------------------------
 
 create_systemd_service() {
@@ -439,12 +533,15 @@ main() {
 	install_docker
 	install_system_packages
 	install_gh_cli
+	install_nodejs
 	install_opencode
+	install_openclaw
 	install_yx
 	configure_security
 	create_yakob_user
 	configure_yakob_git
 	setup_workspace
+	setup_openclaw_workspace
 	build_worker_image
 	create_systemd_service
 
@@ -453,9 +550,13 @@ main() {
 	log ""
 	log "Next steps:"
 	log "  1. Log in as yakob: su - yakob"
-	log "  2. Copy project files to /home/yakob/workspace/"
-	log "  3. Set ANTHROPIC_API_KEY in service config"
-	log "  4. Enable and start the service"
+	log "  2. Run OpenClaw onboarding: openclaw onboard"
+	log "  3. Copy project files to /home/yakob/workspace/"
+	log "  4. Set ANTHROPIC_API_KEY in service config"
+	log "  5. Enable and start the service"
+	log ""
+	log "OpenClaw workspace: /home/yakob/yakthang/.openclaw/workspace"
+	log "Task state symlink: /home/yakob/yakthang/.openclaw/workspace/.yaks -> /home/yakob/yakthang/.yaks"
 	log ""
 	log "NOTE: yakob must log out and back in for docker group to take effect"
 }
