@@ -1160,7 +1160,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 11: Documentation
 **yx task:** `persistent-vm/documentation`
 
-- [ ] 11. Create comprehensive documentation
+- [x] 11. Create comprehensive documentation
 
   **What to do**:
   1. **START**: `yx state persistent-vm/documentation wip` + report `wip: starting`
