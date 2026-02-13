@@ -429,7 +429,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 2: Docker-based spawn-worker.sh
 **yx task:** `persistent-vm/docker-spawn-worker`
 
-- [ ] 2. Add Docker runtime support to spawn-worker.sh
+- [x] 2. Add Docker runtime support to spawn-worker.sh
 
   **What to do**:
   1. **START**: `yx state persistent-vm/docker-spawn-worker wip` + report `wip: starting`
