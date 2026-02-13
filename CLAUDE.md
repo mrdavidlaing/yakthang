@@ -18,9 +18,11 @@ only actions are:
 2. Spawning workers via `spawn-worker.sh` to do the actual work
 3. Monitoring progress and unblocking workers
 4. Reading files to understand context (but never editing them for implementation)
+5. Making git commits to save completed work
 
 If you catch yourself about to edit a file or write code — STOP and spawn a
-worker instead.
+worker instead. Git operations (status, commit, push) are allowed for managing
+the workspace.
 
 ## Architecture
 
