@@ -563,7 +563,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 3: Shared State & Volumes
 **yx task:** `persistent-vm/shared-state-volumes`
 
-- [ ] 3. Configure volume mounting for .yaks/ and workspace
+- [x] 3. Configure volume mounting for .yaks/ and workspace
 
   **What to do**:
   1. **START**: `yx state persistent-vm/shared-state-volumes wip` + report `wip: starting`
@@ -640,7 +640,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 4: Container Networking
 **yx task:** `persistent-vm/container-networking`
 
-- [ ] 4. Implement two-phase network isolation policy
+- [x] 4. Implement two-phase network isolation policy
 
   **What to do**:
   1. **START**: `yx state persistent-vm/container-networking wip` + report `wip: starting`
@@ -714,7 +714,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 5: Resource Limits
 **yx task:** `persistent-vm/resource-limits`
 
-- [ ] 5. Implement resource limit profiles
+- [x] 5. Implement resource limit profiles
 
   **What to do**:
   1. **START**: `yx state persistent-vm/resource-limits wip` + report `wip: starting`
