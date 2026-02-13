@@ -32,8 +32,8 @@ handles tab creation, prompt injection, and identity assignment.
    - yx task tracker instructions (how to use `yx ls`, report status, etc.)
 
 3. **Temp file setup** — The assembled prompt is written to a temp file.
-   A wrapper script (`run.sh`) is generated that reads the prompt, deletes
-   the temp dir, and execs opencode.
+   A wrapper script (`run.sh`) is generated that reads the prompt and
+   execs opencode.
 
 4. **Zellij tab creation** — A temporary KDL layout is generated defining
    the worker tab (opencode pane + shell pane). The tab is created via
@@ -41,6 +41,28 @@ handles tab creation, prompt injection, and identity assignment.
 
 5. **Focus restoration** — After a 0.3s pause (to let the tab initialize),
    focus returns to the previous tab via `zellij action go-to-previous-tab`.
+
+## Runtime Modes
+
+### Zellij Runtime
+
+The wrapper script execs `opencode` directly. The opencode process runs
+natively on the host in the Zellij command pane.
+
+### Docker Runtime
+
+The wrapper script execs `docker run -it` which launches a container with
+the opencode TUI. The container is hardened with a read-only filesystem,
+dropped capabilities, non-root user, and resource limits. The Zellij command
+pane provides the terminal that Docker bridges into the container.
+
+Key differences from Zellij mode:
+- opencode runs inside a container, not directly on the host
+- Auth is via `ANTHROPIC_API_KEY` env var (not host's auth.json)
+- Container has its own ephemeral HOME directory (tmpfs)
+- Workspace and .yaks are bind-mounted into the container
+
+See [Docker Mode](development/DOCKER-MODE.md) for architecture details.
 
 ## Yak-Shaver Personalities
 

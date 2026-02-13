@@ -1,242 +1,177 @@
-# Local Docker Mode Testing
+# Docker Mode
 
 ## Overview
 
 The Yak Orchestrator supports two runtime modes:
-- **Zellij mode**: Local development with Zellij tabs (default on macOS/Linux without Docker)
-- **Docker mode**: Isolated containers (default when Docker available, required for VM deployment)
+- **Zellij mode**: Workers run directly in Zellij tabs as native processes
+- **Docker mode**: Workers run inside Docker containers, launched in Zellij tabs
 
-This guide covers testing Docker mode locally before deploying to a VM.
+Both modes present the same UX — the worker gets a Zellij tab with the
+opencode TUI in the top pane and a shell in the bottom pane. Docker mode
+adds container isolation around the opencode process.
 
 ## Prerequisites
 
-- Docker Desktop installed (macOS/Windows) or Docker Engine (Linux)
-- User in docker group (Linux): `sudo usermod -aG docker $USER`
+- Docker Engine installed, user in docker group
+- Zellij running (Docker workers still use Zellij tabs for the TUI)
 - Worker image built: `docker build -f worker.Dockerfile -t yak-worker:latest .`
+- `ANTHROPIC_API_KEY` exported in your environment (e.g. `~/.profile`)
+
+## How Docker Mode Works
+
+Docker mode is **not** headless. The flow is:
+
+1. `spawn-worker.sh` writes the prompt to a temp file
+2. It generates a wrapper script that runs `docker run -it` with the prompt
+3. It creates a Zellij tab layout that runs the wrapper as a `command` pane
+4. The container runs opencode interactively — the TUI renders in the pane
+
+The container gets a PTY via `docker run -it`, which opencode needs for its
+TUI. The Zellij command pane provides the terminal that Docker bridges into.
 
 ## Runtime Detection
 
-spawn-worker.sh auto-detects the runtime:
-
-```bash
-# Check what runtime will be used
-RUNTIME="" ./spawn-worker.sh --cwd . --name test "echo test"
-# Spawns in Docker if available, else Zellij
-```
-
-Override with environment variable:
+spawn-worker.sh auto-detects the runtime (Docker first, then Zellij):
 
 ```bash
 # Force Docker mode
-RUNTIME=docker ./spawn-worker.sh --cwd . --name test "echo test"
+RUNTIME=docker ./spawn-worker.sh --cwd . --name test --task test/foo "Do the thing"
 
 # Force Zellij mode
-RUNTIME=zellij ./spawn-worker.sh --cwd . --name test "echo test"
+RUNTIME=zellij ./spawn-worker.sh --cwd . --name test --task test/foo "Do the thing"
 ```
 
-## Building Worker Image
+## Building the Worker Image
 
 ```bash
-# Build from repository root
+# Build from repository root (requires yx binary in tmp/)
 docker build -f worker.Dockerfile -t yak-worker:latest .
 
-# Verify image exists
-docker images | grep yak-worker
+# Verify
+docker images yak-worker
 ```
 
-## Testing Worker Spawning
+The image contains: Ubuntu 24.04, git, bash, opencode CLI, yx binary.
+It does NOT contain credentials — those are passed via environment variables.
 
-### Basic Test
+## Container Architecture
+
+### What gets mounted
+
+| Mount | Target | Mode | Purpose |
+|-------|--------|------|---------|
+| Workspace root | Same path | rw | Code access (git repo) |
+| .yaks directory | Same path | rw | Task state (yx) |
+| Prompt file | /opt/worker/prompt.txt | ro | Worker instructions |
+| Inner script | /opt/worker/start.sh | ro | Startup script |
+
+### What is ephemeral (tmpfs)
+
+| Mount | Size | Purpose |
+|-------|------|---------|
+| /tmp | 2g | Bun runtime, native binaries (needs `exec`) |
+| /home/worker | 1g | Opencode state, logs, plugins |
+| /home/worker/.cache | 1g | Bun/npm cache |
+
+### Security hardening
+
+All of these are applied and have been tested with opencode:
+
+| Flag | Effect |
+|------|--------|
+| `--read-only` | Root filesystem is read-only |
+| `--cap-drop ALL` | No Linux capabilities |
+| `--security-opt no-new-privileges` | No privilege escalation |
+| `--user $(id -u):$(id -g)` | Runs as host user (non-root) |
+| `--network bridge` | Network access for LLM API |
+
+### Critical: tmpfs needs `exec`
+
+The `--tmpfs /tmp` mount **must** include `exec`:
+
+```
+--tmpfs /tmp:rw,exec,size=2g
+```
+
+OpenCode uses Bun, which extracts native `.node` binaries to `/tmp` and
+executes them. Without `exec`, Bun fails silently and the TUI never renders.
+This was the root cause of the "blank pane" bug during Docker worker development.
+
+## Authentication
+
+Workers receive `ANTHROPIC_API_KEY` as an environment variable. The key must
+be set in the spawning user's environment before running spawn-worker.sh.
 
 ```bash
-# Spawn test worker
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "test-worker" "echo 'Hello from Docker'"
+# In ~/.profile or ~/.bashrc (before the interactive guard)
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
 
-# Check container running
-docker ps --filter "name=yak-worker-test-worker"
+spawn-worker.sh will refuse to start a Docker worker if the key is not set.
 
-# View logs
-docker logs yak-worker-test-worker
+The container does NOT mount the host's `$HOME` or opencode auth.json.
+Each container has its own isolated home directory on tmpfs.
+
+## Testing
+
+### E2E smoke test
+
+```bash
+RUNTIME=docker ./spawn-worker.sh --cwd . --name test-docker \
+  --task test/docker-yak "Say hello and report done via yx"
+
+# Check the worker tab — TUI should render with the opencode interface
+# Check task status
+yx field --show test/docker-yak agent-status
 
 # Cleanup
-docker rm -f yak-worker-test-worker
+docker kill yak-worker-test-docker
 ```
 
-### Volume Mount Test
+### Verify security flags
 
 ```bash
-# Create test task
-mkdir -p .yaks/test-volume
-echo "todo" > .yaks/test-volume/state
-
-# Spawn worker that modifies state
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "volume-test" \
-  "echo 'done' > .yaks/test-volume/state && cat .yaks/test-volume/state"
-
-# Wait and check
-docker wait yak-worker-volume-test
-cat .yaks/test-volume/state  # Should show "done"
-
-# Cleanup
-docker rm yak-worker-volume-test
-rm -rf .yaks/test-volume
-```
-
-### Network Isolation Test
-
-```bash
-# Test default (no network)
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "no-net" \
-  "curl -s --max-time 5 https://google.com || echo 'Network blocked'"
-
-docker logs yak-worker-no-net
-# Should show: "Network blocked"
-
-# Test with setup network
-RUNTIME=docker ./spawn-worker.sh --setup-network --cwd . --name "with-net" \
-  "curl -s --max-time 5 https://google.com && echo 'Network works'"
-
-docker logs yak-worker-with-net
-# Should show: "Network works" or HTML
-
-# Cleanup
-docker rm -f yak-worker-no-net yak-worker-with-net
-```
-
-### Resource Limits Test
-
-```bash
-# Test different profiles
-RUNTIME=docker ./spawn-worker.sh --resources light --cwd . --name "light" "echo test"
-RUNTIME=docker ./spawn-worker.sh --resources default --cwd . --name "default" "echo test"
-RUNTIME=docker ./spawn-worker.sh --resources heavy --cwd . --name "heavy" "echo test"
-
-# Verify limits
-docker inspect yak-worker-light --format 'CPU={{.HostConfig.NanoCpus}} Mem={{.HostConfig.Memory}}'
-docker inspect yak-worker-default --format 'CPU={{.HostConfig.NanoCpus}} Mem={{.HostConfig.Memory}}'
-docker inspect yak-worker-heavy --format 'CPU={{.HostConfig.NanoCpus}} Mem={{.HostConfig.Memory}}'
-
-# Cleanup
-docker rm -f yak-worker-light yak-worker-default yak-worker-heavy
-```
-
-### Security Flags Test
-
-```bash
-# Spawn worker
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "security-test" "echo test"
-
-# Verify security flags
-docker inspect yak-worker-security-test --format 'CapDrop={{.HostConfig.CapDrop}}'
-# Expected: [ALL]
-
-docker inspect yak-worker-security-test --format 'ReadOnly={{.HostConfig.ReadonlyRootfs}}'
-# Expected: true
-
-docker inspect yak-worker-security-test --format 'Network={{.HostConfig.NetworkMode}}'
-# Expected: none
-
-docker inspect yak-worker-security-test --format 'SecurityOpt={{.HostConfig.SecurityOpt}}'
-# Expected: [no-new-privileges]
-
-# Cleanup
-docker rm -f yak-worker-security-test
-```
-
-## Worker Management Scripts
-
-### kill-worker.sh
-
-```bash
-# Spawn long-running worker
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "long-task" "sleep 300"
-
-# Kill it
-./kill-worker.sh long-task
-
-# Verify stopped
-docker ps --filter "name=yak-worker-long-task"
-# Should show nothing
-```
-
-### cleanup-workers.sh
-
-```bash
-# Spawn and stop several workers
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "worker-1" "echo done"
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "worker-2" "echo done"
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "worker-3" "echo done"
-
-# Wait for completion
-sleep 5
-
-# Cleanup stopped containers
-./cleanup-workers.sh
-
-# Verify cleaned
-docker ps -a --filter "name=yak-worker-"
-# Should show nothing or only running workers
-```
-
-### check-workers.sh
-
-```bash
-# Spawn mix of workers
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "running" "sleep 60" &
-RUNTIME=docker ./spawn-worker.sh --cwd . --name "quick" "echo done"
-
-sleep 2
-
-# Check status
-./check-workers.sh
-# Should show:
-# - Running Workers (Docker): yak-worker-running
-# - Stopped Workers (Docker): yak-worker-quick
-
-# Cleanup
-./kill-worker.sh running
-./cleanup-workers.sh
-```
-
-## Known Limitations
-
-### macOS File Permissions
-
-Docker Desktop on macOS may have permission issues with bind mounts.
-
-**Solution**: Ensure workspace is in a Docker-accessible location (e.g., /Users/).
-
-## Switching Between Modes
-
-### Local Development (Zellij)
-
-```bash
-# Use Zellij for interactive development
-RUNTIME=zellij ./spawn-worker.sh --cwd ./project --name "dev-worker" "Work on feature X"
-```
-
-### Pre-Deployment Testing (Docker)
-
-```bash
-# Test Docker mode before VM deployment
-RUNTIME=docker ./spawn-worker.sh --cwd ./project --name "test-worker" "Work on feature X"
-```
-
-### VM Deployment (Docker Auto)
-
-On the VM, Docker is auto-detected (no RUNTIME override needed):
-
-```bash
-# Automatically uses Docker mode
-./spawn-worker.sh --cwd ./project --name "prod-worker" "Work on feature X"
+docker inspect yak-worker-test-docker --format '
+  CapDrop={{.HostConfig.CapDrop}}
+  ReadOnly={{.HostConfig.ReadonlyRootfs}}
+  SecurityOpt={{.HostConfig.SecurityOpt}}
+  User={{.Config.User}}'
 ```
 
 ## Troubleshooting
 
-See [TROUBLESHOOTING.md](../deployment/TROUBLESHOOTING.md) for common issues.
+### Blank pane — TUI doesn't render
 
-## Next Steps
+**Cause**: `--tmpfs /tmp` without `exec` flag. Bun can't load native binaries.
 
-- Deploy to VM: See [DEPLOYMENT.md](../deployment/DEPLOYMENT.md)
-- Operations guide: See [OPERATIONS.md](../deployment/OPERATIONS.md)
-- Security architecture: See [SECURITY.md](../deployment/SECURITY.md)
+**Fix**: Ensure tmpfs has `exec`: `--tmpfs /tmp:rw,exec,size=2g`
+
+### "ANTHROPIC_API_KEY not set" error
+
+**Cause**: Key not in environment. spawn-worker.sh checks before launching.
+
+**Fix**: Export the key in your shell profile and source it.
+
+### "invalid x-api-key" in opencode TUI
+
+**Cause**: Key is truncated or incorrect.
+
+**Fix**: Verify with `echo $ANTHROPIC_API_KEY | wc -c` (should be ~108 chars).
+
+### Permission denied errors inside container
+
+**Cause**: `--user` flag without matching tmpfs uid/gid.
+
+**Fix**: tmpfs mounts need `uid=` and `gid=` to match the `--user` value.
+
+### Container exits immediately
+
+**Cause**: opencode crash, usually from missing write permissions.
+
+**Fix**: Check `docker logs <container-name>` for the Bun/EACCES error message.
+
+## Related Docs
+
+- [Worker Spawning](../worker-spawning.md) — spawn-worker.sh design
+- [Security](../deployment/SECURITY.md) — full security model
+- [Troubleshooting](../deployment/TROUBLESHOOTING.md) — general issues

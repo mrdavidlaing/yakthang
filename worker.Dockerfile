@@ -15,14 +15,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install OpenCode CLI
-RUN echo '#!/bin/bash' > /usr/local/bin/opencode && \
-    echo 'echo "OpenCode CLI v1.1.60"' >> /usr/local/bin/opencode && \
-    chmod +x /usr/local/bin/opencode
+RUN curl -fsSL https://opencode.ai/install | bash \
+    && cp /root/.opencode/bin/opencode /usr/local/bin/opencode \
+    && chmod +x /usr/local/bin/opencode
 
-# Install yx
-RUN echo '#!/bin/bash' > /usr/local/bin/yx && \
-    echo 'echo "yx v0.1.0"' >> /usr/local/bin/yx && \
-    chmod +x /usr/local/bin/yx
+# Install yx (pre-built binary copied from host)
+COPY tmp/mrdavidlaing-yaks/target/release/yx /usr/local/bin/yx
+RUN chmod +x /usr/local/bin/yx
+
+# Trust any mounted workspace (container runs as root, repo owned by host user)
+RUN git config --global --add safe.directory '*'
 
 # Create non-root worker user (UID/GID set at runtime via --user flag)
 RUN useradd -m -s /bin/bash worker
@@ -30,8 +32,8 @@ RUN useradd -m -s /bin/bash worker
 # Set working directory
 WORKDIR /workspace
 
-# Use opencode as entrypoint
-ENTRYPOINT ["opencode"]
+# No entrypoint — spawn-worker.sh specifies the full command
+ENTRYPOINT []
 
 # Document the per-project extension pattern
 LABEL description="Minimal Yak worker base image. Projects extend with: FROM yak-worker:latest"

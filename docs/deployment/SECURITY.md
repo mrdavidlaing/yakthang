@@ -1,152 +1,88 @@
-# Security Policy: Two-Phase Network Isolation
+# Security Policy: Container Hardening
 
 ## Overview
 
-The worker spawning system implements a **two-phase network isolation strategy** to balance security with operational needs:
+Docker workers run with a hardened container configuration. The container
+filesystem is read-only, all Linux capabilities are dropped, privilege
+escalation is blocked, and the process runs as a non-root user. Writable
+areas are limited to explicit tmpfs mounts and bind-mounted volumes.
 
-- **Phase 1 (Setup)**: Temporary network access for dependency installation
-- **Phase 2 (Work)**: Complete network isolation during task execution
+## Container Security Flags
 
-This design prevents workers from making unauthorized external connections while allowing legitimate dependency management.
+All of these are applied by spawn-worker.sh and verified working with opencode:
 
-## Rationale
+| Flag | Purpose |
+|------|---------|
+| `--read-only` | Root filesystem is read-only |
+| `--cap-drop ALL` | Drop all Linux capabilities |
+| `--security-opt no-new-privileges` | Prevent privilege escalation via setuid/setgid |
+| `--user $(id -u):$(id -g)` | Run as host user, not root |
+| `--pids-limit` | Limit process count (DoS prevention) |
+| `--cpus` / `--memory` | Resource limits per profile |
 
-### Why Network Isolation?
+## Filesystem Layout
 
-Workers execute untrusted code in isolated containers. Without network isolation, a compromised or malicious worker could:
-- Exfiltrate sensitive data
-- Download malware or backdoors
-- Participate in botnet attacks
-- Access internal services
+### Read-only base image
 
-### Why Two Phases?
+The container's root filesystem is read-only. The image contains only:
+- Ubuntu 24.04 base packages
+- git, bash, curl, ca-certificates
+- opencode CLI (`/usr/local/bin/opencode`)
+- yx binary (`/usr/local/bin/yx`)
 
-A single "always isolated" approach would prevent legitimate operations:
-- `npm install` requires downloading packages from registries
-- `pip install` requires PyPI access
-- `apt-get install` requires package repository access
-- Build tools may need to fetch dependencies
+### Writable tmpfs mounts
 
-The two-phase approach solves this by:
-1. **Allowing network access only when explicitly requested** (Phase 1)
-2. **Defaulting to complete isolation** (Phase 2)
-3. **Making the security boundary explicit** in the spawn command
+| Mount | Options | Size | Purpose |
+|-------|---------|------|---------|
+| `/tmp` | rw,exec | 2g | Bun runtime extracts and executes native `.node` binaries here |
+| `/home/worker` | rw,exec | 1g | Opencode data: logs, storage, plugins, config |
+| `/home/worker/.cache` | rw,exec | 1g | Bun/npm package cache |
 
-## Implementation
+**Critical**: `/tmp` must have `exec`. Opencode uses Bun, which extracts
+native addon binaries to `/tmp` and dlopen()s them. Without `exec`, the file
+watcher binding fails and the TUI never renders (blank pane).
 
-### Phase 1: Setup with Network Access
+### Bind-mounted volumes
 
-Use the `--setup-network` flag to enable bridge networking for dependency installation:
+| Host path | Container path | Mode | Purpose |
+|-----------|---------------|------|---------|
+| Workspace root | Same path | rw | Git repo access |
+| .yaks directory | Same path | rw | Task state |
+| Prompt file | /opt/worker/prompt.txt | ro | Worker instructions |
+| Inner script | /opt/worker/start.sh | ro | Startup script |
 
-```bash
-# Install dependencies with network access
-./spawn-worker.sh --setup-network --cwd ./project --name "setup" "npm install && pip install -r requirements.txt"
-```
+The workspace is mounted at the same absolute path so that git operations
+and file references work identically inside and outside the container.
 
-**Network Mode**: `--network bridge`
-- Full access to external networks
-- Can reach package registries, CDNs, and external APIs
-- Use ONLY for dependency installation
+## Network Policy
 
-### Phase 2: Work without Network (Default)
+Workers currently use `--network bridge` because they need HTTPS access to
+the LLM API (api.anthropic.com). This is the minimum required for opencode
+to function.
 
-Omit the `--setup-network` flag for task execution:
+**TODO**: Implement network filtering (see `docker-workers/network-filtering`)
+to restrict outbound connections to only the LLM API endpoints.
 
-```bash
-# Run build/test tasks with network isolation
-./spawn-worker.sh --cwd ./project --name "build" "npm run build"
-./spawn-worker.sh --cwd ./project --name "test" "npm test"
-```
+## Authentication
 
-**Network Mode**: `--network none` (default)
-- No external network access
-- Cannot reach package registries, external APIs, or other hosts
-- Prevents data exfiltration and unauthorized outbound connections
+Workers receive `ANTHROPIC_API_KEY` as an environment variable passed via
+`docker run -e`. The key is:
 
-## Usage Guidelines
+- NOT baked into the Docker image
+- NOT stored in any file inside the container
+- NOT persisted (container is ephemeral, tmpfs is volatile)
+- Sourced from the spawning user's environment
 
-### When to Use `--setup-network`
+spawn-worker.sh will exit with an error if the key is not set.
 
-✅ **Use `--setup-network` for:**
-- Initial dependency installation (`npm install`, `pip install`, `apt-get install`)
-- Downloading build tools or SDKs
-- Fetching configuration from remote sources (if necessary)
+## Non-root Execution
 
-### When NOT to Use `--setup-network`
+Containers run as the host user via `--user $(id -u):$(id -g)`. This means:
 
-❌ **Never use `--setup-network` for:**
-- Running tests or builds (use pre-installed dependencies)
-- Executing application code
-- Long-running worker tasks
-- Any task that doesn't explicitly need external network access
-
-## Security Implications
-
-### Default Isolation (Phase 2)
-
-The default `--network none` provides:
-- **Data Exfiltration Prevention**: Workers cannot send data to external hosts
-- **Malware Prevention**: Cannot download or execute remote code
-- **Lateral Movement Prevention**: Cannot access other services on the network
-- **Compliance**: Meets security requirements for untrusted code execution
-
-### Setup Phase Risks (Phase 1)
-
-When using `--setup-network`, be aware:
-- **Temporary Exposure**: Network access is only during setup, not during work
-- **Package Integrity**: Verify package sources and checksums when possible
-- **Dependency Auditing**: Review dependencies before installation
-- **Isolation Boundary**: Clearly separate setup and work phases
-
-## Best Practices
-
-1. **Separate Setup and Work**
-   ```bash
-   # Phase 1: Setup with network
-   ./spawn-worker.sh --setup-network --cwd ./project --name "setup" "npm install"
-   
-   # Phase 2: Work without network
-   ./spawn-worker.sh --cwd ./project --name "build" "npm run build"
-   ```
-
-2. **Pre-cache Dependencies**
-   - Install dependencies once in Phase 1
-   - Reuse cached dependencies in Phase 2 workers
-   - Reduces setup overhead and improves security
-
-3. **Audit Dependencies**
-   - Review `package.json`, `requirements.txt`, etc. before Phase 1
-   - Use lock files (`package-lock.json`, `Pipfile.lock`) for reproducibility
-   - Consider using private registries for sensitive dependencies
-
-4. **Monitor Setup Phase**
-   - Log all network activity during Phase 1
-   - Verify expected packages are downloaded
-   - Alert on unexpected external connections
-
-## Implementation Details
-
-### Docker Network Modes
-
-The implementation uses Docker's native network modes:
-
-- **`--network none`**: No network interfaces except loopback
-  - Prevents all external communication
-  - Minimal performance overhead
-  - Ideal for isolated task execution
-
-- **`--network bridge`**: Default Docker bridge network
-  - Full access to external networks
-  - Allows DNS resolution and outbound connections
-  - Use only for setup/installation phases
-
-### Related Security Flags
-
-The worker container also applies:
-- `--security-opt no-new-privileges`: Prevents privilege escalation
-- `--tmpfs /home/worker/.cache`: Ephemeral cache (no persistence)
-- `--cpus 2 --memory 4g --pids-limit 512`: Resource limits
-- `--user $(id -u):$(id -g)`: Non-root execution
+- The process cannot modify the container's root filesystem (also read-only)
+- Files created in the workspace have correct host ownership
+- The HOME directory is set to `/home/worker` (a tmpfs mount)
+- tmpfs mounts use `uid=` and `gid=` flags to match the user
 
 ## Troubleshooting
 
@@ -579,13 +515,19 @@ sudo systemctl status yak-orchestrator
   - Verify: `docker inspect <container> --format '{{.HostConfig.ReadonlyRootfs}}'`
   - Should show: true
 
-- [ ] **Tmpfs Mounts**: Writable areas use tmpfs (ephemeral)
+- [ ] **Tmpfs Mounts**: Writable areas use tmpfs (ephemeral, with exec)
   - Verify: `docker inspect <container> --format '{{.HostConfig.Tmpfs}}'`
-  - Should show: /tmp and /home/worker/.cache
+  - Should show: /tmp, /home/worker, /home/worker/.cache
+  - /tmp MUST have exec (Bun native binaries)
 
-- [ ] **Network Isolation**: Default network mode is none
+- [ ] **Non-root User**: Containers run as host user
+  - Verify: `docker inspect <container> --format '{{.Config.User}}'`
+  - Should show: host uid:gid (e.g. 1003:1004)
+
+- [ ] **Network**: Bridge mode (required for LLM API access)
   - Verify: `docker inspect <container> --format '{{.HostConfig.NetworkMode}}'`
-  - Should show: none (unless --setup-network used)
+  - Should show: bridge
+  - TODO: implement network filtering to restrict to API endpoints only
 
 - [ ] **No New Privileges**: Containers cannot gain privileges
   - Verify: `docker inspect <container> --format '{{.HostConfig.SecurityOpt}}'`

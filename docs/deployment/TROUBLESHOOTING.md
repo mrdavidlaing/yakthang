@@ -97,44 +97,77 @@ docker build -f worker.Dockerfile -t yak-worker:latest .
 chmod +x spawn-worker.sh
 ```
 
+### Workers spawn but TUI is blank (no output in pane)
+
+**Symptom**: Zellij tab opens but the opencode pane shows nothing.
+
+**Cause**: `--tmpfs /tmp` mounted without `exec` flag. Opencode uses Bun,
+which extracts native `.node` binaries to `/tmp` and needs to execute them.
+Without `exec`, the file watcher binding fails silently and the TUI never
+renders.
+
+**Solution**: Ensure the tmpfs mount includes `exec`:
+```bash
+--tmpfs /tmp:rw,exec,size=2g
+```
+
+**History**: This was the root cause of the Docker worker "blank pane" bug.
+The default tmpfs mount options include `noexec`, which prevents Bun from
+loading its native addon via `dlopen()`.
+
+### Workers spawn but show "invalid x-api-key"
+
+**Symptom**: TUI renders but the LLM response shows an auth error.
+
+**Cause**: `ANTHROPIC_API_KEY` is truncated or incorrect.
+
+**Solution**: Verify the key length and contents:
+```bash
+echo $ANTHROPIC_API_KEY | wc -c  # Should be ~108 chars
+```
+
 ### Workers spawn but exit immediately
 
 **Symptom**: Containers appear in `docker ps -a` with Exited status.
 
-**Cause**: Worker command failed or completed.
+**Cause**: Worker command failed — usually a permission error from opencode
+trying to write to a read-only filesystem without proper tmpfs mounts.
 
-**Solution**: Check worker logs for errors:
+**Solution**: Check container logs for the error:
 ```bash
 docker logs yak-worker-<name>
 ```
 
+Common errors:
+- `EACCES: permission denied, mkdir '/.local'` — HOME not set or not writable
+- `EROFS: read-only file system` — missing tmpfs mount for a writable path
+
 ### Workers can't write to .yaks/
 
-**Symptom**: Permission denied errors in worker logs.
+**Symptom**: Permission denied errors when yx tries to update task state.
 
 **Cause**: UID mismatch between host and container.
 
-**Solution**: Verify spawn-worker.sh uses `--user $(id -u):$(id -g)`:
-```bash
-grep "user.*id -u" spawn-worker.sh
-```
+**Solution**: Verify spawn-worker.sh uses `--user $(id -u):$(id -g)` and
+that the .yaks directory is writable by that user on the host.
 
 ## Network Issues
 
-### Workers have network access (security issue)
+### Workers can't reach the LLM API
 
-**Symptom**: Workers can curl external sites.
+**Symptom**: opencode TUI shows connection errors or timeouts.
 
-**Cause**: --setup-network flag used or network mode incorrect.
+**Cause**: Network mode or DNS issue.
 
 **Solution**:
 ```bash
-# Verify default network mode is none
+# Verify network mode is bridge
 docker inspect yak-worker-<name> --format '{{.HostConfig.NetworkMode}}'
-# Should show: none
+# Should show: bridge
 
-# Check spawn-worker.sh
-grep "network.*none" spawn-worker.sh
+# Test connectivity from inside container
+docker exec yak-worker-<name> curl -s -o /dev/null -w "%{http_code}" https://api.anthropic.com
+# Should show: 404 (endpoint exists but no auth)
 ```
 
 ## Security Issues

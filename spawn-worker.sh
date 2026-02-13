@@ -232,12 +232,9 @@ if [[ "$RUNTIME" == "docker" ]]; then
 	WORKSPACE_ROOT="$(git rev-parse --show-toplevel)"
 	CONTAINER_NAME="yak-worker-${TAB_NAME//[^a-zA-Z0-9_-]/}"
 
-	# Determine network mode: bridge for setup phase, none for work phase
-	if [[ "$SETUP_NETWORK" == "true" ]]; then
-		NETWORK_MODE="bridge"
-	else
-		NETWORK_MODE="none"
-	fi
+	# Network mode: bridge by default (workers need LLM API access)
+	# TODO: implement proper network filtering (see docker-workers/network-filtering)
+	NETWORK_MODE="bridge"
 
 	# Determine resource limits based on profile
 	case "$RESOURCES" in
@@ -258,36 +255,88 @@ if [[ "$RUNTIME" == "docker" ]]; then
 		;;
 	esac
 
-	echo "$WORKER_PROMPT" | docker run \
-		--detach \
-		--name "$CONTAINER_NAME" \
-		--user "$(id -u):$(id -g)" \
-		--network "$NETWORK_MODE" \
-		--security-opt no-new-privileges \
-		--cap-drop ALL \
-		--read-only \
-		--tmpfs /tmp:rw,noexec,nosuid,size=100m \
-		--tmpfs /home/worker/.cache:rw,noexec,nosuid,size=500m \
-		--cpus "$CPUS" \
-		--memory "$MEMORY" \
-		--pids-limit "$PIDS_LIMIT" \
-		--stop-timeout 7200 \
-		-v "${WORKSPACE_ROOT}:${WORKSPACE_ROOT}:rw" \
-		-v "${YAK_PATH}:${YAK_PATH}:rw" \
-		-v "$HOME/.gitconfig:$HOME/.gitconfig:ro" \
-		-w "$CWD" \
-		-e HOME="$HOME" \
-		-e WORKER_NAME="$SHAVER_NAME" \
-		-e WORKER_EMOJI="$SHAVER_EMOJI" \
-		-e YAK_PATH="$YAK_PATH" \
-		-e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" \
-		-i \
-		yak-worker:latest \
-		opencode --prompt - --agent "$MODE"
+	# Write prompt and wrapper script to a temp dir, then launch in a Zellij tab
+	# so the container gets a TTY for the interactive opencode TUI.
+	WORKER_DIR="$(mktemp -d "${TMPDIR:-/tmp}/worker-XXXXXX")"
+	PROMPT_FILE="${WORKER_DIR}/prompt.txt"
+	WRAPPER="${WORKER_DIR}/run.sh"
+
+	printf '%s' "$WORKER_PROMPT" >"$PROMPT_FILE"
+
+	# Inner script that runs inside the container — reads prompt file and execs opencode
+	INNER="${WORKER_DIR}/inner.sh"
+	cat >"$INNER" <<'INNER_EOF'
+#!/usr/bin/env bash
+PROMPT="$(cat /opt/worker/prompt.txt)"
+exec opencode --prompt "$PROMPT" --agent "$1"
+INNER_EOF
+	chmod +x "$INNER"
+
+	# ANTHROPIC_API_KEY must be set in the environment
+	if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then
+		echo "Error: ANTHROPIC_API_KEY not set. Docker workers need this to access the LLM API." >&2
+		exit 1
+	fi
+
+	cat >"$WRAPPER" <<WRAPPER_EOF
+#!/usr/bin/env bash
+exec docker run -it --rm \\
+	--name "$CONTAINER_NAME" \\
+	--user "$(id -u):$(id -g)" \\
+	--network "$NETWORK_MODE" \\
+	--security-opt no-new-privileges \\
+	--cap-drop ALL \\
+	--read-only \\
+	--tmpfs /tmp:rw,exec,size=2g \\
+	--tmpfs /home/worker:rw,exec,size=1g,uid=$(id -u),gid=$(id -g) \\
+	--tmpfs /home/worker/.cache:rw,exec,size=1g,uid=$(id -u),gid=$(id -g) \\
+	--cpus "$CPUS" \\
+	--memory "$MEMORY" \\
+	--pids-limit "$PIDS_LIMIT" \\
+	--stop-timeout 7200 \\
+	-v "${WORKSPACE_ROOT}:${WORKSPACE_ROOT}:rw" \\
+	-v "${YAK_PATH}:${YAK_PATH}:rw" \\
+	-v "${PROMPT_FILE}:/opt/worker/prompt.txt:ro" \\
+	-v "${INNER}:/opt/worker/start.sh:ro" \\
+	-w "$CWD" \\
+	-e HOME=/home/worker \\
+	-e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY}" \\
+	-e WORKER_NAME="$SHAVER_NAME" \\
+	-e WORKER_EMOJI="$SHAVER_EMOJI" \\
+	-e YAK_PATH="$YAK_PATH" \\
+	yak-worker:latest \\
+	bash /opt/worker/start.sh ${MODE}
+WRAPPER_EOF
+	chmod +x "$WRAPPER"
+
+	WORKER_LAYOUT="${WORKER_DIR}/layout.kdl"
+
+	cat >"$WORKER_LAYOUT" <<LAYOUT_EOF
+layout {
+    tab name="${DISPLAY_NAME}" {
+        pane size=1 borderless=true {
+            plugin location="compact-bar"
+        }
+        pane size="67%" name="opencode (${MODE}) [docker]" focus=true {
+            command "bash"
+            args "${WRAPPER}"
+        }
+        pane size="33%" name="shell: ${CWD}" cwd="${CWD}"
+        pane size=2 borderless=true {
+            plugin location="status-bar"
+        }
+    }
+}
+LAYOUT_EOF
+
+	zellij action new-tab --layout "$WORKER_LAYOUT" --name "$DISPLAY_NAME"
 
 	for task in "${TASKS[@]}"; do
 		echo "${SHAVER_NAME} ${SHAVER_EMOJI}" | yx field "$task" assigned-to
 	done
+
+	sleep 0.3
+	zellij action go-to-previous-tab
 
 	echo "Spawned ${SHAVER_NAME} (${TAB_NAME}) in Docker container ${CONTAINER_NAME}"
 
