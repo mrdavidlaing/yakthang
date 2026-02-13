@@ -935,7 +935,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 8: Orchestrator Lifecycle
 **yx task:** `persistent-vm/orchestrator-lifecycle`
 
-- [ ] 8. Create systemd service and team access documentation
+- [x] 8. Create systemd service and team access documentation
 
   **What to do**:
   1. **START**: `yx state persistent-vm/orchestrator-lifecycle wip` + report `wip: starting`
@@ -1010,7 +1010,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 9: Security Hardening
 **yx task:** `persistent-vm/security-hardening`
 
-- [ ] 9. Add VM and container security hardening
+- [x] 9. Add VM and container security hardening
 
   **What to do**:
   1. **START**: `yx state persistent-vm/security-hardening wip` + report `wip: starting`
@@ -1096,7 +1096,7 @@ echo "blocked: <reason>" | yx field <task-path> agent-status
 ### Task 10: Worker Lifecycle Management
 **yx task:** `persistent-vm/worker-lifecycle`
 
-- [ ] 10. Create worker management scripts
+- [x] 10. Create worker management scripts
 
   **What to do**:
   1. **START**: `yx state persistent-vm/worker-lifecycle wip` + report `wip: starting`
