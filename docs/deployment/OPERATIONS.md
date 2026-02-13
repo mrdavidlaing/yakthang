@@ -393,5 +393,8 @@ docker system df
 
 ### Related Documentation
 - [SECURITY.md](./SECURITY.md) - Credential management and security policies
-- [task-management.md](./task-management.md) - Task management with yx
-- [worker-spawning.md](./worker-spawning.md) - Worker spawning details
+- [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) - Common issues and solutions
+- [DEPLOYMENT.md](./DEPLOYMENT.md) - VM provisioning guide
+- [../task-management.md](../task-management.md) - Task management with yx
+- [../worker-spawning.md](../worker-spawning.md) - Worker spawning details
+- [../development/DOCKER-MODE.md](../development/DOCKER-MODE.md) - Local Docker testing
