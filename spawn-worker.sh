@@ -127,6 +127,15 @@ fi
 # Resolve to absolute path
 CWD="$(cd "$CWD" && pwd)"
 
+# Validate ZELLIJ_SESSION_NAME for Zellij runtime
+# When running inside Zellij, this env var pins zellij action commands to the correct session
+if [[ "$RUNTIME" == "zellij" ]]; then
+	if [[ -z "${ZELLIJ_SESSION_NAME:-}" ]]; then
+		echo "Warning: ZELLIJ_SESSION_NAME not set. Workers may spawn in wrong session if multiple Zellij sessions are running." >&2
+		echo "This is expected if not running inside a Zellij pane." >&2
+	fi
+fi
+
 # Extract yak title from tasks (strip parent path prefix for conciseness)
 YAK_TITLE=""
 if [[ ${#TASKS[@]} -gt 0 ]]; then
@@ -317,14 +326,22 @@ layout {
 }
 LAYOUT_EOF
 
-	zellij action new-tab --layout "$WORKER_LAYOUT" --name "$DISPLAY_NAME" --cwd "$CWD"
+	if [[ -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
+		zellij --session "$ZELLIJ_SESSION_NAME" action new-tab --layout "$WORKER_LAYOUT" --name "$DISPLAY_NAME" --cwd "$CWD"
+	else
+		zellij action new-tab --layout "$WORKER_LAYOUT" --name "$DISPLAY_NAME" --cwd "$CWD"
+	fi
 
 	for task in "${TASKS[@]}"; do
 		echo "${SHAVER_NAME} ${SHAVER_EMOJI}" | yx field "$task" assigned-to
 	done
 
 	sleep 0.3
-	zellij action go-to-previous-tab
+	if [[ -n "${ZELLIJ_SESSION_NAME:-}" ]]; then
+		zellij --session "$ZELLIJ_SESSION_NAME" action go-to-previous-tab
+	else
+		zellij action go-to-previous-tab
+	fi
 
 	echo "Spawned ${SHAVER_NAME} (${TAB_NAME}) in ${CWD}"
 
