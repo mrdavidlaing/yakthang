@@ -102,7 +102,7 @@ install_system_packages() {
 	log "Installing system packages..."
 
 	apt-get update
-	apt-get install -y git watch jq
+	apt-get install -y git watch jq build-essential pkg-config libssl-dev
 
 	# Zellij - install from GitHub releases (not in apt)
 	if command -v zellij &>/dev/null; then
@@ -174,18 +174,18 @@ install_nodejs() {
 #------------------------------------------------------------------------------
 
 install_opencode() {
-	log "Installing OpenCode CLI..."
+	log "Installing OpenCode CLI (as yakob user)..."
 
-	if command -v opencode &>/dev/null; then
-		log "OpenCode already installed: $(opencode --version)"
+	if su - yakob -c "command -v opencode" &>/dev/null; then
+		log "OpenCode already installed: $(su - yakob -c 'opencode --version')"
 		return 0
 	fi
 
-	# Install using official install script
-	log "Downloading and running official OpenCode installer..."
-	curl -fsSL https://opencode.ai/install | bash
+	# Install using official install script as yakob user
+	log "Downloading and running official OpenCode installer as yakob..."
+	su - yakob -c "curl -fsSL https://opencode.ai/install | bash"
 
-	log "OpenCode CLI installed: $(opencode --version)"
+	log "OpenCode CLI installed: $(su - yakob -c 'opencode --version')"
 }
 
 #------------------------------------------------------------------------------
@@ -218,12 +218,11 @@ install_yx() {
 		return 0
 	fi
 
-	log "Installing Rust toolchain via rustup..."
-	if ! command -v rustup &>/dev/null; then
-		curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-		source "$HOME/.cargo/env"
+	log "Installing Rust toolchain via rustup (as yakob user)..."
+	if ! su - yakob -c "command -v rustup" &>/dev/null; then
+		su - yakob -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable"
 	else
-		log "rustup already installed"
+		log "rustup already installed for yakob"
 	fi
 
 	local CLONE_DIR="/home/yakob/yakthang/tmp/mrdavidlaing-yaks"
@@ -231,13 +230,13 @@ install_yx() {
 	log "Cloning mrdavidlaing/yaks repository (ls-format-flag branch)..."
 	mkdir -p "$(dirname "$CLONE_DIR")"
 	gh repo clone mrdavidlaing/yaks "$CLONE_DIR" -- --branch ls-format-flag
+	chown -R yakob:yakob "$CLONE_DIR"
 
-	log "Building yx from source..."
-	cd "$CLONE_DIR"
-	cargo build --release
+	log "Building yx from source (as yakob user)..."
+	su - yakob -c "cd '$CLONE_DIR' && source ~/.cargo/env && cargo build --release"
 
 	log "Installing yx binary to /usr/local/bin..."
-	install -m 0755 target/release/yx /usr/local/bin/yx
+	install -m 0755 "$CLONE_DIR/target/release/yx" /usr/local/bin/yx
 
 	log "yx installed: $(yx --version)"
 }
@@ -539,11 +538,11 @@ main() {
 	install_system_packages
 	install_gh_cli
 	install_nodejs
+	create_yakob_user
 	install_opencode
 	install_openclaw
 	install_yx
 	configure_security
-	create_yakob_user
 	configure_yakob_git
 	setup_workspace
 	setup_openclaw_workspace
