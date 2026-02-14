@@ -263,12 +263,35 @@ if [[ "$RUNTIME" == "docker" ]]; then
 
 	printf '%s' "$WORKER_PROMPT" >"$PROMPT_FILE"
 
-	# Inner script that runs inside the container — reads prompt file and execs opencode
+	# Inner script that runs inside the container — reads prompt file and runs opencode
 	INNER="${WORKER_DIR}/inner.sh"
 	cat >"$INNER" <<'INNER_EOF'
 #!/usr/bin/env bash
+# Cost capture setup - write to workspace-mounted directory
+WORKSPACE_ROOT="${WORKSPACE_ROOT:-/home/yakob/yakthang}"
+COST_DIR="${WORKSPACE_ROOT}/.worker-costs"
+mkdir -p "$COST_DIR"
+
 PROMPT="$(cat /opt/worker/prompt.txt)"
-exec opencode --prompt "$PROMPT" --agent "$1"
+
+# Run opencode (NOT exec - we need post-run cleanup)
+opencode --prompt "$PROMPT" --agent "$1"
+EXIT_CODE=$?
+
+# Capture cost data to persistent storage (survives container stop)
+WORKER="${WORKER_NAME:-unknown}"
+TS="$(date -u +%Y%m%dT%H%M%SZ)"
+
+# Full session export (per-message costs)
+SID="$(opencode session list 2>/dev/null | tail -1 | awk '{print $1}')"
+if [[ -n "$SID" && "$SID" != "Session" ]]; then
+  opencode export "$SID" > "${COST_DIR}/${WORKER}-${TS}.json" 2>/dev/null
+fi
+
+# Human-readable stats
+opencode stats --models > "${COST_DIR}/${WORKER}-${TS}.stats.txt" 2>/dev/null
+
+exit $EXIT_CODE
 INNER_EOF
 	chmod +x "$INNER"
 

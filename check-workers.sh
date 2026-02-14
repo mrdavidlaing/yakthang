@@ -83,6 +83,12 @@ else
 	echo "Container Name                    Status              Running For"
 	echo "----------------------------------------------------------------"
 	echo "$DOCKER_WORKERS"
+	echo ""
+	echo "Live Cost:"
+	for container in $(docker ps --filter "name=yak-worker-" --format '{{.Names}}' 2>/dev/null); do
+		cost=$(docker exec "$container" opencode stats 2>/dev/null | grep "Total Cost" | awk '{print $NF}' || echo "n/a")
+		printf "  %-30s %s\n" "$container" "${cost:-n/a}"
+	done
 fi
 
 echo ""
