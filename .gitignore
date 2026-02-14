@@ -4,3 +4,4 @@
 
 # OpenClaw - workspace has its own git repo
 /.openclaw/
+.opencode/plans/
