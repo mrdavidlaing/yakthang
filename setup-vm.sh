@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Global variables for secrets (set by prompt_secrets, used by generate_openclaw_config and create_systemd_service)
+SETUP_ANTHROPIC_KEY=""
+SETUP_SLACK_APP_TOKEN=""
+SETUP_SLACK_BOT_TOKEN=""
+SETUP_SLACK_USER_ID=""
+
 # setup-vm.sh - Provision VM for Yak Orchestration
 #
 # This script sets up a fresh VM with all required tools for running the
@@ -10,9 +16,13 @@ set -euo pipefail
 #
 # Usage: sudo bash setup-vm.sh
 #
-# Environment Variables (optional):
-#   YAKOB_GIT_NAME   - Git user.name for yakob (will prompt if not set)
-#   YAKOB_GIT_EMAIL  - Git user.email for yakob (will prompt if not set)
+# Environment Variables (optional — skip interactive prompts):
+#   YAKOB_GIT_NAME     - Git user.name for yakob (will prompt if not set)
+#   YAKOB_GIT_EMAIL    - Git user.email for yakob (will prompt if not set)
+#   ANTHROPIC_API_KEY  - Anthropic API key (will prompt if not set)
+#   SLACK_APP_TOKEN    - Slack app-level token (will prompt if not set)
+#   SLACK_BOT_TOKEN    - Slack bot token (will prompt if not set)
+#   SLACK_USER_ID      - Slack user ID for DM allowlist (default: U08HZ8ABDV1)
 #
 # GCP Deployment Example:
 #   # Create the VM
@@ -413,6 +423,74 @@ configure_yakob_git() {
 }
 
 #------------------------------------------------------------------------------
+# 10b. Prompt for secrets (1Password)
+#------------------------------------------------------------------------------
+
+prompt_secrets() {
+	log "Configuring secrets (from 1Password)..."
+
+	# ANTHROPIC_API_KEY — required
+	if [[ -n "${ANTHROPIC_API_KEY:-}" ]]; then
+		SETUP_ANTHROPIC_KEY="$ANTHROPIC_API_KEY"
+		log "ANTHROPIC_API_KEY provided via environment"
+	elif [[ -t 0 ]]; then
+		read -rsp "Enter ANTHROPIC_API_KEY (required): " SETUP_ANTHROPIC_KEY
+		echo
+		if [[ -z "$SETUP_ANTHROPIC_KEY" ]]; then
+			log "ERROR: ANTHROPIC_API_KEY is required"
+			exit 1
+		fi
+	else
+		log "ERROR: ANTHROPIC_API_KEY not set and no TTY available"
+		exit 1
+	fi
+
+	# SLACK_APP_TOKEN — optional
+	if [[ -n "${SLACK_APP_TOKEN:-}" ]]; then
+		SETUP_SLACK_APP_TOKEN="$SLACK_APP_TOKEN"
+		log "SLACK_APP_TOKEN provided via environment"
+	elif [[ -t 0 ]]; then
+		read -rsp "Enter SLACK_APP_TOKEN (optional, press Enter to skip): " SETUP_SLACK_APP_TOKEN
+		echo
+		if [[ -z "$SETUP_SLACK_APP_TOKEN" ]]; then
+			log "SLACK_APP_TOKEN skipped — Slack integration will be disabled"
+		fi
+	else
+		log "SLACK_APP_TOKEN not set, Slack integration will be disabled"
+	fi
+
+	# SLACK_BOT_TOKEN — optional
+	if [[ -n "${SLACK_BOT_TOKEN:-}" ]]; then
+		SETUP_SLACK_BOT_TOKEN="$SLACK_BOT_TOKEN"
+		log "SLACK_BOT_TOKEN provided via environment"
+	elif [[ -t 0 ]]; then
+		read -rsp "Enter SLACK_BOT_TOKEN (optional, press Enter to skip): " SETUP_SLACK_BOT_TOKEN
+		echo
+		if [[ -z "$SETUP_SLACK_BOT_TOKEN" ]]; then
+			log "SLACK_BOT_TOKEN skipped"
+		fi
+	else
+		log "SLACK_BOT_TOKEN not set"
+	fi
+
+	# SLACK_USER_ID — optional with default
+	local default_slack_user="U08HZ8ABDV1"
+	if [[ -n "${SLACK_USER_ID:-}" ]]; then
+		SETUP_SLACK_USER_ID="$SLACK_USER_ID"
+		log "SLACK_USER_ID provided via environment: $SETUP_SLACK_USER_ID"
+	elif [[ -t 0 ]]; then
+		read -rp "Enter Slack user ID for DM allowlist [${default_slack_user}]: " SETUP_SLACK_USER_ID
+		SETUP_SLACK_USER_ID="${SETUP_SLACK_USER_ID:-$default_slack_user}"
+	else
+		SETUP_SLACK_USER_ID="$default_slack_user"
+	fi
+
+	log "Secrets configured (ANTHROPIC_API_KEY=set, SLACK=$(
+		[[ -n "$SETUP_SLACK_APP_TOKEN" ]] && echo "enabled" || echo "disabled"
+	))"
+}
+
+#------------------------------------------------------------------------------
 # 11. Create workspace directory
 #------------------------------------------------------------------------------
 
@@ -481,6 +559,149 @@ setup_openclaw_workspace() {
 	chown -R yakob:yakob /home/yakob/.openclaw
 
 	log "OpenClaw workspace setup complete"
+}
+
+#------------------------------------------------------------------------------
+# 12b. Generate OpenClaw config (~/.openclaw/openclaw.json)
+#------------------------------------------------------------------------------
+
+generate_openclaw_config() {
+	log "Generating OpenClaw config..."
+
+	local config_file="/home/yakob/.openclaw/openclaw.json"
+	local gateway_token
+	gateway_token=$(openssl rand -hex 24)
+
+	local slack_enabled="false"
+	if [[ -n "$SETUP_SLACK_APP_TOKEN" && -n "$SETUP_SLACK_BOT_TOKEN" ]]; then
+		slack_enabled="true"
+	fi
+
+	local slack_user_id="${SETUP_SLACK_USER_ID:-U08HZ8ABDV1}"
+
+	if [[ -f "$config_file" ]]; then
+		cp "$config_file" "${config_file}.bak"
+		log "Backed up existing config to ${config_file}.bak"
+	fi
+
+	cat > "$config_file" <<OCEOF
+{
+  "auth": {
+    "profiles": {
+      "anthropic:default": {
+        "provider": "anthropic",
+        "mode": "api_key"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-5"
+      },
+      "models": {
+        "anthropic/claude-sonnet-4-5": {
+          "alias": "sonnet"
+        }
+      },
+      "workspace": "/home/yakob/yakthang/.openclaw/workspace",
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "1h"
+      },
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "heartbeat": {
+        "every": "30m",
+        "activeHours": {
+          "start": "08:00",
+          "end": "22:00",
+          "timezone": "UTC"
+        },
+        "target": "last"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    },
+    "list": [
+      {
+        "id": "main",
+        "default": true,
+        "name": "Yakob (Orchestrator)",
+        "identity": {
+          "name": "Yakob"
+        }
+      }
+    ]
+  },
+  "tools": {
+    "exec": {
+      "pathPrepend": ["/home/yakob/yakthang"]
+    }
+  },
+  "messages": {
+    "ackReactionScope": "group-mentions"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "cron": {
+    "enabled": true,
+    "maxConcurrentRuns": 1
+  },
+  "channels": {
+    "slack": {
+      "mode": "socket",
+      "enabled": ${slack_enabled},
+      "groupPolicy": "open",
+      "dm": {
+        "enabled": true,
+        "policy": "allowlist",
+        "allowFrom": ["${slack_user_id}"]
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token",
+      "token": "${gateway_token}"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    },
+    "nodes": {
+      "denyCommands": [
+        "camera.snap",
+        "camera.clip",
+        "screen.record",
+        "calendar.add",
+        "contacts.add",
+        "reminders.add"
+      ]
+    }
+  },
+  "plugins": {
+    "entries": {
+      "slack": {
+        "enabled": ${slack_enabled}
+      }
+    }
+  }
+}
+OCEOF
+
+	chmod 600 "$config_file"
+	chown yakob:yakob "$config_file"
+
+	log "Generated $config_file (gateway token=$(echo "$gateway_token" | head -c 8)..., slack=$slack_enabled)"
 }
 
 #------------------------------------------------------------------------------
@@ -569,19 +790,28 @@ SyslogIdentifier=openclaw-gateway
 WantedBy=multi-user.target
 EOF
 
-	# Reload systemd to recognize the new service
+	log "Created systemd service: $service_file"
+
+	local override_dir="/etc/systemd/system/openclaw-gateway.service.d"
+	local override_file="${override_dir}/override.conf"
+	mkdir -p "$override_dir"
+
+	local override_content="[Service]"
+	override_content+="\nEnvironment=\"ANTHROPIC_API_KEY=${SETUP_ANTHROPIC_KEY}\""
+
+	if [[ -n "$SETUP_SLACK_APP_TOKEN" ]]; then
+		override_content+="\nEnvironment=\"SLACK_APP_TOKEN=${SETUP_SLACK_APP_TOKEN}\""
+	fi
+	if [[ -n "$SETUP_SLACK_BOT_TOKEN" ]]; then
+		override_content+="\nEnvironment=\"SLACK_BOT_TOKEN=${SETUP_SLACK_BOT_TOKEN}\""
+	fi
+
+	echo -e "$override_content" > "$override_file"
+	chmod 600 "$override_file"
+
 	systemctl daemon-reload
 
-	log "Created systemd service: $service_file"
-	log "NOTE: Service not enabled/started. To use:"
-	log "  1. Set ANTHROPIC_API_KEY in override file:"
-	log "     sudo mkdir -p /etc/systemd/system/openclaw-gateway.service.d"
-	log "     sudo tee /etc/systemd/system/openclaw-gateway.service.d/override.conf <<< '[Service]'"
-	log "     sudo tee -a /etc/systemd/system/openclaw-gateway.service.d/override.conf <<< 'Environment=\"ANTHROPIC_API_KEY=your-key-here\"'"
-	log "  2. Enable: systemctl enable openclaw-gateway"
-	log "  3. Start a Zellij session: zellij --session yak-workers"
-	log "  4. Start: systemctl start openclaw-gateway"
-	log "  5. Check status: systemctl status openclaw-gateway"
+	log "Created systemd override: $override_file"
 }
 
 #------------------------------------------------------------------------------
@@ -610,8 +840,10 @@ main() {
 	install_yx
 	configure_security
 	configure_yakob_git
+	prompt_secrets
 	setup_workspace
 	setup_openclaw_workspace
+	generate_openclaw_config
 	build_worker_image
 	create_systemd_service
 
@@ -619,52 +851,19 @@ main() {
 	log "VM provisioning complete!"
 	log ""
 	log "Next steps:"
-	log "  1. Set ANTHROPIC_API_KEY:"
-	log "     sudo mkdir -p /etc/systemd/system/openclaw-gateway.service.d"
-	log "     echo '[Service]' | sudo tee /etc/systemd/system/openclaw-gateway.service.d/override.conf"
-	log "     echo 'Environment=\"ANTHROPIC_API_KEY=sk-ant-your-key\"' | sudo tee -a /etc/systemd/system/openclaw-gateway.service.d/override.conf"
-	log "     sudo systemctl daemon-reload"
+	log "  1. Start a Zellij session for workers:"
+	log "     zellij --session yak-workers"
 	log ""
-	log "  2. Run OpenClaw onboarding (as yakob):"
-	log "     su - yakob"
-	log "     cd /home/yakob/yakthang"
-	log "     openclaw onboard --workspace /home/yakob/yakthang/.openclaw/workspace"
+	log "  2. Enable and start OpenClaw Gateway:"
+	log "     sudo systemctl enable --now openclaw-gateway"
 	log ""
-	log "  3. Customize identity files (SOUL.md, AGENTS.md, HEARTBEAT.md)"
-	log "     in /home/yakob/yakthang/.openclaw/workspace/"
+	log "  3. Add cron jobs (as yakob, after gateway is running):"
+	log "     openclaw cron add --name 'Worker sweep' --cron '0 */2 * * *' --tz UTC --session main --system-event 'Check for blocked workers and stale tasks. Run check-workers.sh.' --wake now"
+	log "     openclaw cron add --name 'Daily summary' --cron '0 17 * * *' --tz UTC --session isolated --message 'Summarize today. Run yx ls, check-workers.sh, ./cost-summary.sh --today.' --announce"
 	log ""
-	log "  4. Enable and start OpenClaw Gateway:"
-	log "     sudo systemctl enable openclaw-gateway"
-	log "     sudo systemctl start openclaw-gateway"
-	log "     sudo systemctl status openclaw-gateway"
-	log ""
-	log "  5. Add cron jobs (as yakob, after gateway is running):"
-	log "     # Worker sweep (every 2 hours)"
-	log "     openclaw cron add \\"
-	log "       --name \"Worker sweep\" \\"
-	log "       --cron \"0 */2 * * *\" \\"
-	log "       --tz \"UTC\" \\"
-	log "       --session main \\"
-	log "       --system-event \"Check for blocked workers and stale tasks. Run check-workers.sh.\" \\"
-	log "       --wake now"
-	log ""
-	log "     # Daily summary (5pm UTC)"
-	log "     openclaw cron add \\"
-	log "       --name \"Daily summary\" \\"
-	log "       --cron \"0 17 * * *\" \\"
-	log "       --tz \"UTC\" \\"
-	log "       --session isolated \\"
-	log "       --message \"Summarize today's work: completed tasks, blocked workers, tomorrow's priorities. Run yx ls and check-workers.sh.\" \\"
-	log "       --announce"
-	log ""
-	log "     # Verify cron jobs"
-	log "     openclaw cron list"
-	log ""
-	log "OpenClaw workspace: /home/yakob/yakthang/.openclaw/workspace"
-	log "Task state symlink: /home/yakob/yakthang/.openclaw/workspace/.yaks -> /home/yakob/yakthang/.yaks"
-	log "Gateway port: 18789 (http://localhost:18789/)"
-	log ""
-	log "NOTE: yakob must log out and back in for docker group to take effect"
+	log "  4. Verify:"
+	log "     openclaw doctor"
+	log "     openclaw agents list"
 }
 
 main "$@"
