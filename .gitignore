@@ -1,2 +1,6 @@
 .yaks
 .sisyphus
+
+# OpenClaw - commit workspace
+/.openclaw/*
+!/.openclaw/workspace/
