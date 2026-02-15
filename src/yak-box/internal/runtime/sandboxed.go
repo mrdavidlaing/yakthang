@@ -46,9 +46,9 @@ func GetResourceProfile(name string) types.ResourceProfile {
 				"/home/yak-shaver/.cache": "size=1g,exec,uid=1000,gid=1000",
 			},
 		}
-	case "rust":
+	case "ram":
 		return types.ResourceProfile{
-			Name:   "rust",
+			Name:   "ram",
 			CPUs:   "0",
 			Memory: "8g",
 			Swap:   "16g",
@@ -152,9 +152,8 @@ exit $EXIT_CODE
 		swapFlag = fmt.Sprintf("\t--memory-swap %s \\\\", profile.Swap)
 	}
 
-	// Add CARGO_BUILD_JOBS for rust profile
 	cargoJobsEnv := ""
-	if profile.Name == "rust" {
+	if profile.Name == "ram" {
 		cargoJobsEnv = "\t-e CARGO_BUILD_JOBS=4 \\"
 	}
 
