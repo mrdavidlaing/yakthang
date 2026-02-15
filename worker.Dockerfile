@@ -20,7 +20,7 @@ RUN curl -fsSL https://opencode.ai/install | bash \
     && chmod +x /usr/local/bin/opencode
 
 # Install yx (pre-built binary copied from host)
-COPY tmp/mrdavidlaing-yaks/target/release/yx /usr/local/bin/yx
+COPY yx /usr/local/bin/yx
 RUN chmod +x /usr/local/bin/yx
 
 # Trust any mounted workspace (container runs as root, repo owned by host user)

@@ -525,9 +525,14 @@ build_worker_image() {
 	fi
 
 	# Copy yx binary to workspace (required by Dockerfile)
-	mkdir -p "$workspace/tmp/mrdavidlaing-yaks/target/release"
-	cp /home/yakob/yakthang/tmp/mrdavidlaing-yaks/target/release/yx "$workspace/tmp/mrdavidlaing-yaks/target/release/yx"
-	chown yakob:yakob "$workspace/tmp" -R
+	# Use the installed binary — the temp build dir may not exist on re-runs
+	if [[ -x /usr/local/bin/yx ]]; then
+		cp /usr/local/bin/yx "$workspace/yx"
+		chown yakob:yakob "$workspace/yx"
+	else
+		log "ERROR: yx binary not found at /usr/local/bin/yx — run install_yx first"
+		return 1
+	fi
 
 	# Check if image already exists
 	if docker image inspect yak-worker:latest &>/dev/null; then
@@ -565,7 +570,7 @@ User=yakob
 Group=yakob
 WorkingDirectory=/home/yakob/yakthang
 
-Environment="ZELLIJ_SESSION_NAME=yak-workers"
+Environment="ZELLIJ_SESSION_NAME=yakthang"
 Environment="PATH=/usr/local/bin:/usr/bin:/bin"
 
 ExecStart=/usr/bin/openclaw gateway --port 18789
@@ -624,7 +629,7 @@ main() {
 	log ""
 	log "Next steps:"
 	log "  1. Start a Zellij session for workers:"
-	log "     zellij --session yak-workers"
+	log "     zellij --session yakthang"
 	log ""
 	log "  2. Enable and start OpenClaw Gateway:"
 	log "     sudo systemctl enable --now openclaw-gateway"
