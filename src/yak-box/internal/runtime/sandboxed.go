@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	containerNamePrefix = "yak-worker-"
+	containerNamePrefix = "yak-shaver-"
 	workerCacheDir      = ".yak-boxes"
-	networkName         = "yak-workers"
+	networkName         = "yak-shavers"
 )
 
 // GetResourceProfile returns the resource profile for a given name
@@ -27,9 +27,9 @@ func GetResourceProfile(name string) types.ResourceProfile {
 			Memory: "1g",
 			PIDs:   256,
 			Tmpfs: map[string]string{
-				"/tmp":                "size=1g,exec,uid=1000,gid=1000",
-				"/home/worker":        "size=512m,exec,uid=1000,gid=1000",
-				"/home/worker/.cache": "size=512m,exec,uid=1000,gid=1000",
+				"/tmp":                    "size=1g,exec,uid=1000,gid=1000",
+				"/home/yak-shaver":        "size=512m,exec,uid=1000,gid=1000",
+				"/home/yak-shaver/.cache": "size=512m,exec,uid=1000,gid=1000",
 			},
 		}
 	case "heavy":
@@ -39,9 +39,9 @@ func GetResourceProfile(name string) types.ResourceProfile {
 			Memory: "4g",
 			PIDs:   1024,
 			Tmpfs: map[string]string{
-				"/tmp":                "size=2g,exec,uid=1000,gid=1000",
-				"/home/worker":        "size=1g,exec,uid=1000,gid=1000",
-				"/home/worker/.cache": "size=1g,exec,uid=1000,gid=1000",
+				"/tmp":                    "size=2g,exec,uid=1000,gid=1000",
+				"/home/yak-shaver":        "size=1g,exec,uid=1000,gid=1000",
+				"/home/yak-shaver/.cache": "size=1g,exec,uid=1000,gid=1000",
 			},
 		}
 	default:
@@ -51,9 +51,9 @@ func GetResourceProfile(name string) types.ResourceProfile {
 			Memory: "2g",
 			PIDs:   512,
 			Tmpfs: map[string]string{
-				"/tmp":                "size=1g,exec,uid=1000,gid=1000",
-				"/home/worker":        "size=512m,exec,uid=1000,gid=1000",
-				"/home/worker/.cache": "size=512m,exec,uid=1000,gid=1000",
+				"/tmp":                    "size=1g,exec,uid=1000,gid=1000",
+				"/home/yak-shaver":        "size=512m,exec,uid=1000,gid=1000",
+				"/home/yak-shaver/.cache": "size=512m,exec,uid=1000,gid=1000",
 			},
 		}
 	}
@@ -137,7 +137,7 @@ exec docker run -it --rm \\
 	--security-opt no-new-privileges \\
 	--cap-drop ALL \\
 	--tmpfs /tmp:rw,exec,size=2g \\
-	--tmpfs /home/worker:rw,exec,size=1g \\
+	--tmpfs /home/yak-shaver:rw,exec,size=1g \\
 	--cpus %s \\
 	--memory %s \\
 	--pids-limit %d \\
@@ -147,15 +147,15 @@ exec docker run -it --rm \\
 	-v "%s:/opt/worker/prompt.txt:ro" \\
 	-v "%s:/opt/worker/start.sh:ro" \\
 	-w "%s" \\
-	-e HOME=/home/worker \
-	-e GOPATH=/home/worker/.go \
-	-e CARGO_HOME=/home/worker/.cargo \
-	-e RUSTUP_HOME=/home/worker/.rustup \
+	-e HOME=/home/yak-shaver \
+	-e GOPATH=/home/yak-shaver/.go \
+	-e CARGO_HOME=/home/yak-shaver/.cargo \
+	-e RUSTUP_HOME=/home/yak-shaver/.rustup \
 	-e OPENCODE_API_KEY="${OPENCODE_API_KEY}" \\
 	-e WORKER_NAME="%s" \\
 	-e WORKER_EMOJI="%s" \\
 	-e YAK_PATH="%s" \\
-	yak-worker:latest \\
+	yak-shaver:latest \\
 	bash /opt/worker/start.sh build
 `, containerName, os.Getuid(), os.Getgid(), networkMode, profile.CPUs, profile.Memory, profile.PIDs, workspaceRoot, workspaceRoot, worker.YakPath, worker.YakPath, promptFile, innerScript, worker.CWD, persona.Name, persona.Emoji, worker.YakPath)
 
@@ -250,7 +250,7 @@ func StopSandboxedWorker(name string, timeout time.Duration) error {
 
 // ListRunningContainers returns list of running worker containers
 func ListRunningContainers() ([]string, error) {
-	cmd := exec.Command("docker", "ps", "--filter", "name=yak-worker-", "--format", "{{.Names}}")
+	cmd := exec.Command("docker", "ps", "--filter", "name=yak-shaver-", "--format", "{{.Names}}")
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err
@@ -267,7 +267,7 @@ func ListRunningContainers() ([]string, error) {
 
 // ListAllContainers returns list of all worker containers (running and stopped)
 func ListAllContainers() ([]string, error) {
-	cmd := exec.Command("docker", "ps", "-a", "--filter", "name=yak-worker-", "--format", "{{.Names}}")
+	cmd := exec.Command("docker", "ps", "-a", "--filter", "name=yak-shaver-", "--format", "{{.Names}}")
 	output, err := cmd.Output()
 	if err != nil {
 		return nil, err

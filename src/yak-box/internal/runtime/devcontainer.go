@@ -8,7 +8,7 @@ import (
 )
 
 const devcontainerPath = ".devcontainer"
-const workerImageName = "yak-worker:latest"
+const workerImageName = "yak-shaver:latest"
 
 func getStoredDevcontainerCommit() (string, error) {
 	cmd := exec.Command("docker", "image", "inspect", workerImageName, "--format", "{{index .Config.Labels \"yakthang.devcontainer.commit\"}}")
@@ -71,7 +71,7 @@ func RebuildDevcontainer() error {
 		return fmt.Errorf("failed to get devcontainer commit: %w", err)
 	}
 
-	fmt.Println("Rebuilding yak-worker image...")
+	fmt.Println("Rebuilding yak-shaver image...")
 
 	cmd := exec.Command("docker", "build",
 		"-t", workerImageName,
@@ -113,11 +113,11 @@ func EnsureDevcontainer() error {
 		return nil
 	}
 
-	fmt.Println("Building yak-worker image for the first time...")
+	fmt.Println("Building yak-shaver image for the first time...")
 	return RebuildDevcontainer()
 }
 
-// ImageExists checks if the yak-worker Docker image exists locally
+// ImageExists checks if the yak-shaver Docker image exists locally
 func ImageExists() (bool, error) {
 	cmd := exec.Command("docker", "image", "inspect", workerImageName)
 	err := cmd.Run()
