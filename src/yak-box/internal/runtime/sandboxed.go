@@ -147,7 +147,8 @@ exec docker run -it --rm \\
 	-v "%s:/opt/worker/prompt.txt:ro" \\
 	-v "%s:/opt/worker/start.sh:ro" \\
 	-w "%s" \\
-	-e HOME=/home/worker \\
+	-e HOME=/home/worker \
+	-e GOPATH=/home/worker/.go \
 	-e OPENCODE_API_KEY="${OPENCODE_API_KEY}" \\
 	-e WORKER_NAME="%s" \\
 	-e WORKER_EMOJI="%s" \\
