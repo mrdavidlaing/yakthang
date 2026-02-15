@@ -6,78 +6,78 @@ This guide covers running and managing the Yak Orchestrator on a GCP VM, includi
 
 ### Starting the Orchestrator
 
-The orchestrator runs as a systemd service named `yak-orchestrator`.
+The orchestrator runs as a systemd service named `openclaw-gateway`.
 
 ```bash
-# 1. Set the ANTHROPIC_API_KEY (one-time setup)
-sudo systemctl edit yak-orchestrator
+# 1. Set the OPENCODE_API_KEY (one-time setup)
+sudo systemctl edit openclaw-gateway
 # Add this line in the [Service] section:
-# Environment="ANTHROPIC_API_KEY=sk-ant-..."
+# Environment="OPENCODE_API_KEY=sk-open-..."
 
 # 2. Verify orchestrator.kdl is in place
 ls -l /home/yakob/workspace/orchestrator.kdl
 
 # 3. Start the service
-sudo systemctl start yak-orchestrator
+sudo systemctl start openclaw-gateway
 
 # 4. Check status
-sudo systemctl status yak-orchestrator
+sudo systemctl status openclaw-gateway
 
 # 5. Enable auto-start on boot (optional)
-sudo systemctl enable yak-orchestrator
+sudo systemctl enable openclaw-gateway
 ```
 
 ### Stopping the Orchestrator
 
 ```bash
 # Graceful stop
-sudo systemctl stop yak-orchestrator
+sudo systemctl stop openclaw-gateway
 
 # Force stop if needed
-sudo systemctl kill yak-orchestrator
+sudo systemctl kill openclaw-gateway
 
 # Verify it stopped
-sudo systemctl status yak-orchestrator
+sudo systemctl status openclaw-gateway
 ```
 
 ### Viewing Logs
 
 ```bash
 # Follow logs in real-time
-sudo journalctl -u yak-orchestrator -f
+sudo journalctl -u openclaw-gateway -f
 
 # View recent logs (last 100 lines)
-sudo journalctl -u yak-orchestrator -n 100
+sudo journalctl -u openclaw-gateway -n 100
 
 # View logs since last boot
-sudo journalctl -u yak-orchestrator -b
+sudo journalctl -u openclaw-gateway -b
 
 # View logs from specific time
-sudo journalctl -u yak-orchestrator --since "2 hours ago"
+sudo journalctl -u openclaw-gateway --since "2 hours ago"
 ```
 
 ### Service Configuration
 
-The service file is located at `/etc/systemd/system/yak-orchestrator.service`.
+The service file is located at `/etc/systemd/system/openclaw-gateway.service`.
 
 **Key configuration:**
 - **User**: yakob (non-root)
 - **WorkingDirectory**: /home/yakob/workspace
 - **ExecStart**: Launches zellij with orchestrator.kdl layout
-- **Session Name**: yak-orchestrator (for team attachment)
+- **Session Name**: yakthang (for team attachment)
 - **Restart Policy**: on-failure with 10-second delay
 
 **To modify the service:**
 
 ```bash
 # Edit the service file (creates override)
-sudo systemctl edit yak-orchestrator
+sudo systemctl edit openclaw-gateway
 
 # Reload systemd after changes
 sudo systemctl daemon-reload
 
 # Restart the service
-sudo systemctl restart yak-orchestrator
+sudo systemctl restart openclaw-gateway
 ```
 
 ## Team Access
@@ -86,7 +86,7 @@ sudo systemctl restart yak-orchestrator
 
 **Using gcloud (GCP):**
 ```bash
-gcloud compute ssh yak-orchestrator --zone=us-central1-a
+gcloud compute ssh openclaw-gateway --zone=us-central1-a
 ```
 
 **Using direct SSH (if configured):**
@@ -96,17 +96,17 @@ ssh yakob@<vm-ip>
 
 ### Attaching to Orchestrator Session
 
-The orchestrator runs in a Zellij session named `yak-orchestrator`. Multiple team members can attach simultaneously.
+The orchestrator runs in a Zellij session named `yakthang`. Multiple team members can attach simultaneously.
 
 ```bash
 # Attach to the orchestrator session
-zellij attach yak-orchestrator
+zellij attach yakthang
 
 # If session doesn't exist, check service status
-sudo systemctl status yak-orchestrator
+sudo systemctl status openclaw-gateway
 
 # If service is running but session missing, restart it
-sudo systemctl restart yak-orchestrator
+sudo systemctl restart openclaw-gateway
 ```
 
 ### Zellij Navigation
@@ -129,15 +129,15 @@ Multiple team members can attach to the same orchestrator session simultaneously
 ```bash
 # Team member 1
 ssh yakob@vm
-zellij attach yak-orchestrator
+zellij attach yakthang
 
 # Team member 2 (simultaneously)
 ssh yakob@vm
-zellij attach yak-orchestrator
+zellij attach yakthang
 
 # Team member 3 (simultaneously)
 ssh yakob@vm
-zellij attach yak-orchestrator
+zellij attach yakthang
 ```
 
 **Key points:**
@@ -162,13 +162,13 @@ The Zellij session persists across SSH disconnects. This is critical for long-ru
 ```bash
 # Session 1: Start orchestrator and spawn workers
 ssh yakob@vm
-zellij attach yak-orchestrator
+zellij attach yakthang
 # (orchestrator running, workers spawning)
 # Ctrl+o, d to detach
 
 # Session 2: Reconnect later
 ssh yakob@vm
-zellij attach yak-orchestrator
+zellij attach yakthang
 # (same session, workers still running)
 ```
 
@@ -245,12 +245,12 @@ docker logs <worker-container-name>
 
 ```bash
 # Check service logs
-sudo journalctl -u yak-orchestrator -n 50
+sudo journalctl -u openclaw-gateway -n 50
 
 # Common issues:
 # 1. API key not set
-#    Fix: sudo systemctl edit yak-orchestrator
-#         Add: Environment="ANTHROPIC_API_KEY=sk-ant-..."
+#    Fix: sudo systemctl edit openclaw-gateway
+#         Add: Environment="OPENCODE_API_KEY=sk-open-..."
 
 # 2. orchestrator.kdl not found
 #    Fix: cp orchestrator.kdl /home/yakob/workspace/
@@ -269,14 +269,14 @@ sudo journalctl -u yak-orchestrator -n 50
 # List all Zellij sessions
 zellij list-sessions
 
-# If yak-orchestrator not listed:
-sudo systemctl status yak-orchestrator
+# If openclaw-gateway not listed:
+sudo systemctl status openclaw-gateway
 
 # If service is running but session missing:
-sudo systemctl restart yak-orchestrator
+sudo systemctl restart openclaw-gateway
 
 # If service won't start, check logs:
-sudo journalctl -u yak-orchestrator -n 50
+sudo journalctl -u openclaw-gateway -n 50
 ```
 
 ### Workers Not Spawning
@@ -300,7 +300,7 @@ sudo journalctl -u docker -n 50
 
 ```bash
 # Add to ~/.ssh/config on your local machine:
-Host yak-orchestrator
+Host openclaw-gateway
   HostName <vm-ip>
   User yakob
   ServerAliveInterval 60
@@ -308,7 +308,7 @@ Host yak-orchestrator
   TCPKeepAlive yes
 
 # Then connect with:
-ssh yak-orchestrator
+ssh openclaw-gateway
 ```
 
 ### Permission Denied Errors
@@ -340,19 +340,19 @@ cd /home/yakob/workspace
 git pull origin main
 
 # Restart orchestrator to pick up changes
-sudo systemctl restart yak-orchestrator
+sudo systemctl restart openclaw-gateway
 ```
 
 ### Rotating API Keys
 
 ```bash
-# 1. Generate new API key in Anthropic dashboard
+# 1. Generate new API key in OpenCode dashboard
 # 2. Update systemd service
-sudo systemctl edit yak-orchestrator
-# Update: Environment="ANTHROPIC_API_KEY=sk-ant-<new-key>"
+sudo systemctl edit openclaw-gateway
+# Update: Environment="OPENCODE_API_KEY=sk-open-<new-key>"
 
 # 3. Restart orchestrator
-sudo systemctl restart yak-orchestrator
+sudo systemctl restart openclaw-gateway
 
 # 4. Kill old workers (they'll use old key)
 docker kill $(docker ps -q)
@@ -380,7 +380,7 @@ docker system df
 ## Reference
 
 ### Service File Location
-- `/etc/systemd/system/yak-orchestrator.service`
+- `/etc/systemd/system/openclaw-gateway.service`
 
 ### Orchestrator Layout
 - `/home/yakob/workspace/orchestrator.kdl`
@@ -389,7 +389,7 @@ docker system df
 - `/home/yakob/workspace/`
 
 ### Logs
-- `sudo journalctl -u yak-orchestrator`
+- `sudo journalctl -u openclaw-gateway`
 
 ### Related Documentation
 - [SECURITY.md](./SECURITY.md) - Credential management and security policies

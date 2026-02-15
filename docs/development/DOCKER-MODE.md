@@ -15,7 +15,7 @@ adds container isolation around the opencode process.
 - Docker Engine installed, user in docker group
 - Zellij running (Docker workers still use Zellij tabs for the TUI)
 - Worker image built: `docker build -f worker.Dockerfile -t yak-worker:latest .`
-- `ANTHROPIC_API_KEY` exported in your environment (e.g. `~/.profile`)
+- `OPENCODE_API_KEY` exported in your environment (e.g. `~/.profile`)
 
 ## How Docker Mode Works
 
@@ -99,12 +99,12 @@ This was the root cause of the "blank pane" bug during Docker worker development
 
 ## Authentication
 
-Workers receive `ANTHROPIC_API_KEY` as an environment variable. The key must
+Workers receive `OPENCODE_API_KEY` as an environment variable. The key must
 be set in the spawning user's environment before running spawn-worker.sh.
 
 ```bash
 # In ~/.profile or ~/.bashrc (before the interactive guard)
-export ANTHROPIC_API_KEY="sk-ant-..."
+export OPENCODE_API_KEY="sk-open-..."
 ```
 
 spawn-worker.sh will refuse to start a Docker worker if the key is not set.
@@ -146,7 +146,7 @@ docker inspect yak-worker-test-docker --format '
 
 **Fix**: Ensure tmpfs has `exec`: `--tmpfs /tmp:rw,exec,size=2g`
 
-### "ANTHROPIC_API_KEY not set" error
+### "OPENCODE_API_KEY not set" error
 
 **Cause**: Key not in environment. spawn-worker.sh checks before launching.
 
@@ -156,7 +156,7 @@ docker inspect yak-worker-test-docker --format '
 
 **Cause**: Key is truncated or incorrect.
 
-**Fix**: Verify with `echo $ANTHROPIC_API_KEY | wc -c` (should be ~108 chars).
+**Fix**: Verify with `echo $OPENCODE_API_KEY | wc -c` (should be ~108 chars).
 
 ### Permission denied errors inside container
 

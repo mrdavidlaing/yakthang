@@ -353,8 +353,8 @@ If nothing needs attention, reply HEARTBEAT_OK.
 All credentials are stored as environment variables (never in config files):
 
 ```bash
-# Required: Anthropic API key
-export ANTHROPIC_API_KEY="sk-..."
+# Required: OpenCode API key
+export OPENCODE_API_KEY="sk-..."
 
 # Optional: Slack (if using Slack integration in Phase 6)
 export SLACK_APP_TOKEN="xapp-..."
@@ -433,7 +433,7 @@ Group=yakob
 WorkingDirectory=/home/yakob/yakthang
 
 # Environment variables for credentials (set via systemctl edit)
-Environment="ANTHROPIC_API_KEY="
+Environment="OPENCODE_API_KEY="
 Environment="ZELLIJ_SESSION_NAME=yakthang"
 Environment="PATH=/usr/local/bin:/usr/bin:/bin"
 
@@ -467,7 +467,7 @@ Add this content:
 
 ```ini
 [Service]
-Environment="ANTHROPIC_API_KEY=sk-ant-..."
+Environment="OPENCODE_API_KEY=sk-open-..."
 # Add other credentials as needed:
 # Environment="SLACK_APP_TOKEN=xapp-..."
 # Environment="SLACK_BOT_TOKEN=xoxb-..."
@@ -521,7 +521,7 @@ Add Slack tokens to the override file:
 
 ```ini
 [Service]
-Environment="ANTHROPIC_API_KEY=sk-ant-..."
+Environment="OPENCODE_API_KEY=sk-open-..."
 Environment="SLACK_APP_TOKEN=xapp-..."
 Environment="SLACK_BOT_TOKEN=xoxb-..."
 ```

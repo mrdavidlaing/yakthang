@@ -129,7 +129,7 @@ a remote URL. The files are small, stable markdown — direct tracking is simple
    ```
 
 5. **Update `setup-vm.sh`** — now generates `~/.openclaw/openclaw.json`,
-   prompts for secrets (ANTHROPIC_API_KEY, Slack tokens), and writes the
+   prompts for secrets (OPENCODE_API_KEY, Slack tokens), and writes the
    systemd override. No import scripts needed.
 
 6. **Remove `export-config.sh` and `import-config.sh`** — replaced by

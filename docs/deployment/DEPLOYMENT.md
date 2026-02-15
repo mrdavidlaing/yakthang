@@ -9,7 +9,7 @@ This guide covers deploying the Yak Orchestrator to a GCP Compute Engine VM runn
 - GCP project with Compute Engine API enabled
 - gcloud CLI installed and authenticated
 - SSH key configured for GCP
-- Secrets ready in 1Password: ANTHROPIC_API_KEY, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
+- Secrets ready in 1Password: OPENCODE_API_KEY, SLACK_APP_TOKEN, SLACK_BOT_TOKEN
 
 ## VM Provisioning
 
@@ -46,7 +46,7 @@ cd /home/yakob
 git clone <repo-url> yakthang
 cd yakthang
 bash setup-vm.sh
-# Script will prompt for: git identity, ANTHROPIC_API_KEY, Slack tokens
+# Script will prompt for: git identity, OPENCODE_API_KEY, Slack tokens
 ```
 
 The script will:
@@ -54,7 +54,7 @@ The script will:
 - Install OpenCode CLI, OpenClaw Gateway, and yx
 - Create yakob user with docker group
 - Configure git identity
-- **Prompt for secrets** (ANTHROPIC_API_KEY, Slack tokens from 1Password)
+- **Prompt for secrets** (OPENCODE_API_KEY, Slack tokens from 1Password)
 - Generate `~/.openclaw/openclaw.json` with workspace config
 - Build yak-worker:latest container image
 - Create systemd service with secret override

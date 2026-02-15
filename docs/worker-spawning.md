@@ -58,7 +58,7 @@ pane provides the terminal that Docker bridges into the container.
 
 Key differences from Zellij mode:
 - opencode runs inside a container, not directly on the host
-- Auth is via `ANTHROPIC_API_KEY` env var (not host's auth.json)
+- Auth is via `OPENCODE_API_KEY` env var (not host's auth.json)
 - Container has its own ephemeral HOME directory (tmpfs)
 - Workspace and .yaks are bind-mounted into the container
 

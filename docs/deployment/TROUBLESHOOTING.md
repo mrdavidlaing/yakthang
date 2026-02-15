@@ -34,19 +34,19 @@ sudo usermod -aG docker yakob
 
 ### Service won't start
 
-**Symptom**: `systemctl start yak-orchestrator` fails.
+**Symptom**: `systemctl start openclaw-gateway` fails.
 
 **Cause**: Missing API key, zellij not found, or orchestrator.kdl missing.
 
 **Solution**:
 ```bash
 # Check service logs
-sudo journalctl -u yak-orchestrator -n 50
+sudo journalctl -u openclaw-gateway -n 50
 
 # Common fixes:
 # 1. Set API key
-sudo systemctl edit yak-orchestrator
-# Add: Environment="ANTHROPIC_API_KEY=sk-ant-..."
+sudo systemctl edit openclaw-gateway
+# Add: Environment="OPENCODE_API_KEY=sk-open-..."
 
 # 2. Verify zellij installed
 which zellij  # Should show /usr/local/bin/zellij
@@ -57,20 +57,20 @@ ls /home/yakob/workspace/orchestrator.kdl
 
 ### Can't attach to Zellij session
 
-**Symptom**: `zellij attach yak-orchestrator` says "session not found".
+**Symptom**: `zellij attach yakthang` says "session not found".
 
 **Cause**: Service not running or session name mismatch.
 
 **Solution**:
 ```bash
 # Check service status
-sudo systemctl status yak-orchestrator
+sudo systemctl status openclaw-gateway
 
 # List all sessions
 zellij list-sessions
 
 # If service running but no session, restart
-sudo systemctl restart yak-orchestrator
+sudo systemctl restart openclaw-gateway
 ```
 
 ## Worker Issues
@@ -119,11 +119,11 @@ loading its native addon via `dlopen()`.
 
 **Symptom**: TUI renders but the LLM response shows an auth error.
 
-**Cause**: `ANTHROPIC_API_KEY` is truncated or incorrect.
+**Cause**: `OPENCODE_API_KEY` is truncated or incorrect.
 
 **Solution**: Verify the key length and contents:
 ```bash
-echo $ANTHROPIC_API_KEY | wc -c  # Should be ~108 chars
+echo $OPENCODE_API_KEY | wc -c  # Should be ~108 chars
 ```
 
 ### Workers spawn but exit immediately
@@ -237,7 +237,7 @@ docker inspect yak-worker-test --format '{{.HostConfig.CapDrop}}'
 
 ## Getting Help
 
-1. Check service logs: `sudo journalctl -u yak-orchestrator -f`
+1. Check service logs: `sudo journalctl -u openclaw-gateway -f`
 2. Check Docker logs: `docker logs yak-worker-<name>`
 3. Check yx task status: `yx field --show <task> agent-status`
 4. Review security checklist: See [SECURITY.md](./SECURITY.md)

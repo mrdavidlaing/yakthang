@@ -65,7 +65,7 @@ to restrict outbound connections to only the LLM API endpoints.
 
 ## Authentication
 
-Workers receive `ANTHROPIC_API_KEY` as an environment variable passed via
+Workers receive `OPENCODE_API_KEY` as an environment variable passed via
 `docker run -e`. The key is:
 
 - NOT baked into the Docker image
@@ -149,24 +149,24 @@ The Yak orchestration system uses a three-layer security model to manage credent
 
 **Scope**: yakob user on the VM
 
-**Credentials**: ANTHROPIC_API_KEY environment variable
+**Credentials**: OPENCODE_API_KEY environment variable
 
 **Management**: Set in yakob's shell profile or systemd service
 
 **Purpose**: Orchestrator and workers inherit this key
 
 **Setup**:
-- Add to `/etc/systemd/system/yak-orchestrator.service`:
+- Add to `/etc/systemd/system/openclaw-gateway.service`:
   ```ini
   [Service]
-  Environment="ANTHROPIC_API_KEY=sk-ant-..."
+  Environment="OPENCODE_API_KEY=sk-open-..."
   ```
 - Or add to yakob's `~/.bashrc`:
   ```bash
-  export ANTHROPIC_API_KEY="sk-ant-..."
+  export OPENCODE_API_KEY="sk-open-..."
   ```
 - Ensure file permissions: `chmod 600 ~/.bashrc`
-- Verify inheritance: `echo $ANTHROPIC_API_KEY` (should show key)
+- Verify inheritance: `echo $OPENCODE_API_KEY` (should show key)
 
 ### Layer 3: Ephemeral Workers (Containers)
 
@@ -178,7 +178,7 @@ The Yak orchestration system uses a three-layer security model to manage credent
 
 **Purpose**: Workers use API key for OpenCode operations
 
-**Implementation**: spawn-worker.sh passes `-e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"` (line 265)
+**Implementation**: spawn-worker.sh passes `-e OPENCODE_API_KEY="${OPENCODE_API_KEY:-}"` (line 265)
 
 **Security Properties**:
 - API key not baked into Docker image
@@ -190,17 +190,17 @@ The Yak orchestration system uses a three-layer security model to manage credent
 
 ### Storage
 
-**Primary Method**: ANTHROPIC_API_KEY stored in yakob user environment only
+**Primary Method**: OPENCODE_API_KEY stored in yakob user environment only
 
 **Options**:
 1. **Systemd service file** (recommended for production):
-   - Path: `/etc/systemd/system/yak-orchestrator.service`
+   - Path: `/etc/systemd/system/openclaw-gateway.service`
    - Permissions: `chmod 600` (root-owned)
    - Survives reboots, managed by systemd
 
 2. **Shell profile** (development/testing):
    - Path: `~/.bashrc` or `~/.profile`
-   - Permissions: `chmod 600` (yakob-owned)
+   - Permissions: `chmod 600` (yakob-loaded)
    - Loaded on interactive login
 
 ### Transmission
@@ -209,47 +209,47 @@ The Yak orchestration system uses a three-layer security model to manage credent
 
 **Implementation**:
 ```bash
-docker run -e ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" ...
+docker run -e OPENCODE_API_KEY="${OPENCODE_API_KEY:-}" ...
 ```
 
 **Security Notes**:
-- `${ANTHROPIC_API_KEY:-}` syntax prevents errors if unset
+- `${OPENCODE_API_KEY:-}` syntax prevents errors if unset
 - Environment variables visible in `docker inspect` (restrict access)
 - Not logged by Docker daemon (unlike command arguments)
 
 ### Rotation
 
 **Procedure**:
-1. Generate new API key in Anthropic dashboard
+1. Generate new API key in OpenCode dashboard
 2. Update yakob's environment:
    ```bash
-   sudo systemctl edit yak-orchestrator
-   # Update Environment="ANTHROPIC_API_KEY=sk-ant-NEW..."
+   sudo systemctl edit openclaw-gateway
+   # Update Environment="OPENCODE_API_KEY=sk-open-NEW..."
    ```
 3. Restart orchestrator service:
    ```bash
-   sudo systemctl restart yak-orchestrator
+   sudo systemctl restart openclaw-gateway
    ```
 4. Kill existing workers (they have old key):
    ```bash
    docker ps -q --filter "ancestor=yak-worker:latest" | xargs docker kill
    ```
-5. Revoke old key in Anthropic dashboard
+5. Revoke old key in OpenCode dashboard
 
 **Frequency**: Quarterly or after team changes
 
 ### Revocation
 
 **Emergency Procedure**:
-1. Revoke key in Anthropic dashboard (immediate effect)
+1. Revoke key in OpenCode dashboard (immediate effect)
 2. Remove from yakob's environment:
    ```bash
-   sudo systemctl edit yak-orchestrator
-   # Remove Environment="ANTHROPIC_API_KEY=..." line
+   sudo systemctl edit openclaw-gateway
+   # Remove Environment="OPENCODE_API_KEY=..." line
    ```
 3. Restart service and kill workers:
    ```bash
-   sudo systemctl restart yak-orchestrator
+   sudo systemctl restart openclaw-gateway
    docker ps -q --filter "ancestor=yak-worker:latest" | xargs docker kill
    ```
 
@@ -259,7 +259,7 @@ If additional credentials are needed in the future, use this structure:
 
 ```
 /etc/yak-creds/
-  anthropic-api-key    # Alternative to environment variable
+  opencode-api-key     # Alternative to environment variable
   github-token         # For private repo access (if needed)
   docker-registry      # For private Docker registries
   ...
@@ -275,7 +275,7 @@ sudo chmod 600 /etc/yak-creds/*
 
 **Usage**:
 - Mount as read-only volume: `-v /etc/yak-creds:/creds:ro`
-- Workers read from `/creds/anthropic-api-key`
+- Workers read from `/creds/opencode-api-key`
 - Requires code changes to spawn-worker.sh
 
 **Current Status**: Not implemented (environment variable approach sufficient)
@@ -307,21 +307,21 @@ sudo chmod 600 /etc/yak-creds/*
 
 4. **Set API key in systemd service**:
    ```bash
-   sudo systemctl edit yak-orchestrator
+   sudo systemctl edit openclaw-gateway
    ```
    
    Add to the override file:
    ```ini
    [Service]
-   Environment="ANTHROPIC_API_KEY=sk-ant-api03-YOUR_KEY_HERE"
+   Environment="OPENCODE_API_KEY=sk-open-api03-YOUR_KEY_HERE"
    ```
 
 5. **Verify inheritance**:
    ```bash
-   sudo systemctl start yak-orchestrator
+   sudo systemctl start openclaw-gateway
    
    # Check orchestrator has key
-   sudo systemctl show yak-orchestrator | grep ANTHROPIC_API_KEY
+   sudo systemctl show openclaw-gateway | grep OPENCODE_API_KEY
    
    # Spawn test worker and check logs
    sudo -u yakob ./spawn-worker.sh --name "test" "echo 'API key present'"
@@ -330,17 +330,17 @@ sudo chmod 600 /etc/yak-creds/*
 
 6. **Secure the service file**:
    ```bash
-   sudo chmod 600 /etc/systemd/system/yak-orchestrator.service.d/override.conf
+   sudo chmod 600 /etc/systemd/system/openclaw-gateway.service.d/override.conf
    ```
 
 ### Verification Checklist
 
 - [ ] yakob user exists: `id yakob`
-- [ ] API key in systemd service: `sudo systemctl show yak-orchestrator | grep ANTHROPIC`
-- [ ] Service starts successfully: `sudo systemctl status yak-orchestrator`
+- [ ] API key in systemd service: `sudo systemctl show openclaw-gateway | grep OPENCODE`
+- [ ] Service starts successfully: `sudo systemctl status openclaw-gateway`
 - [ ] Workers inherit key: Check container environment with `docker inspect`
 - [ ] Orchestrator can spawn workers: `./spawn-worker.sh --name "test" "echo hello"`
-- [ ] Service file permissions: `ls -l /etc/systemd/system/yak-orchestrator.service.d/`
+- [ ] Service file permissions: `ls -l /etc/systemd/system/openclaw-gateway.service.d/`
 
 ## Security Best Practices
 
@@ -368,10 +368,10 @@ sudo chmod 600 /etc/yak-creds/*
   - Document rotation procedure
   - Test rotation in staging first
 
-- **Monitor usage** via Anthropic dashboard for anomalies
-  - Check for unexpected usage spikes
-  - Review API call patterns
-  - Set up billing alerts
+- **Monitor usage** via OpenCode dashboard for anomalies
+   - Check for unexpected usage spikes
+   - Review API call patterns
+   - Set up billing alerts
 
 - **Revoke immediately** if compromise suspected
   - Follow emergency revocation procedure
@@ -421,25 +421,25 @@ sudo chmod 600 /etc/yak-creds/*
 
 ### API Key Not Found
 
-**Symptom**: Workers fail with "ANTHROPIC_API_KEY not set" error
+**Symptom**: Workers fail with "OPENCODE_API_KEY not set" error
 
 **Diagnosis**:
 ```bash
 # Check yakob's environment
-sudo -u yakob env | grep ANTHROPIC
+sudo -u yakob env | grep OPENCODE
 
 # Check systemd service
-sudo systemctl show yak-orchestrator | grep ANTHROPIC
+sudo systemctl show openclaw-gateway | grep OPENCODE
 
 # Check container environment
-docker inspect <container-id> | grep ANTHROPIC
+docker inspect <container-id> | grep OPENCODE
 ```
 
 **Solutions**:
-1. Verify key is set in systemd service: `sudo systemctl edit yak-orchestrator`
-2. Restart service: `sudo systemctl restart yak-orchestrator`
-3. Check service status: `sudo systemctl status yak-orchestrator`
-4. Verify spawn-worker.sh passes `-e ANTHROPIC_API_KEY` (line 265)
+1. Verify key is set in systemd service: `sudo systemctl edit openclaw-gateway`
+2. Restart service: `sudo systemctl restart openclaw-gateway`
+3. Check service status: `sudo systemctl status openclaw-gateway`
+4. Verify spawn-worker.sh passes `-e OPENCODE_API_KEY` (line 265)
 
 ### Permission Denied
 
@@ -448,7 +448,7 @@ docker inspect <container-id> | grep ANTHROPIC
 **Diagnosis**:
 ```bash
 # Check file permissions
-ls -l /etc/systemd/system/yak-orchestrator.service.d/
+ls -l /etc/systemd/system/openclaw-gateway.service.d/
 
 # Check current user
 whoami
@@ -472,13 +472,13 @@ id yakob
 docker ps --filter "ancestor=yak-worker:latest"
 
 # Check orchestrator service status
-sudo systemctl status yak-orchestrator
+sudo systemctl status openclaw-gateway
 ```
 
 **Solutions**:
 1. Kill all existing workers: `docker ps -q --filter "ancestor=yak-worker:latest" | xargs docker kill`
-2. Restart orchestrator: `sudo systemctl restart yak-orchestrator`
-3. Verify new key in service: `sudo systemctl show yak-orchestrator | grep ANTHROPIC`
+2. Restart orchestrator: `sudo systemctl restart openclaw-gateway`
+3. Verify new key in service: `sudo systemctl show openclaw-gateway | grep OPENCODE`
 4. Spawn test worker to confirm new key works
 
 ---
@@ -540,11 +540,11 @@ sudo systemctl status yak-orchestrator
 ### Credential Security
 
 - [ ] **API Key**: Stored in systemd service environment only
-  - Verify: `sudo systemctl cat yak-orchestrator | grep ANTHROPIC_API_KEY`
+  - Verify: `sudo systemctl cat openclaw-gateway | grep OPENCODE_API_KEY`
   - Should NOT show actual key value in git
 
 - [ ] **Service File Permissions**: Restricted to root
-  - Verify: `ls -l /etc/systemd/system/yak-orchestrator.service`
+  - Verify: `ls -l /etc/systemd/system/openclaw-gateway.service`
   - Should show: -rw------- root root
 
 ### Monitoring
