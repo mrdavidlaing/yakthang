@@ -56,7 +56,7 @@ func runSpawn(args []string) error {
 	if runtimeType == "auto" {
 		runtimeType = runtime.DetectRuntime()
 		if runtimeType == "unknown" {
-			return fmt.Errorf("no runtime available (docker or zellij)")
+			return fmt.Errorf("no runtime available (docker or zellij). Use --runtime=sandboxed or --runtime=native to force a specific runtime")
 		}
 	}
 
@@ -112,18 +112,29 @@ func runSpawn(args []string) error {
 
 	if runtimeType == "sandboxed" {
 		if err := runtime.EnsureDevcontainer(); err != nil {
-			return fmt.Errorf("failed to ensure devcontainer: %w", err)
+			fmt.Fprintf(os.Stderr, "Warning: failed to ensure devcontainer: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Falling back to native runtime...\n")
+			runtimeType = "native"
+			worker.Runtime = runtimeType
 		}
 	}
 
+	spawned := false
 	if runtimeType == "sandboxed" {
-		if err := runtime.SpawnSandboxedWorker(worker, &persona, workerPrompt, profile); err != nil {
-			return fmt.Errorf("failed to spawn sandboxed worker: %w", err)
+		err := runtime.SpawnSandboxedWorker(worker, &persona, workerPrompt, profile)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to spawn sandboxed worker: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Falling back to native runtime...\n")
+		} else {
+			spawned = true
 		}
-	} else {
+	}
+
+	if !spawned {
 		if err := runtime.SpawnNativeWorker(worker, &persona, workerPrompt); err != nil {
-			return fmt.Errorf("failed to spawn native worker: %w", err)
+			return fmt.Errorf("failed to spawn worker: %w\nNote: Neither Docker nor Zellij are available in this environment", err)
 		}
+		runtimeType = "native"
 	}
 
 	if err := metadata.SaveMetadata(worker, &persona, spawnYaks); err != nil {
