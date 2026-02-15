@@ -149,6 +149,8 @@ exec docker run -it --rm \\
 	-w "%s" \\
 	-e HOME=/home/worker \
 	-e GOPATH=/home/worker/.go \
+	-e CARGO_HOME=/home/worker/.cargo \
+	-e RUSTUP_HOME=/home/worker/.rustup \
 	-e OPENCODE_API_KEY="${OPENCODE_API_KEY}" \\
 	-e WORKER_NAME="%s" \\
 	-e WORKER_EMOJI="%s" \\
