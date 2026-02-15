@@ -2,9 +2,22 @@
 .sisyphus
 .worker-cache
 .worker-costs
+.go-cache
+tmp-build
+
+# yak-boxes: worker runtime data (auto-generated)
+.yak-boxes/
+
+# Binaries (built locally, not committed)
+bin/yak-box
+bin/yx
+bin/yak-map.wasm
+
+# Cargo build artifacts
+**/target/
+**/.cargo/
 
 # OpenClaw workspace — track identity/memory files, ignore runtime state
 /.openclaw/workspace/.yaks
 
 .opencode/plans/
-src/yak-map/target/

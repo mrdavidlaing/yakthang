@@ -6,4 +6,4 @@ description: |
 authors:
   - Yakob <yakob@openod>
 version: 0.1.0
-dir: target/wasm32-wasi/debug/yak-map.wasm
+dir: target/wasm32-wasip1/debug/yak-map.wasm

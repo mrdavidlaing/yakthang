@@ -2,20 +2,16 @@
 name = "yak-map"
 version = "0.1.0"
 edition = "2021"
-description = "Zellij plugin for visualizing yak task state"
+authors = ["Yakob <yakob@openod>"]
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+path = "src/main.rs"
+crate-type = ["cdylib"]
 
 [dependencies]
-zellij-tile = "0.41"
+zellij-tile = "0.43"
 serde = "1.0"
 
-[dev-dependencies]
-tempfile = "3"
-
 [profile.release]
-panic = "abort"
-codegen-units = 1
 lto = true
-opt-level = "z"
+opt-level = "s"
