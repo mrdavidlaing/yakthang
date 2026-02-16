@@ -10,7 +10,7 @@ Yakthang is designed to manage exactly this kind of work. When you're trying to 
 
 ### What is a Yakthang?
 
-A play on the Tibetan: ཡིག་ཐང་, yik tang - the high-altitude plateau in Tibet where yaks roam free. In the context of this project its the place where yaks get discovered... organised and shaved.
+A play on the Tibetan: ཡིག་ཐང་, yik tang - the high-altitude plateau in Tibet where yaks roam free. In the context of this project its a VM where everything runs - ie; the _tang_ where yaks get mapped and shaved.
 
 ## The Big Picture
 
@@ -42,16 +42,7 @@ Yak shavers spawn as **additional Zellij tabs**, each running an OpenCode instan
 - For straightforward tasks, they proceed without intervention
 - For complex issues, you can focus their tab and provide additional guidance
 
-```
-Yakob's 🛖 (main tab)
-│
-├── YakMap (left) — visual task map from .yaks/
-├── Yakob (right top) — orchestration agent
-└── Shell (right bottom) — manual commands
-
-[Tab: api-shasher] — shaver working on auth-api
-[Tab: frontend-shasher] — shaver working on frontend-refactor
-```
+Yak shavers obviously have Yak inspired names - Yakriel, Yakov, Yakueline.  Noticing the theme yet :)
 
 ### Optional: Messaging Integration
 
@@ -106,7 +97,7 @@ Stores task state as a directory tree:
 
 ```
 .yaks/
-├── yakthang-v2/
+├── yakthang/
 │   ├── add-overview-docs/
 │   │   ├── context       # Task requirements
 │   │   └── agent-status  # Current worker status
@@ -123,8 +114,7 @@ Runtime directory for shaver instances:
 ```
 .yak-boxes/
 ├── add-overview-docs.meta   # Shaver configuration
-├── api-shasher.meta
-└── api-shasher.log          # Execution log
+├── compile-yx.meta
 ```
 
 ## How It Works
