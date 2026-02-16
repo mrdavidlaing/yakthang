@@ -18,6 +18,7 @@ import (
 var (
 	spawnCWD       string
 	spawnName      string
+	spawnSession   string
 	spawnMode      string
 	spawnResources string
 	spawnYaks      []string
@@ -108,6 +109,7 @@ func runSpawn(args []string) error {
 		YakPath:       spawnYakPath,
 		Tasks:         spawnYaks,
 		SpawnedAt:     time.Now(),
+		SessionName:   spawnSession,
 	}
 
 	if runtimeType == "sandboxed" {
@@ -146,6 +148,8 @@ func init() {
 
 	spawnCmd.Flags().StringVar(&spawnName, "name", "", "Worker name used in logs and metadata (required)")
 	spawnCmd.MarkFlagRequired("name")
+
+	spawnCmd.Flags().StringVar(&spawnSession, "session", "yakthang", "Zellij session name (overrides ZELLIJ_SESSION_NAME)")
 
 	spawnCmd.Flags().StringVar(&spawnMode, "mode", "build", "Agent mode: 'plan' or 'build'")
 	spawnCmd.Flags().StringVar(&spawnResources, "resources", "default", "Resource profile: 'light', 'default', 'heavy', or 'ram'")

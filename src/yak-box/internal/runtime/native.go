@@ -53,7 +53,7 @@ exec opencode --prompt "$PROMPT" --agent build
 		return fmt.Errorf("failed to write layout file: %w", err)
 	}
 
-	zellijSession := os.Getenv("ZELLIJ_SESSION_NAME")
+	zellijSession := worker.SessionName
 	var zellijCmd *exec.Cmd
 	if zellijSession != "" {
 		zellijCmd = exec.Command("zellij", "--session", zellijSession, "action", "new-tab", "--layout", layoutFile, "--name", worker.DisplayName, "--cwd", worker.CWD)
@@ -69,21 +69,20 @@ exec opencode --prompt "$PROMPT" --agent build
 }
 
 // StopNativeWorker stops a native worker by closing the Zellij tab
-func StopNativeWorker(name string) error {
+func StopNativeWorker(name, sessionName string) error {
 	root, _ := findWorkspaceRoot()
 	closeTabScript := filepath.Join(root, "close-zellij-tab.sh")
-	
-	zellijSession := os.Getenv("ZELLIJ_SESSION_NAME")
-	
+
+	zellijSession := sessionName
+
 	var cmd *exec.Cmd
 	if zellijSession != "" && fileExists(closeTabScript) {
 		cmd = exec.Command(closeTabScript, "--session", zellijSession, name)
 	} else if fileExists(closeTabScript) {
 		cmd = exec.Command(closeTabScript, name)
 	} else {
-		zellijSessionEnv := os.Getenv("ZELLIJ_SESSION_NAME")
-		if zellijSessionEnv != "" {
-			cmd = exec.Command("zellij", "--session", zellijSessionEnv, "action", "close-tab", "-n", name)
+		if zellijSession != "" {
+			cmd = exec.Command("zellij", "--session", zellijSession, "action", "close-tab", "-n", name)
 		} else {
 			cmd = exec.Command("zellij", "action", "close-tab", "-n", name)
 		}

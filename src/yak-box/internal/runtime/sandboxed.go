@@ -216,7 +216,7 @@ exec docker run -it --rm \
 
 	// Spawn Zellij tab with the layout
 	var zellijCmd *exec.Cmd
-	sessionName := os.Getenv("ZELLIJ_SESSION_NAME")
+	sessionName := worker.SessionName
 	if sessionName != "" {
 		zellijCmd = exec.Command("zellij", "--session", sessionName, "action", "new-tab", "--layout", layoutFile, "--name", worker.DisplayName)
 	} else {
@@ -230,8 +230,8 @@ exec docker run -it --rm \
 	// Small delay then go back to previous tab
 	time.Sleep(300 * time.Millisecond)
 	var prevTabCmd *exec.Cmd
-	if sessionName != "" {
-		prevTabCmd = exec.Command("zellij", "--session", sessionName, "action", "go-to-previous-tab")
+	if worker.SessionName != "" {
+		prevTabCmd = exec.Command("zellij", "--session", worker.SessionName, "action", "go-to-previous-tab")
 	} else {
 		prevTabCmd = exec.Command("zellij", "action", "go-to-previous-tab")
 	}

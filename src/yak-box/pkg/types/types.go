@@ -18,6 +18,7 @@ type Worker struct {
 	YakPath       string
 	Tasks         []string
 	SpawnedAt     time.Time
+	SessionName   string
 }
 
 type ResourceProfile struct {
