@@ -257,20 +257,22 @@ impl State {
         }
 
         let mut prefix = String::new();
+        let line_color = "\x1b[90m";
+        let reset = "\x1b[0m";
 
         // For depth >= 2, show continuation only for grandparent (index 1)
         if task.depth >= 2 {
             if let Some(&grandparent_cont) = task.ancestor_continuations.get(1) {
                 if grandparent_cont {
-                    prefix.push_str("│  ");
+                    prefix.push_str(&format!("{}│ {}", line_color, reset));
                 }
             }
         }
 
         if task.is_last_sibling {
-            prefix.push_str("╰─ ");
+            prefix.push_str(&format!("{}╰─{}", line_color, reset));
         } else {
-            prefix.push_str("├─ ");
+            prefix.push_str(&format!("{}├─{}", line_color, reset));
         }
 
         prefix
@@ -652,7 +654,7 @@ mod tests {
         let grandchild = state.tasks.iter().find(|t| t.name == "grandchild").unwrap();
         // grandparent "parent" has sibling "sibling" at root, so continuation shows
         let prefix = state.tree_prefix(grandchild);
-        assert_eq!(prefix, "│  ╰─ ");
+        assert_eq!(prefix, "\x1b[90m│ \x1b[0m\x1b[90m╰─\x1b[0m");
     }
 
     #[test]
@@ -672,7 +674,7 @@ mod tests {
         // task-a has no sibling at depth 0, so no continuation
         let child2 = state.tasks.iter().find(|t| t.name == "child2").unwrap();
         let prefix = state.tree_prefix(child2);
-        assert_eq!(prefix, "╰─ ");
+        assert_eq!(prefix, "\x1b[90m╰─\x1b[0m");
     }
 
     #[test]
@@ -691,7 +693,7 @@ mod tests {
         let grandchild = state.tasks.iter().find(|t| t.name == "grandchild").unwrap();
         // grandparent "parent" has no sibling at root, so no continuation
         let prefix = state.tree_prefix(grandchild);
-        assert_eq!(prefix, "╰─ ");
+        assert_eq!(prefix, "\x1b[90m╰─\x1b[0m");
     }
 
     #[test]
