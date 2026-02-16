@@ -135,6 +135,7 @@ impl State {
 
         if tasks.is_empty() {
             self.tasks = tasks;
+            self.selected_index = 0;
             return;
         }
 
@@ -169,33 +170,42 @@ impl State {
         for i in 0..tasks.len() {
             let path = &tasks[i].path;
             let mut continuations = Vec::new();
+
+            // For each ancestor level (parent, grandparent, etc.), check if that ancestor has siblings after it
             let mut current = if let Some(pos) = path.rfind('/') {
                 Some(path[..pos].to_string())
             } else {
                 None
             };
 
-            while let Some(parent) = current {
-                if let Some(&parent_idx) = path_to_index.get(&parent) {
-                    let siblings = by_parent.get(&parent).map(|v| v.as_slice()).unwrap_or(&[]);
-                    let pos_in_siblings = siblings.iter().position(|&x| x == i);
-                    if let Some(pos) = pos_in_siblings {
-                        let is_not_last = pos + 1 < siblings.len();
-                        continuations.push(is_not_last);
-                    }
-
-                    current = if let Some(pos) = parent.rfind('/') {
-                        Some(parent[..pos].to_string())
-                    } else {
-                        None
-                    };
+            while let Some(ancestor) = current {
+                // Get the parent's parent (to find siblings of the ancestor)
+                let ancestors_parent = if let Some(pos) = ancestor.rfind('/') {
+                    Some(ancestor[..pos].to_string())
                 } else {
-                    current = if let Some(pos) = parent.rfind('/') {
-                        Some(parent[..pos].to_string())
-                    } else {
-                        None
-                    };
+                    Some(String::new()) // root level
+                };
+
+                if let Some(parent_of_ancestor) = ancestors_parent {
+                    let ancestors_siblings = by_parent
+                        .get(&parent_of_ancestor)
+                        .map(|v| v.as_slice())
+                        .unwrap_or(&[]);
+                    let pos_in_ancestors_siblings = ancestors_siblings.iter().position(|&x| {
+                        x == path_to_index.get(&ancestor).copied().unwrap_or(usize::MAX)
+                    });
+
+                    if let Some(pos) = pos_in_ancestors_siblings {
+                        let has_more_siblings = pos + 1 < ancestors_siblings.len();
+                        continuations.push(has_more_siblings);
+                    }
                 }
+
+                current = if let Some(pos) = ancestor.rfind('/') {
+                    Some(ancestor[..pos].to_string())
+                } else {
+                    None
+                };
             }
             tasks[i].ancestor_continuations = continuations;
         }
@@ -247,24 +257,14 @@ impl State {
         }
 
         let mut prefix = String::new();
+
         for (i, &continues) in task.ancestor_continuations.iter().enumerate() {
-            if i == task.ancestor_continuations.len() - 1 {
-                break;
-            }
             if continues {
-                prefix.push_str("│  ");
-            } else {
-                prefix.push_str("   ");
+                prefix.push_str("│ ");
             }
         }
 
-        if task.depth == 1 {
-            if task.is_last_sibling {
-                prefix.push_str("╰─ ");
-            } else {
-                prefix.push_str("├─ ");
-            }
-        } else if task.is_last_sibling {
+        if task.is_last_sibling {
             prefix.push_str("╰─ ");
         } else {
             prefix.push_str("├─ ");
@@ -285,13 +285,22 @@ impl State {
             task.name.clone()
         };
 
+        let assignment = if let Some(agent) = &task.assigned_to {
+            format!(" [\x1b[36m{}\x1b[0m]", agent)
+        } else {
+            String::new()
+        };
+
         let status_color = if matches!(task.state, TaskState::Done) {
             "\x1b[90m"
         } else {
             color
         };
 
-        format!("{}{}{} {} ", prefix, status_color, status, name)
+        format!(
+            "{}{}{} {}{}\x1b[0m",
+            prefix, status_color, status, name, assignment
+        )
     }
 }
 
@@ -366,16 +375,11 @@ impl ZellijPlugin for State {
         let max_rows = rows.saturating_sub(3);
         for (i, task) in self.tasks.iter().take(max_rows).enumerate() {
             let line = self.render_task(task);
-            let truncated = if line.len() > cols {
-                format!("{}...", &line[..cols.saturating_sub(3)])
-            } else {
-                line
-            };
 
             if i == self.selected_index {
-                println!("\x1b[7m{}\x1b[0m", truncated);
+                println!("\x1b[7m{}\x1b[0m", line);
             } else {
-                println!("{}", truncated);
+                println!("{}", line);
             }
         }
     }
@@ -433,8 +437,12 @@ mod tests {
         let repo = TaskRepository::new(yaks);
         let tasks = repo.list_tasks();
 
-        assert_eq!(tasks.len(), 1);
-        assert_eq!(tasks[0], ("parent/child/grandchild".to_string(), 2));
+        // Should find all three levels (parent, child, grandchild)
+        assert_eq!(tasks.len(), 3);
+        let paths: Vec<_> = tasks.iter().map(|(p, _)| p.as_str()).collect();
+        assert!(paths.contains(&"parent"));
+        assert!(paths.contains(&"parent/child"));
+        assert!(paths.contains(&"parent/child/grandchild"));
     }
 
     #[test]
@@ -447,10 +455,13 @@ mod tests {
         let repo = TaskRepository::new(yaks);
         let tasks = repo.list_tasks();
 
-        assert_eq!(tasks.len(), 3);
+        // Should find all 5 tasks (task-a, parent, parent/task-b, parent/child, parent/child/task-c)
+        assert_eq!(tasks.len(), 5);
         let paths: Vec<_> = tasks.iter().map(|(p, _)| p.as_str()).collect();
         assert!(paths.contains(&"task-a"));
+        assert!(paths.contains(&"parent"));
         assert!(paths.contains(&"parent/task-b"));
+        assert!(paths.contains(&"parent/child"));
         assert!(paths.contains(&"parent/child/task-c"));
     }
 
@@ -569,10 +580,11 @@ mod tests {
 
     #[test]
     fn task_name_extracts_last_path_component() {
-        let task = TaskLine {
-            path: "parent/child/grandchild".to_string(),
-            ..TaskLine::default()
-        };
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "parent/child/grandchild");
+
+        let repo = TaskRepository::new(yaks);
+        let task = repo.get_task("parent/child/grandchild", 2);
         assert_eq!(task.name, "grandchild");
     }
 
@@ -597,5 +609,221 @@ mod tests {
 
         let repo = TaskRepository::new(yaks);
         assert_eq!(repo.get_field("my-task", "assigned-to"), None);
+    }
+
+    #[test]
+    fn debug_continuation() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "task-a/child1");
+        create_task(&yaks, "task-a/child2");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        for task in &state.tasks {
+            eprintln!(
+                "{}: depth={}, ancestors={:?}, is_last={}",
+                task.path, task.depth, task.ancestor_continuations, task.is_last_sibling
+            );
+        }
+    }
+
+    #[test]
+    fn tree_prefix_depth_2_with_sibling_has_continuation() {
+        let (_temp, yaks) = mock_yaks();
+        // task-a has sibling task-b, so task-a's children need continuation
+        create_task(&yaks, "task-a/child");
+        create_task(&yaks, "task-b");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        let child = state.tasks.iter().find(|t| t.name == "child").unwrap();
+        let prefix = state.tree_prefix(child);
+        assert_eq!(prefix, "│ ╰─ ");
+    }
+
+    #[test]
+    fn tree_prefix_depth_2_last_child_has_continuation() {
+        let (_temp, yaks) = mock_yaks();
+        // Only task-a, no sibling - children have no continuation needed
+        create_task(&yaks, "task-a/child1");
+        create_task(&yaks, "task-a/child2");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        // task-a has no sibling at depth 0, so no continuation
+        let child2 = state.tasks.iter().find(|t| t.name == "child2").unwrap();
+        let prefix = state.tree_prefix(child2);
+        assert_eq!(prefix, "╰─ ");
+    }
+
+    #[test]
+    fn tree_prefix_depth_2_no_continuation_when_parent_not_last() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "task-a/child");
+        create_task(&yaks, "task-b");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        let child = state.tasks.iter().find(|t| t.name == "child").unwrap();
+        let prefix = state.tree_prefix(child);
+        assert_eq!(prefix, "│ ╰─ ");
+    }
+
+    #[test]
+    fn render_task_wip_shows_green_bullet() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "my-task");
+        set_field(&yaks, "my-task", "state", "wip");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        let task = state.tasks.iter().find(|t| t.name == "my-task").unwrap();
+        let rendered = state.render_task(task);
+
+        assert!(rendered.contains("●"), "rendered: {:?}", rendered);
+    }
+
+    #[test]
+    fn render_task_done_shows_strikethrough() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "my-task");
+        set_field(&yaks, "my-task", "state", "done");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        let task = state.tasks.iter().find(|t| t.name == "my-task").unwrap();
+        let rendered = state.render_task(task);
+
+        assert!(rendered.contains("\x1b[9m"));
+        assert!(rendered.contains("my-task"));
+        assert!(rendered.contains("\x1b[0m"));
+    }
+
+    #[test]
+    fn render_task_todo_shows_white() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "my-task");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        let task = state.tasks.iter().find(|t| t.name == "my-task").unwrap();
+        let rendered = state.render_task(task);
+
+        assert!(rendered.contains("○"));
+        assert!(rendered.contains("\x1b[37m"));
+    }
+
+    #[test]
+    fn refresh_tasks_sets_is_last_sibling() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "task-a");
+        create_task(&yaks, "task-b");
+        create_task(&yaks, "task-c");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        let task_a = state.tasks.iter().find(|t| t.name == "task-a").unwrap();
+        let task_b = state.tasks.iter().find(|t| t.name == "task-b").unwrap();
+        let task_c = state.tasks.iter().find(|t| t.name == "task-c").unwrap();
+
+        assert!(!task_a.is_last_sibling);
+        assert!(!task_b.is_last_sibling);
+        assert!(task_c.is_last_sibling);
+    }
+
+    #[test]
+    fn render_task_with_assignment_shows_agent() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "my-task");
+        set_field(&yaks, "my-task", "assigned-to", "bob");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        let task = state.tasks.iter().find(|t| t.name == "my-task").unwrap();
+        assert!(
+            task.assigned_to.is_some(),
+            "assigned_to: {:?}",
+            task.assigned_to
+        );
+
+        let rendered = state.render_task(task);
+        assert!(rendered.contains("bob"), "rendered: {:?}", rendered);
+    }
+
+    #[test]
+    fn refresh_tasks_handles_empty_directory() {
+        let (_temp, yaks) = mock_yaks();
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            selected_index: 5,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        assert!(state.tasks.is_empty());
+        assert_eq!(state.selected_index, 0);
+    }
+
+    #[test]
+    fn refresh_tasks_selected_index_bounded() {
+        let (_temp, yaks) = mock_yaks();
+        create_task(&yaks, "task-a");
+
+        let repo = TaskRepository::new(yaks.clone());
+        let mut state = State {
+            repository: repo,
+            selected_index: 10,
+            ..Default::default()
+        };
+        state.refresh_tasks();
+
+        assert_eq!(state.selected_index, 0);
     }
 }

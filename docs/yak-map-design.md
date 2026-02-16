@@ -2,26 +2,7 @@
 
 ## Overview
 
-yak-map is a Zellij plugin that replaces the current `watch "yx ls"` approach in the orchestrator's left pane with a native plugin that provides richer task visualization, keyboard navigation, and potentially interactive features.
-
-## Current State
-
-The orchestrator layout (`orchestrator.kdl`) currently defines:
-
-```
-pane size="33%" name="yak-map" {
-    command "./yak-map.sh"
-}
-```
-
-The current `yak-map.sh` runs a simple `while true` loop:
-
-```bash
-buffer=$(yx ls --format '{name}{?assigned-to: [{assigned-to}]}')
-echo -ne "$CLEAR"
-printf '%s\n' "$buffer"
-sleep 2
-```
+yak-map is a Zellij plugin that reads the `.yaks/` directory directly to display task hierarchy with rich visualization, keyboard navigation, and interactive features.
 
 ## Goals
 
@@ -73,12 +54,15 @@ The plugin reads `.yaks/` directly rather than calling `yx` as a subprocess.
 
 ```rust
 struct TaskLine {
-    path: String,       // Full path: "yurt-poc/worker-assignment"
-    name: String,       // Just the name: "worker-assignment"
-    depth: usize,       // 0 = root, 1 = child, etc.
-    status: char,       // '●' (active), '○' (todo)
+    path: String,              // Full path: "yurt-poc/worker-assignment"
+    name: String,              // Just the name: "worker-assignment"
+    depth: usize,              // 0 = root, 1 = child, etc.
+    state: TaskState,          // Wip, Todo, Done
+    status: char,              // '●' (active), '○' (todo)
     assigned_to: Option<String>,
-    agent_status: Option<String>,
+    agent_status: Option<String>,  // Not used for colors, stored for reference
+    is_last_sibling: bool,
+    ancestor_continuations: Vec<bool>,  // For tree continuation lines
 }
 ```
 
@@ -103,13 +87,13 @@ impl TaskRepository {
 #### 3. Renderer Module
 
 - Convert task list to ANSI-rendered text
-- Apply colors based on task state:
-  - `blocked:*` → Red
-  - `done:*` → Green  
-  - `wip:*` → Yellow
-  - Default → White
-- Support line truncation to fit column width
-- Highlight selected line (reverse video)
+- Apply colors based on task state (from `state` file):
+  - `wip` → Green
+  - `done` → Gray (with strikethrough)
+  - `todo` → White
+- Assigned agent shown in cyan: `[agent-name]`
+- Lines wrap (no truncation)
+- Selected line highlighted (reverse video)
 
 ### Event Handling
 
@@ -126,11 +110,11 @@ The plugin subscribes to:
 ### Build Requirements
 
 ```bash
-rustup target add wasm32-wasi
-cargo build --target wasm32-wasi
+rustup target add wasm32-wasip1
+cargo build --release --target wasm32-wasip1
 ```
 
-Output: `target/wasm32-wasi/debug/yak-map.wasm`
+Output: `target/wasm32-wasip1/release/yak-map.wasm`
 
 ## Integration
 
@@ -154,32 +138,34 @@ pane size="33%" name="yak-map" {
 }
 ```
 
-## Comparison: Script vs Plugin
+## Comparison: Subprocess vs Direct Filesystem
 
-| Feature | Script (current) | Plugin (proposed) |
-|---------|------------------|-------------------|
-| Tree visualization | Via yx ls | Custom rendering |
-| Assignment display | Via format flag | Inline annotation |
+| Feature | yx subprocess | Direct filesystem |
+|---------|---------------|-------------------|
+| Tree visualization | Via yx command | Direct directory read |
+| Assignment display | Via format flag | Read from files |
 | Color-coded status | Via ANSI in output | Rich state colors |
 | Keyboard navigation | None | Up/Down/Enter |
-| Error handling | Basic | Graceful degradation |
+| Error handling | Subprocess failures | Graceful degradation |
 | Resize handling | Terminal default | Smart truncation |
-| Memory footprint | Per-process | Single instance |
+| Dependencies | Requires yx binary | No external deps |
 
 ## Implementation Phases
 
 ### Phase 1: Core Display (MVP)
 
-- [ ] Execute `yx ls` subprocess
-- [ ] Parse tree structure
-- [ ] Render task list with colors
-- [ ] Timer-based refresh (2s)
-- [ ] Integrate into orchestrator.kdl
+- [x] Read `.yaks/` directory via TaskRepository
+- [x] Parse task structure (state, assigned-to, agent-status)
+- [x] Render task list with colors
+- [x] Timer-based refresh (2s)
+- [x] Integrate into orchestrator.kdl
+- [x] Tree rendering with continuation lines
+- [x] Lines wrap (no truncation)
 
 ### Phase 2: Interactive Features
 
-- [ ] Keyboard navigation (up/down)
-- [ ] Selected task highlighting
+- [x] Keyboard navigation (up/down)
+- [x] Selected task highlighting
 - [ ] Manual refresh key (r)
 - [ ] Scroll beyond visible area
 
@@ -249,12 +235,12 @@ mod tests {
 
 #### Test Cases: State / Rendering
 
-- `task_color_red_for_blocked`
-- `task_color_green_for_done`
-- `task_color_yellow_for_wip`
-- `task_color_yellow_when_state_is_wip`
+- `task_color_green_for_wip` / `task_color_green_for_done`
+- `task_color_gray_for_done`
 - `task_color_white_for_todo`
 - `task_name_extracts_last_path_component`
+- `tree_prefix_*` - Tree rendering with continuations
+- `render_task_*` - Full line rendering with assignments
 
 #### Test Cases: Edge Cases
 
@@ -267,8 +253,8 @@ Build and load in Zellij:
 
 ```bash
 cd src/yak-map
-cargo build --target wasm32-wasi
-zellij action start-or-reload-plugin file:target/wasm32-wasi/debug/yak-map.wasm
+cargo build --release --target wasm32-wasip1
+cp target/wasm32-wasip1/release/yak-map.wasm ../../bin/yak-map.wasm
 ```
 
 #### Manual Test Checklist

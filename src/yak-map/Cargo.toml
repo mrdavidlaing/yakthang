@@ -12,6 +12,9 @@ path = "src/main.rs"
 zellij-tile = "0.43"
 serde = "1.0"
 
+[dev-dependencies]
+tempfile = "3"
+
 [profile.release]
 lto = true
 opt-level = "s"
