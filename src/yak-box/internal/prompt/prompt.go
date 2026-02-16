@@ -7,7 +7,7 @@ import (
 )
 
 // BuildPrompt assembles the initial prompt for a worker
-func BuildPrompt(persona types.Persona, mode string, yakPath string, userPrompt string) string {
+func BuildPrompt(persona types.Persona, mode string, yakPath string, userPrompt string, tasks []string) string {
 	var roleDescription string
 	if mode == "plan" {
 		roleDescription = "Your supervisor is Yakob. The yaks are tasks — your job is to scout them and plan the shave. Do NOT pick up the clippers."
@@ -41,14 +41,47 @@ Focus on the tasks assigned to you. Do not modify tasks outside your scope.`
 Focus on the tasks assigned to you. Do not modify tasks outside your scope.`
 	}
 
+	var taskAssignment string
+	if len(tasks) > 0 {
+		if len(tasks) == 1 {
+			taskAssignment = fmt.Sprintf(`---
+ASSIGNED TASK
+
+You are assigned to work on: %s
+
+Read the task details: yx context --show %s
+Start working: yx state %s wip
+
+---
+TASK TRACKER (yx)`, tasks[0], tasks[0], tasks[0])
+		} else {
+			taskList := ""
+			for _, t := range tasks {
+				taskList += "  - " + t + "\n"
+			}
+			taskAssignment = fmt.Sprintf(`---
+ASSIGNED TASKS
+
+You are assigned to work on:
+%s
+Read each task's details: yx context --show <task>
+Start working: yx state <task> wip
+
+---
+TASK TRACKER (yx)`, taskList)
+		}
+	} else {
+		taskAssignment = `---
+TASK TRACKER (yx)`
+	}
+
 	return fmt.Sprintf(`%s
 
 %s
 
 %s
 
----
-TASK TRACKER (yx)
+%s
 
 You have access to a task tracker called yx. The task state lives in %s.
 
@@ -67,5 +100,5 @@ Reporting status (IMPORTANT -- the orchestrator monitors these fields):
   - When blocked:   echo "blocked: <reason>" | yx field <name> agent-status
   - When done:      echo "done: <summary>" | yx field <name> agent-status
 
-%s`, persona.Personality, roleDescription, userPrompt, yakPath, workflow)
+%s`, persona.Personality, roleDescription, userPrompt, taskAssignment, yakPath, workflow)
 }

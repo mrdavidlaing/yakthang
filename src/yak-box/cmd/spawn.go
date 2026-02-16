@@ -75,7 +75,7 @@ func runSpawn(args []string) error {
 		userPrompt = args[0]
 	}
 
-	workerPrompt := prompt.BuildPrompt(persona, spawnMode, spawnYakPath, userPrompt)
+	workerPrompt := prompt.BuildPrompt(persona, spawnMode, spawnYakPath, userPrompt, spawnYaks)
 
 	yakTitle := ""
 	if len(spawnYaks) > 0 {
