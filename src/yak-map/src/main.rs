@@ -258,9 +258,12 @@ impl State {
 
         let mut prefix = String::new();
 
-        for (i, &continues) in task.ancestor_continuations.iter().enumerate() {
-            if continues {
-                prefix.push_str("│ ");
+        // For depth >= 2, show continuation only for grandparent (index 1)
+        if task.depth >= 2 {
+            if let Some(&grandparent_cont) = task.ancestor_continuations.get(1) {
+                if grandparent_cont {
+                    prefix.push_str("│  ");
+                }
             }
         }
 
@@ -635,9 +638,9 @@ mod tests {
     #[test]
     fn tree_prefix_depth_2_with_sibling_has_continuation() {
         let (_temp, yaks) = mock_yaks();
-        // task-a has sibling task-b, so task-a's children need continuation
-        create_task(&yaks, "task-a/child");
-        create_task(&yaks, "task-b");
+        // Create depth 2: grandparent "parent" has sibling at root
+        create_task(&yaks, "parent/child/grandchild");
+        create_task(&yaks, "sibling");
 
         let repo = TaskRepository::new(yaks.clone());
         let mut state = State {
@@ -646,9 +649,10 @@ mod tests {
         };
         state.refresh_tasks();
 
-        let child = state.tasks.iter().find(|t| t.name == "child").unwrap();
-        let prefix = state.tree_prefix(child);
-        assert_eq!(prefix, "│ ╰─ ");
+        let grandchild = state.tasks.iter().find(|t| t.name == "grandchild").unwrap();
+        // grandparent "parent" has sibling "sibling" at root, so continuation shows
+        let prefix = state.tree_prefix(grandchild);
+        assert_eq!(prefix, "│  ╰─ ");
     }
 
     #[test]
@@ -674,8 +678,8 @@ mod tests {
     #[test]
     fn tree_prefix_depth_2_no_continuation_when_parent_not_last() {
         let (_temp, yaks) = mock_yaks();
-        create_task(&yaks, "task-a/child");
-        create_task(&yaks, "task-b");
+        // Create depth 2: grandparent has no sibling at root
+        create_task(&yaks, "parent/child/grandchild");
 
         let repo = TaskRepository::new(yaks.clone());
         let mut state = State {
@@ -684,9 +688,10 @@ mod tests {
         };
         state.refresh_tasks();
 
-        let child = state.tasks.iter().find(|t| t.name == "child").unwrap();
-        let prefix = state.tree_prefix(child);
-        assert_eq!(prefix, "│ ╰─ ");
+        let grandchild = state.tasks.iter().find(|t| t.name == "grandchild").unwrap();
+        // grandparent "parent" has no sibling at root, so no continuation
+        let prefix = state.tree_prefix(grandchild);
+        assert_eq!(prefix, "╰─ ");
     }
 
     #[test]
