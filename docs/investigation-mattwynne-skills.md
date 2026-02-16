@@ -305,3 +305,15 @@ yakthang/
 
 *Report generated: 2026-02-16*
 *Task: yakthang-v2/investigate-mattwynne-skills*
+---
+
+## Update: workgraph Connection
+
+**Source:** Matt Wynne mentioned (Feb 2026) he's taking inspiration from https://github.com/graphwork/workgraph for yaks.
+
+This provides additional context for understanding the conceptual foundation of his skills. The workgraph project may inform:
+- Graph-based task representation
+- Workflow modeling patterns
+- Task dependency management
+
+See `curate-skills/investigate-workgraph` for deeper investigation into this connection.
