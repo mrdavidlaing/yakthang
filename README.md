@@ -16,7 +16,7 @@ A play on the Tibetan: ཡིག་ཐང་, yik tang - the high-altitude plate
 
 The primary interface is **Zellij** — a terminal multiplexer that provides the orchestration environment. When you run `./launch.sh`, you open **Yakob's Yurt**, which looks like this:
 
-![Yakob's Yurt screenshot](https://private-user-images.githubusercontent.com/227505/550423003-bbefbbea-6b0c-40a9-9f5b-74d7e0b95ff9.png)
+![Yakob's Yurt screenshot](./docs/yakthang-overview.png)
 
 ### YakMap — Visual Task Map
 
@@ -46,7 +46,7 @@ Yak shavers spawn as **additional Zellij tabs**, each running an OpenCode instan
 Yakob's 🛖 (main tab)
 │
 ├── YakMap (left) — visual task map from .yaks/
-├── Yakob (right top) — orchestration agent  
+├── Yakob (right top) — orchestration agent
 └── Shell (right bottom) — manual commands
 
 [Tab: api-shasher] — shaver working on auth-api
