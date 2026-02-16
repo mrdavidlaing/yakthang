@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/yakthang/yakbox/internal/runtime"
+	"github.com/yakthang/yakbox/internal/sessions"
 )
 
 var (
@@ -51,6 +52,40 @@ Filters can be applied to show only specific task states or prefixes.`,
 }
 
 func runCheck() error {
+	fmt.Println("=== Active Sessions ===")
+	activeSessions, err := sessions.List()
+	if err != nil {
+		fmt.Printf("Warning: Could not load sessions: %v\n", err)
+	} else if len(activeSessions) == 0 {
+		fmt.Println("No active sessions.")
+	} else {
+		fmt.Printf("%-20s %-15s %-10s %s\n", "Session", "Worker", "Runtime", "Task")
+		fmt.Println("----------------------------------------------------------------")
+		for id, session := range activeSessions {
+			fmt.Printf("%-20s %-15s %-10s %s\n", id, session.Worker, session.Runtime, session.Task)
+		}
+	}
+
+	fmt.Println("\n=== Worker Homes ===")
+	homes, err := sessions.ListHomes()
+	if err != nil {
+		fmt.Printf("Warning: Could not list homes: %v\n", err)
+	} else if len(homes) == 0 {
+		fmt.Println("No persistent worker homes.")
+	} else {
+		for _, home := range homes {
+			homePath, _ := sessions.GetHomeDir(home)
+			var size int64
+			filepath.Walk(homePath, func(_ string, info os.FileInfo, err error) error {
+				if err == nil && info != nil && !info.IsDir() {
+					size += info.Size()
+				}
+				return nil
+			})
+			fmt.Printf("  %s (~%.1f MB)\n", home, float64(size)/1024/1024)
+		}
+	}
+
 	yakPath := ".yaks"
 	if prefix := checkPrefix; prefix != "" {
 		yakPath = filepath.Join(yakPath, prefix)

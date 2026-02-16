@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/yakthang/yakbox/internal/metadata"
 	"github.com/yakthang/yakbox/internal/runtime"
+	"github.com/yakthang/yakbox/internal/sessions"
 )
 
 var (
@@ -24,12 +24,12 @@ var stopCmd = &cobra.Command{
 	Long: `Stop a running worker, optionally forcing termination.
 
 The stop command gracefully shuts down a worker by:
-1. Loading metadata from .yak-boxes/<worker-name>.meta
+1. Loading session from .yak-boxes/sessions.json
 2. Clearing task assignments (unless --force is set)
 3. Stopping the container or closing the Zellij tab
-4. Removing the container and deleting metadata
+4. Unregistering the session (home directory is preserved)
 
-If metadata is missing, the command attempts to detect the worker
+If session is missing, the command attempts to detect the worker
 via Docker ps or Zellij tabs as a fallback.`,
 	Example: `  # Gracefully stop a worker (clears task assignments)
   yak-box stop --name api-auth
@@ -58,9 +58,9 @@ func runStop() error {
 		return fmt.Errorf("invalid timeout: %w", err)
 	}
 
-	meta, err := metadata.LoadMetadata(stopName)
+	session, err := sessions.Get(stopName)
 	if err != nil {
-		fmt.Printf("Warning: Could not load metadata: %v\n", err)
+		fmt.Printf("Warning: Could not load session: %v\n", err)
 		fmt.Println("Attempting fallback detection...")
 
 		containerName := "yak-worker-" + stopName
@@ -68,61 +68,60 @@ func runStop() error {
 		if err == nil && len(workers) > 0 {
 			for _, w := range workers {
 				if w == containerName {
-					meta = &metadata.WorkerMetadata{
-						Runtime:       "sandboxed",
-						ContainerName: containerName,
+					session = &sessions.Session{
+						Runtime:     "sandboxed",
+						Container:   containerName,
+						DisplayName: stopName,
 					}
 					break
 				}
 			}
 		}
 
-		if meta == nil {
+		if session == nil {
 			return fmt.Errorf("worker not found")
 		}
 	}
 
-	if !stopForce && len(meta.Tasks) > 0 {
+	yakPath := ".yaks"
+	if !stopForce && session.Task != "" {
 		fmt.Println("Clearing task assignments...")
-		for _, task := range meta.Tasks {
-			taskFile := filepath.Join(meta.YakPath, task, "assigned-to")
-			if err := os.Remove(taskFile); err != nil && !os.IsNotExist(err) {
-				fmt.Printf("Warning: Failed to clear assignment for %s: %v\n", task, err)
-			} else {
-				fmt.Printf("Cleared assignment: %s\n", task)
-			}
+		taskFile := filepath.Join(yakPath, session.Task, "assigned-to")
+		if err := os.Remove(taskFile); err != nil && !os.IsNotExist(err) {
+			fmt.Printf("Warning: Failed to clear assignment for %s: %v\n", session.Task, err)
+		} else {
+			fmt.Printf("Cleared assignment: %s\n", session.Task)
 		}
 	}
 
-	if meta.Runtime == "sandboxed" {
+	if session.Runtime == "sandboxed" {
 		if stopDryRun {
-			fmt.Printf("[dry-run] Would stop container: %s\n", meta.ContainerName)
-			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", meta.DisplayName)
+			fmt.Printf("[dry-run] Would stop container: %s\n", session.Container)
+			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
 		} else {
 			fmt.Println("Stopping container...")
 			if err := runtime.StopSandboxedWorker(stopName, timeout); err != nil {
 				fmt.Printf("Warning: %v\n", err)
 			}
-			// Also close the Zellij tab (container runs inside the tab)
 			fmt.Println("Closing Zellij tab...")
-			if err := runtime.StopNativeWorker(meta.DisplayName, meta.ZellijSessionName); err != nil {
+			if err := runtime.StopNativeWorker(session.DisplayName, session.ZellijSession); err != nil {
 				fmt.Printf("Warning: failed to close tab: %v\n", err)
 			}
 		}
-	} else if meta.Runtime == "native" {
+	} else if session.Runtime == "native" {
 		if stopDryRun {
-			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", meta.DisplayName)
+			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
 		} else {
 			fmt.Println("Closing Zellij tab...")
-			if err := runtime.StopNativeWorker(meta.DisplayName, meta.ZellijSessionName); err != nil {
-				fmt.Printf("Warning: %v\n", err)
+			if err := runtime.StopNativeWorker(session.DisplayName, session.ZellijSession); err != nil {
+				fmt.Printf("Warning: failed to close tab: %v\n", err)
 			}
 		}
 	}
 
 	if !stopDryRun {
-		if err := metadata.DeleteMetadata(stopName); err != nil {
-			fmt.Printf("Warning: Failed to delete metadata: %v\n", err)
+		if err := sessions.Unregister(stopName); err != nil {
+			fmt.Printf("Warning: Failed to unregister session: %v\n", err)
 		}
 	}
 

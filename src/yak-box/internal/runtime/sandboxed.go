@@ -98,7 +98,7 @@ func GetNetworkMode() string {
 }
 
 // SpawnSandboxedWorker spawns a worker in a Docker container via Zellij tab
-func SpawnSandboxedWorker(worker *types.Worker, persona *types.Persona, prompt string, profile types.ResourceProfile) error {
+func SpawnSandboxedWorker(worker *types.Worker, persona *types.Persona, prompt string, profile types.ResourceProfile, homeDir string) error {
 	containerName := containerNamePrefix + worker.Name
 	networkMode := GetNetworkMode()
 	workspaceRoot, err := findWorkspaceRoot()
@@ -157,15 +157,23 @@ exit $EXIT_CODE
 		cargoJobsEnv = "\t-e CARGO_BUILD_JOBS=4 \\"
 	}
 
+	homeMount := ""
+	if homeDir != "" {
+		homeMount = fmt.Sprintf("\t-v \"%s:/home/yak-shaver:rw\" \\", homeDir)
+	}
+
+	// Mount OpenCode auth.json for GitHub Copilot model access
+	homeDir_host := os.Getenv("HOME")
+	authMount := fmt.Sprintf("\t-v \"%s/.local/share/opencode/auth.json:/home/yak-shaver/.local/share/opencode/auth.json:ro\" \\", homeDir_host)
+
 	wrapperContent := fmt.Sprintf(`#!/usr/bin/env bash
-exec docker run -it --rm \
+exec docker run -t --rm \
 	--name %s \
 	--user "%d:%d" \
 	--network %s \
 	--security-opt no-new-privileges \
 	--cap-drop ALL \
 	--tmpfs /tmp:rw,exec,size=2g \
-	--tmpfs /home/yak-shaver:rw,exec,size=1g \
 	--cpus %s \
 	--memory %s \
 %s	--pids-limit %d \
@@ -174,18 +182,19 @@ exec docker run -it --rm \
 	-v "%s:%s:rw" \
 	-v "%s:/opt/worker/prompt.txt:ro" \
 	-v "%s:/opt/worker/start.sh:ro" \
+%s
+%s
 	-w "%s" \
 	-e HOME=/home/yak-shaver \
 	-e GOPATH=/home/yak-shaver/.go \
 	-e CARGO_HOME=/home/yak-shaver/.cargo \
 	-e RUSTUP_HOME=/home/yak-shaver/.rustup \
-%s	-e OPENCODE_API_KEY="${OPENCODE_API_KEY}" \
-	-e WORKER_NAME="%s" \
+%s	-e WORKER_NAME="%s" \
 	-e WORKER_EMOJI="%s" \
 	-e YAK_PATH="%s" \
 	yak-shaver:latest \
 	bash /opt/worker/start.sh build
-`, containerName, os.Getuid(), os.Getgid(), networkMode, profile.CPUs, profile.Memory, swapFlag, profile.PIDs, workspaceRoot, workspaceRoot, worker.YakPath, worker.YakPath, promptFile, innerScript, worker.CWD, cargoJobsEnv, persona.Name, persona.Emoji, worker.YakPath)
+`, containerName, os.Getuid(), os.Getgid(), networkMode, profile.CPUs, profile.Memory, swapFlag, profile.PIDs, workspaceRoot, workspaceRoot, worker.YakPath, worker.YakPath, promptFile, innerScript, homeMount, authMount, worker.CWD, cargoJobsEnv, persona.Name, persona.Emoji, worker.YakPath)
 
 	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
 		return fmt.Errorf("failed to write wrapper script: %w", err)

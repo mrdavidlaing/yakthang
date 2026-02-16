@@ -10,7 +10,7 @@ import (
 )
 
 // SpawnNativeWorker spawns a worker in a Zellij session on the host
-func SpawnNativeWorker(worker *types.Worker, persona *types.Persona, prompt string) error {
+func SpawnNativeWorker(worker *types.Worker, persona *types.Persona, prompt string, homeDir string) error {
 	workerDir, err := os.MkdirTemp("", "worker-*")
 	if err != nil {
 		return fmt.Errorf("failed to create temp dir: %w", err)

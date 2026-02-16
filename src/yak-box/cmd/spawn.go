@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/yakthang/yakbox/internal/metadata"
 	"github.com/yakthang/yakbox/internal/persona"
 	"github.com/yakthang/yakbox/internal/prompt"
 	"github.com/yakthang/yakbox/internal/runtime"
+	"github.com/yakthang/yakbox/internal/sessions"
 	"github.com/yakthang/yakbox/pkg/types"
 )
 
@@ -24,6 +24,7 @@ var (
 	spawnYaks      []string
 	spawnYakPath   string
 	spawnRuntime   string
+	spawnClean     bool
 )
 
 var spawnCmd = &cobra.Command{
@@ -72,6 +73,18 @@ func runSpawn(args []string) error {
 	}
 
 	persona := persona.GetRandomPersona()
+
+	if spawnClean {
+		fmt.Printf("Cleaning home directory for %s...\n", persona.Name)
+		if err := sessions.CleanHome(persona.Name); err != nil {
+			return fmt.Errorf("failed to clean home: %w", err)
+		}
+	}
+
+	homeDir, err := sessions.EnsureHomeDir(persona.Name)
+	if err != nil {
+		return fmt.Errorf("failed to ensure home directory: %w", err)
+	}
 
 	profile := runtime.GetResourceProfile(spawnResources)
 
@@ -122,17 +135,32 @@ func runSpawn(args []string) error {
 			return fmt.Errorf("failed to ensure devcontainer: %w\n\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
 		}
 
-		if err := runtime.SpawnSandboxedWorker(worker, &persona, workerPrompt, profile); err != nil {
+		if err := runtime.SpawnSandboxedWorker(worker, &persona, workerPrompt, profile, homeDir); err != nil {
 			return fmt.Errorf("failed to spawn sandboxed worker: %w\n\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
 		}
 	} else {
-		if err := runtime.SpawnNativeWorker(worker, &persona, workerPrompt); err != nil {
+		if err := runtime.SpawnNativeWorker(worker, &persona, workerPrompt, homeDir); err != nil {
 			return fmt.Errorf("failed to spawn native worker: %w", err)
 		}
 	}
 
-	if err := metadata.SaveMetadata(worker, &persona, spawnYaks); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to save metadata: %v\n", err)
+	taskName := ""
+	if len(spawnYaks) > 0 {
+		taskName = spawnYaks[0]
+	}
+
+	if err := sessions.Register(spawnName, sessions.Session{
+		Worker:        persona.Name,
+		Task:          taskName,
+		Container:     worker.ContainerName,
+		SpawnedAt:     worker.SpawnedAt,
+		Runtime:       runtimeType,
+		CWD:           absCWD,
+		Persona:       persona.Name,
+		DisplayName:   displayName,
+		ZellijSession: spawnSession,
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "Warning: failed to register session: %v\n", err)
 	}
 
 	for _, task := range spawnYaks {
@@ -162,4 +190,5 @@ func init() {
 	spawnCmd.Flags().StringSliceVar(&spawnYaks, "task", []string{}, "Alias for --yaks")
 	spawnCmd.Flags().StringVar(&spawnYakPath, "yak-path", ".yaks", "Path to task state directory")
 	spawnCmd.Flags().StringVar(&spawnRuntime, "runtime", "auto", "Runtime: 'auto', 'sandboxed', or 'native'")
+	spawnCmd.Flags().BoolVar(&spawnClean, "clean", false, "Clean worker home directory before spawning")
 }
