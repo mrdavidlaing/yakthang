@@ -11,11 +11,11 @@ import (
 
 // SpawnNativeWorker spawns a worker in a Zellij session on the host
 func SpawnNativeWorker(worker *types.Worker, persona *types.Persona, prompt string, homeDir string) error {
-	workerDir, err := os.MkdirTemp("", "worker-*")
-	if err != nil {
-		return fmt.Errorf("failed to create temp dir: %w", err)
+	// Use persistent scripts directory in worker's home
+	workerDir := filepath.Join(homeDir, "scripts")
+	if err := os.MkdirAll(workerDir, 0755); err != nil {
+		return fmt.Errorf("failed to create scripts dir: %w", err)
 	}
-	defer os.RemoveAll(workerDir)
 
 	promptFile := filepath.Join(workerDir, "prompt.txt")
 	if err := os.WriteFile(promptFile, []byte(prompt), 0644); err != nil {
@@ -25,9 +25,8 @@ func SpawnNativeWorker(worker *types.Worker, persona *types.Persona, prompt stri
 	wrapperScript := filepath.Join(workerDir, "run.sh")
 	wrapperContent := fmt.Sprintf(`#!/usr/bin/env bash
 PROMPT="$(cat "%s")"
-rm -rf "%s"
 exec opencode --prompt "$PROMPT" --agent build
-`, promptFile, workerDir)
+`, promptFile)
 	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
 		return fmt.Errorf("failed to write wrapper script: %w", err)
 	}

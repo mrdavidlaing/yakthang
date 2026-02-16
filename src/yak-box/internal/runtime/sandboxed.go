@@ -106,12 +106,11 @@ func SpawnSandboxedWorker(worker *types.Worker, persona *types.Persona, prompt s
 		return fmt.Errorf("failed to find workspace root: %w", err)
 	}
 
-	// Create worker directory for temp files (persist until Zellij starts)
-	workerDir, err := os.MkdirTemp("", "worker-*")
-	if err != nil {
-		return fmt.Errorf("failed to create temp dir: %w", err)
+	// Create worker directory for scripts (persist in .yak-boxes)
+	workerDir := filepath.Join(homeDir, "scripts")
+	if err := os.MkdirAll(workerDir, 0755); err != nil {
+		return fmt.Errorf("failed to create scripts dir: %w", err)
 	}
-	// Don't clean up immediately - let Zellij use it
 
 	// Write prompt to file
 	promptFile := filepath.Join(workerDir, "prompt.txt")
@@ -141,6 +140,31 @@ exit $EXIT_CODE
 `
 	if err := os.WriteFile(innerScript, []byte(innerContent), 0755); err != nil {
 		return fmt.Errorf("failed to write inner script: %w", err)
+	}
+
+	// Create shell-exec helper script that waits for container to be ready
+	shellExecScript := filepath.Join(workerDir, "shell-exec.sh")
+	shellExecContent := `#!/usr/bin/env bash
+set -euo pipefail
+CONTAINER_NAME="$1"
+MAX_RETRIES=30
+RETRY_DELAY=1
+
+for i in $(seq 1 $MAX_RETRIES); do
+    if docker inspect --format='{{.State.Status}}' "$CONTAINER_NAME" 2>/dev/null | grep -q "running"; then
+        exec docker exec -it "$CONTAINER_NAME" bash
+    fi
+    if [[ $i -eq 1 ]]; then
+        echo "Waiting for container to start..."
+    fi
+    sleep $RETRY_DELAY
+done
+
+echo "ERROR: Container did not start within $MAX_RETRIES seconds"
+exit 1
+`
+	if err := os.WriteFile(shellExecScript, []byte(shellExecContent), 0755); err != nil {
+		return fmt.Errorf("failed to write shell-exec script: %w", err)
 	}
 
 	// Create wrapper script that runs docker in background with -d flag for detached
@@ -211,13 +235,16 @@ exec docker run -t --rm \
             command "bash"
             args "%s"
         }
-        pane size="33%%" name="shell: %s"
+        pane size="33%%" name="shell: container" {
+            command "bash"
+            args "%s" "%s"
+        }
         pane size=2 borderless=true {
             plugin location="status-bar"
         }
     }
 }
-`, worker.DisplayName, wrapperScript, worker.CWD)
+`, worker.DisplayName, wrapperScript, shellExecScript, containerName)
 
 	if err := os.WriteFile(layoutFile, []byte(layoutContent), 0644); err != nil {
 		return fmt.Errorf("failed to write layout file: %w", err)
@@ -245,12 +272,6 @@ exec docker run -t --rm \
 		prevTabCmd = exec.Command("zellij", "action", "go-to-previous-tab")
 	}
 	prevTabCmd.Run()
-
-	// Clean up temp files after a delay (give Zellij time to read them)
-	go func() {
-		time.Sleep(5 * time.Second)
-		os.RemoveAll(workerDir)
-	}()
 
 	return nil
 }
