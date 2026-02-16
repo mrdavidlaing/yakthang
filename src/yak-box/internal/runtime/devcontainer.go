@@ -75,10 +75,10 @@ func RebuildDevcontainer() error {
 
 	cmd := exec.Command("docker", "build",
 		"-t", workerImageName,
-		"-f", "Dockerfile",
+		"-f", devcontainerPath+"/Dockerfile",
 		"--label", "yakthang.devcontainer.commit="+commitHash,
 		".")
-	cmd.Dir = workspaceRoot + "/" + devcontainerPath
+	cmd.Dir = workspaceRoot
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
