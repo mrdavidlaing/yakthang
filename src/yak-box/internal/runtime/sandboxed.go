@@ -211,7 +211,7 @@ exit 1
 	passwdMount := fmt.Sprintf("\t-v \"%s:/etc/passwd:ro\" \\\n\t-v \"%s:/etc/group:ro\" \\", passwdFile, groupFile)
 
 	wrapperContent := fmt.Sprintf(`#!/usr/bin/env bash
-exec docker run -t --rm \
+exec docker run -it --rm \
 	--name %s \
 	--user "%d:%d" \
 	--network %s \
@@ -232,6 +232,7 @@ exec docker run -t --rm \
 %s
 	-w "%s" \
 	-e HOME=/home/yak-shaver \
+	-e TERM="${TERM:-xterm-256color}" \
 	-e GOPATH=/home/yak-shaver/.go \
 	-e CARGO_HOME=/home/yak-shaver/.cargo \
 	-e RUSTUP_HOME=/home/yak-shaver/.rustup \
