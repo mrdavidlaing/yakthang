@@ -194,6 +194,22 @@ exit 1
 	homeDir_host := os.Getenv("HOME")
 	authMount := fmt.Sprintf("\t-v \"%s/.local/share/opencode/auth.json:/home/yak-shaver/.local/share/opencode/auth.json:ro\" \\", homeDir_host)
 
+	// Generate custom /etc/passwd and /etc/group for the container
+	// so the host UID/GID resolves to a named user instead of "I have no name!"
+	uid := os.Getuid()
+	gid := os.Getgid()
+	passwdContent := fmt.Sprintf("root:x:0:0:root:/root:/bin/bash\nyakshaver:x:%d:%d:Yak Shaver:/home/yak-shaver:/bin/bash\n", uid, gid)
+	groupContent := fmt.Sprintf("root:x:0:\nyakshaver:x:%d:\n", gid)
+	passwdFile := filepath.Join(workerDir, "passwd")
+	groupFile := filepath.Join(workerDir, "group")
+	if err := os.WriteFile(passwdFile, []byte(passwdContent), 0644); err != nil {
+		return fmt.Errorf("failed to write passwd file: %w", err)
+	}
+	if err := os.WriteFile(groupFile, []byte(groupContent), 0644); err != nil {
+		return fmt.Errorf("failed to write group file: %w", err)
+	}
+	passwdMount := fmt.Sprintf("\t-v \"%s:/etc/passwd:ro\" \\\n\t-v \"%s:/etc/group:ro\" \\", passwdFile, groupFile)
+
 	wrapperContent := fmt.Sprintf(`#!/usr/bin/env bash
 exec docker run -t --rm \
 	--name %s \
@@ -213,6 +229,7 @@ exec docker run -t --rm \
 %s
 %s
 %s
+%s
 	-w "%s" \
 	-e HOME=/home/yak-shaver \
 	-e GOPATH=/home/yak-shaver/.go \
@@ -223,7 +240,7 @@ exec docker run -t --rm \
 	-e YAK_PATH="%s" \
 	yak-shaver:latest \
 	bash /opt/worker/start.sh build
-`, containerName, os.Getuid(), os.Getgid(), networkMode, profile.CPUs, profile.Memory, swapFlag, profile.PIDs, workspaceRoot, workspaceRoot, worker.YakPath, worker.YakPath, promptFile, innerScript, homeMount, worktreeMount, authMount, worker.CWD, cargoJobsEnv, persona.Name, persona.Emoji, worker.YakPath)
+`, containerName, os.Getuid(), os.Getgid(), networkMode, profile.CPUs, profile.Memory, swapFlag, profile.PIDs, workspaceRoot, workspaceRoot, worker.YakPath, worker.YakPath, promptFile, innerScript, homeMount, worktreeMount, authMount, passwdMount, worker.CWD, cargoJobsEnv, persona.Name, persona.Emoji, worker.YakPath)
 
 	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
 		return fmt.Errorf("failed to write wrapper script: %w", err)
