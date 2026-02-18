@@ -42,7 +42,7 @@ yakbox_binary_unavailable() { ! command -v yak-box >/dev/null 2>&1; }
 # Set up a clean test environment with a git repo, Docker worker naming, and Zellij session
 setup_test_environment() {
 	TEST_PROJECT_DIR=$(pwd)
-	export PATH="$TEST_PROJECT_DIR/../../../bin:$PATH" # adds /home/yakob/yakthang/bin to PATH
+	export PATH="$TEST_PROJECT_DIR/../../bin:$PATH" # adds /home/yakob/yakthang/bin to PATH
 	TEST_WORK_DIR=$(mktemp -d)
 	cd "$TEST_WORK_DIR" || return
 	setup_test_repo "."
