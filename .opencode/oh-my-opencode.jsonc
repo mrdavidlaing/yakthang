@@ -23,7 +23,7 @@
       "model": "github-copilot/claude-haiku-4.5"
     },
     "atlas": {
-      "model": "github-copilot/claude-sonnet-4.5"
+      "model": "github-copilot/claude-sonnet-4.6"
     },
     "multimodal-looker": {
       "model": "github-copilot/gemini-3-flash-preview"
@@ -48,7 +48,7 @@
       "model": "github-copilot/claude-haiku-4.5"
     },
     "unspecified-low": {
-      "model": "github-copilot/claude-sonnet-4.5"
+      "model": "github-copilot/claude-sonnet-4.6"
     },
     "unspecified-high": {
       "model": "github-copilot/claude-opus-4.6",
