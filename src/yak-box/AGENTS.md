@@ -6,10 +6,16 @@ To build and install the binary:
 
 ```bash
 cd /home/yakob/yakthang/src/yak-box
-go build -o /home/yakob/yakthang/bin/yak-box .
+go build -ldflags "-X main.version=$(git describe --tags --always --dirty)" -o /home/yakob/yakthang/bin/yak-box .
 ```
 
-This compiles directly to the bin directory.
+This compiles directly to the bin directory with version information embedded at build time.
+
+For development builds without version embedding:
+
+```bash
+go build -o /home/yakob/yakthang/bin/yak-box .
+```
 
 ## DevContainer Support
 

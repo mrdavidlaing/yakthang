@@ -8,8 +8,10 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/yakthang/yakbox/internal/errors"
 	"github.com/yakthang/yakbox/internal/runtime"
 	"github.com/yakthang/yakbox/internal/sessions"
+	"github.com/yakthang/yakbox/internal/ui"
 )
 
 var (
@@ -43,10 +45,28 @@ Filters can be applied to show only specific task states or prefixes.`,
 
   # Combine filters
   yak-box check --wip --prefix backend`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		var errs []error
+
+		// Validate flag combinations
+		if checkBlocked && checkWIP {
+			errs = append(errs, fmt.Errorf("--blocked and --wip are mutually exclusive (cannot filter for both states simultaneously)"))
+		}
+
+		// Return all errors at once
+		if len(errs) > 0 {
+			combined := "Validation errors:\n"
+			for _, err := range errs {
+				combined += fmt.Sprintf("  - %s\n", err)
+			}
+			return errors.NewValidationError(combined, nil)
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runCheck(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			os.Exit(errors.GetExitCode(err))
 		}
 	},
 }
@@ -59,11 +79,12 @@ func runCheck() error {
 	} else if len(activeSessions) == 0 {
 		fmt.Println("No active sessions.")
 	} else {
-		fmt.Printf("%-20s %-15s %-10s %s\n", "Session", "Worker", "Runtime", "Task")
-		fmt.Println("----------------------------------------------------------------")
+		headers := []string{"Session", "Worker", "Runtime", "Task"}
+		var rows [][]string
 		for id, session := range activeSessions {
-			fmt.Printf("%-20s %-15s %-10s %s\n", id, session.Worker, session.Runtime, session.Task)
+			rows = append(rows, []string{id, session.Worker, session.Runtime, session.Task})
 		}
+		ui.PrintTable(os.Stdout, headers, rows)
 	}
 
 	fmt.Println("\n=== Worker Homes ===")
@@ -116,7 +137,14 @@ func runCheck() error {
 					return nil
 				}
 
-				fmt.Printf("%-50s %s\n", taskName, statusStr)
+				// Color-code the status output
+				if strings.HasPrefix(statusStr, "wip") {
+					ui.Info("%-50s %s\n", taskName, statusStr)
+				} else if strings.HasPrefix(statusStr, "blocked") {
+					ui.Warning("%-50s %s\n", taskName, statusStr)
+				} else {
+					fmt.Printf("%-50s %s\n", taskName, statusStr)
+				}
 			}
 			return nil
 		})
@@ -134,9 +162,19 @@ func runCheck() error {
 	} else {
 		cmd := exec.Command("docker", "ps", "--filter", "name=yak-worker-", "--format", "{{.Names}}\t{{.Status}}\t{{.RunningFor}}")
 		output, _ := cmd.Output()
-		fmt.Println("Container Name                    Status              Running For")
-		fmt.Println("----------------------------------------------------------------")
-		fmt.Print(string(output))
+		if strings.TrimSpace(string(output)) != "" {
+			headers := []string{"Container Name", "Status", "Running For"}
+			var rows [][]string
+			for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+				if strings.TrimSpace(line) != "" {
+					parts := strings.Split(line, "\t")
+					if len(parts) >= 3 {
+						rows = append(rows, []string{parts[0], parts[1], parts[2]})
+					}
+				}
+			}
+			ui.PrintTable(os.Stdout, headers, rows)
+		}
 
 		fmt.Println("\nLive Cost:")
 		for _, container := range containers {
@@ -159,9 +197,17 @@ func runCheck() error {
 	if strings.TrimSpace(string(output)) == "" {
 		fmt.Println("No stopped worker containers.")
 	} else {
-		fmt.Println("Container Name                    Status")
-		fmt.Println("----------------------------------------------------------------")
-		fmt.Print(string(output))
+		headers := []string{"Container Name", "Status"}
+		var rows [][]string
+		for _, line := range strings.Split(strings.TrimSpace(string(output)), "\n") {
+			if strings.TrimSpace(line) != "" {
+				parts := strings.Split(line, "\t")
+				if len(parts) >= 2 {
+					rows = append(rows, []string{parts[0], parts[1]})
+				}
+			}
+		}
+		ui.PrintTable(os.Stdout, headers, rows)
 		fmt.Println("\nRun 'yak-box stop --name <worker>' to clean up stopped containers.")
 	}
 

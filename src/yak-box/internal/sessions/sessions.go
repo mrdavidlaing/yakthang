@@ -1,3 +1,4 @@
+// Package sessions manages yak-box sessions, storing and retrieving workspace metadata.
 package sessions
 
 import (
@@ -189,14 +190,14 @@ func EnsureHomeDir(persona string) (string, error) {
 	if err := ensureHomeDir(persona); err != nil {
 		return "", err
 	}
-	
+
 	// Pre-create .local directory structure with correct permissions
 	// to prevent Docker from creating it as root
 	homePath, err := GetHomeDir(persona)
 	if err != nil {
 		return "", err
 	}
-	
+
 	localDirs := []string{
 		filepath.Join(homePath, ".local"),
 		filepath.Join(homePath, ".local", "share"),
@@ -205,13 +206,13 @@ func EnsureHomeDir(persona string) (string, error) {
 		filepath.Join(homePath, ".config"),
 		filepath.Join(homePath, ".cache"),
 	}
-	
+
 	for _, dir := range localDirs {
 		if err := os.MkdirAll(dir, 0755); err != nil {
 			return "", fmt.Errorf("failed to create %s: %w", dir, err)
 		}
 	}
-	
+
 	return homePath, nil
 }
 

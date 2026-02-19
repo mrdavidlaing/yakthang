@@ -1,3 +1,4 @@
+// Package types defines shared data structures for yak-box.
 package types
 
 import "time"

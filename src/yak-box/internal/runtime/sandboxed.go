@@ -1,6 +1,7 @@
 package runtime
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,12 +9,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/yakthang/yakbox/pkg/devcontainer"
+	"github.com/yakthang/yakbox/internal/workspace"
 	"github.com/yakthang/yakbox/pkg/types"
 )
 
 const (
-	containerNamePrefix = "yak-shaver-"
+	containerNamePrefix = "yak-worker-"
 	workerCacheDir      = ".yak-boxes"
 	networkName         = "yak-shavers"
 )
@@ -90,8 +91,8 @@ func DetectRuntime() string {
 }
 
 // GetNetworkMode returns the network mode for Docker
-func GetNetworkMode() string {
-	cmd := exec.Command("docker", "network", "inspect", networkName)
+func GetNetworkMode(ctx context.Context) string {
+	cmd := exec.CommandContext(ctx, "docker", "network", "inspect", networkName)
 	if err := cmd.Run(); err != nil {
 		return "bridge"
 	}
@@ -99,137 +100,53 @@ func GetNetworkMode() string {
 }
 
 // SpawnSandboxedWorker spawns a worker in a Docker container via Zellij tab
-func SpawnSandboxedWorker(worker *types.Worker, persona *types.Persona, prompt string, profile types.ResourceProfile, homeDir string, devConfig *devcontainer.Config) error {
-	containerName := containerNamePrefix + worker.Name
-	networkMode := GetNetworkMode()
-	workspaceRoot, err := findWorkspaceRoot()
+func SpawnSandboxedWorker(ctx context.Context, opts ...SpawnOption) error {
+	cfg := &spawnConfig{
+		commander: &defaultCommander{},
+		profile:   GetResourceProfile("default"),
+	}
+	for _, opt := range opts {
+		if err := opt(cfg); err != nil {
+			return fmt.Errorf("option error: %w. Suggestion: Check all spawn options (worker, persona, prompt, resources, etc.) are provided correctly", err)
+		}
+	}
+
+	if cfg.worker == nil || cfg.persona == nil {
+		return fmt.Errorf("worker and persona are required. Suggestion: Ensure both worker and persona config are provided via spawn options")
+	}
+
+	containerName := containerNamePrefix + cfg.worker.Name
+	networkMode := GetNetworkMode(ctx)
+	workspaceRoot, err := workspace.FindRoot()
 	if err != nil {
-		return fmt.Errorf("failed to find workspace root: %w", err)
+		return fmt.Errorf("failed to find workspace root: %w. Suggestion: Ensure you're in a valid yak-box workspace with a .yak-box directory", err)
 	}
 
 	// Create worker directory for scripts (persist in .yak-boxes)
-	workerDir := filepath.Join(homeDir, "scripts")
+	workerDir := filepath.Join(cfg.homeDir, "scripts")
 	if err := os.MkdirAll(workerDir, 0755); err != nil {
-		return fmt.Errorf("failed to create scripts dir: %w", err)
+		return fmt.Errorf("failed to create scripts dir: %w. Suggestion: Check that .yak-boxes home directory is writable", err)
 	}
 
 	// Write prompt to file
 	promptFile := filepath.Join(workerDir, "prompt.txt")
-	if err := os.WriteFile(promptFile, []byte(prompt), 0644); err != nil {
-		return fmt.Errorf("failed to write prompt file: %w", err)
+	if err := os.WriteFile(promptFile, []byte(cfg.prompt), 0644); err != nil {
+		return fmt.Errorf("failed to write prompt file: %w. Suggestion: Ensure the .yak-boxes directory is writable and has sufficient disk space", err)
 	}
 
 	// Create inner script that runs inside container
 	innerScript := filepath.Join(workerDir, "inner.sh")
-	innerContent := `#!/usr/bin/env bash
-WORKSPACE_ROOT="${WORKSPACE_ROOT:-/home/yakob/yakthang}"
-COST_DIR="${WORKSPACE_ROOT}/.worker-costs"
-mkdir -p "$COST_DIR"
-
-PROMPT="$(cat /opt/worker/prompt.txt)"
-opencode --prompt "$PROMPT" --agent "$1"
-EXIT_CODE=$?
-
-WORKER="${WORKER_NAME:-unknown}"
-TS="$(date -u +%Y%m%dT%H%M%SZ)"
-SID="$(opencode session list 2>/dev/null | tail -1 | awk '{print $1}')"
-if [[ -n "$SID" && "$SID" != "Session" ]]; then
-  opencode export "$SID" > "${COST_DIR}/${WORKER}-${TS}.json" 2>/dev/null
-fi
-opencode stats --models > "${COST_DIR}/${WORKER}-${TS}.stats.txt" 2>/dev/null
-exit $EXIT_CODE
-`
-	if err := os.WriteFile(innerScript, []byte(innerContent), 0755); err != nil {
-		return fmt.Errorf("failed to write inner script: %w", err)
+	if err := os.WriteFile(innerScript, []byte(generateInitScript()), 0755); err != nil {
+		return fmt.Errorf("failed to write inner script: %w. Suggestion: Check disk space and file permissions in .yak-boxes directory", err)
 	}
 
 	// Create shell-exec helper script that waits for container to be ready
 	shellExecScript := filepath.Join(workerDir, "shell-exec.sh")
-	shellExecContent := `#!/usr/bin/env bash
-set -euo pipefail
-CONTAINER_NAME="$1"
-MAX_RETRIES=30
-RETRY_DELAY=1
-
-for i in $(seq 1 $MAX_RETRIES); do
-    if docker inspect --format='{{.State.Status}}' "$CONTAINER_NAME" 2>/dev/null | grep -q "running"; then
-        exec docker exec -it "$CONTAINER_NAME" bash
-    fi
-    if [[ $i -eq 1 ]]; then
-        echo "Waiting for container to start..."
-    fi
-    sleep $RETRY_DELAY
-done
-
-echo "ERROR: Container did not start within $MAX_RETRIES seconds"
-exit 1
-`
-	if err := os.WriteFile(shellExecScript, []byte(shellExecContent), 0755); err != nil {
-		return fmt.Errorf("failed to write shell-exec script: %w", err)
-	}
-
-	// Create wrapper script that runs docker in background with -d flag for detached
-	wrapperScript := filepath.Join(workerDir, "run.sh")
-
-	// Build swap flag if specified
-	swapFlag := ""
-	if profile.Swap != "" {
-		swapFlag = fmt.Sprintf("\t--memory-swap %s \\\\", profile.Swap)
-	}
-
-	cargoJobsEnv := ""
-	if profile.Name == "ram" {
-		cargoJobsEnv = "\t-e CARGO_BUILD_JOBS=4 \\"
-	}
-
-	homeMount := ""
-	if homeDir != "" {
-		homeMount = fmt.Sprintf("\n\t-v \"%s:/home/yak-shaver:rw\" \\", homeDir)
-	}
-
-	worktreeMount := ""
-	if worker.WorktreePath != "" {
-		worktreeMount = fmt.Sprintf("\n\t-v \"%s:%s:rw\" \\", worker.WorktreePath, worker.WorktreePath)
-	}
-
-	homeDir_host := os.Getenv("HOME")
-	authMount := fmt.Sprintf("\n\t-v \"%s/.local/share/opencode/auth.json:/home/yak-shaver/.local/share/opencode/auth.json:ro\" \\", homeDir_host)
-
-	imageName := "yak-shaver:latest"
-	additionalEnv := ""
-	additionalMounts := ""
-
-	if devConfig != nil {
-		if devConfig.Image != "" {
-			imageName = devConfig.Image
-		}
-
-		ctx := &devcontainer.SubstituteContext{
-			LocalWorkspaceFolder:     worker.CWD,
-			ContainerWorkspaceFolder: worker.CWD,
-			LocalEnv:                 make(map[string]string),
-			ContainerEnv:             make(map[string]string),
-		}
-
-		for _, envVar := range os.Environ() {
-			kv := strings.SplitN(envVar, "=", 2)
-			if len(kv) == 2 {
-				ctx.LocalEnv[kv[0]] = kv[1]
-			}
-		}
-
-		resolvedEnv := devConfig.GetResolvedEnvironment(ctx)
-		for k, v := range resolvedEnv {
-			additionalEnv += fmt.Sprintf("\n\t-e %s=\"%s\" \\", k, v)
-		}
-
-		for _, mount := range devConfig.Mounts {
-			additionalMounts += fmt.Sprintf("\n\t-v \"%s\" \\", mount)
-		}
+	if err := os.WriteFile(shellExecScript, []byte(generateWaitScript()), 0755); err != nil {
+		return fmt.Errorf("failed to write shell-exec script: %w. Suggestion: Check .yak-boxes directory exists and is writable", err)
 	}
 
 	// Generate custom /etc/passwd and /etc/group for the container
-	// so the host UID/GID resolves to a named user instead of "I have no name!"
 	uid := os.Getuid()
 	gid := os.Getgid()
 	passwdContent := fmt.Sprintf("root:x:0:0:root:/root:/bin/bash\nyakshaver:x:%d:%d:Yak Shaver:/home/yak-shaver:/bin/bash\n", uid, gid)
@@ -237,94 +154,40 @@ exit 1
 	passwdFile := filepath.Join(workerDir, "passwd")
 	groupFile := filepath.Join(workerDir, "group")
 	if err := os.WriteFile(passwdFile, []byte(passwdContent), 0644); err != nil {
-		return fmt.Errorf("failed to write passwd file: %w", err)
+		return fmt.Errorf("failed to write passwd file: %w. Suggestion: Ensure .yak-boxes directory is writable and has sufficient space", err)
 	}
 	if err := os.WriteFile(groupFile, []byte(groupContent), 0644); err != nil {
-		return fmt.Errorf("failed to write group file: %w", err)
+		return fmt.Errorf("failed to write group file: %w. Suggestion: Ensure .yak-boxes directory is writable", err)
 	}
-	passwdMount := fmt.Sprintf("\n\t-v \"%s:/etc/passwd:ro\" \\\n\t-v \"%s:/etc/group:ro\" \\", passwdFile, groupFile)
 
-	wrapperContent := fmt.Sprintf(`#!/usr/bin/env bash
-exec docker run -it --rm \
-	--name %s \
-	--user "%d:%d" \
-	--network %s \
-	--security-opt no-new-privileges \
-	--cap-drop ALL \
-	--tmpfs /tmp:rw,exec,size=2g \
-	--cpus %s \
-	--memory %s \
-%s	--pids-limit %d \
-	--stop-timeout 7200 \
-	-v "%s:%s:rw" \
-	-v "%s:%s:rw" \
-	-v "%s:/opt/worker/prompt.txt:ro" \
-	-v "%s:/opt/worker/start.sh:ro" \%s%s%s%s%s
-	-w "%s" \
-	-e HOME=/home/yak-shaver \
-	-e TERM="${TERM:-xterm-256color}" \
-	-e GOPATH=/home/yak-shaver/.go \
-	-e CARGO_HOME=/home/yak-shaver/.cargo \
-	-e RUSTUP_HOME=/home/yak-shaver/.rustup \
-%s	-e WORKER_NAME="%s" \
-	-e WORKER_EMOJI="%s" \
-	-e YAK_PATH="%s" \%s
-	%s \
-	bash /opt/worker/start.sh build
-`, containerName, os.Getuid(), os.Getgid(), networkMode, profile.CPUs, profile.Memory, swapFlag, profile.PIDs, workspaceRoot, workspaceRoot, worker.YakPath, worker.YakPath, promptFile, innerScript, homeMount, worktreeMount, authMount, passwdMount, additionalMounts, worker.CWD, cargoJobsEnv, persona.Name, persona.Emoji, worker.YakPath, additionalEnv, imageName)
+	// Create wrapper script that runs docker in background with -d flag for detached
+	wrapperScript := filepath.Join(workerDir, "run.sh")
+	runScriptContent := generateRunScript(cfg, workspaceRoot, promptFile, innerScript, passwdFile, groupFile, networkMode)
 
-	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
-		return fmt.Errorf("failed to write wrapper script: %w", err)
+	if err := os.WriteFile(wrapperScript, []byte(runScriptContent), 0755); err != nil {
+		return fmt.Errorf("failed to write wrapper script: %w. Suggestion: Check .yak-boxes directory permissions and disk space", err)
 	}
 
 	// Create Zellij layout file
 	layoutFile := filepath.Join(workerDir, "layout.kdl")
-	layoutContent := fmt.Sprintf(`layout {
-    tab name="%s" {
-        pane size=1 borderless=true {
-            plugin location="compact-bar"
-        }
-        pane size="67%%" name="opencode (build) [docker]" focus=true {
-            command "bash"
-            args "%s"
-        }
-        pane size="33%%" name="shell: container" {
-            command "bash"
-            args "%s" "%s"
-        }
-        pane size=2 borderless=true {
-            plugin location="status-bar"
-        }
-    }
-}
-`, worker.DisplayName, wrapperScript, shellExecScript, containerName)
+	layoutContent := createZellijLayout(cfg.worker.DisplayName, wrapperScript, shellExecScript, containerName)
 
 	if err := os.WriteFile(layoutFile, []byte(layoutContent), 0644); err != nil {
-		return fmt.Errorf("failed to write layout file: %w", err)
+		return fmt.Errorf("failed to write layout file: %w. Suggestion: Ensure .yak-boxes directory is writable", err)
 	}
 
 	// Spawn Zellij tab with the layout
 	var zellijCmd *exec.Cmd
-	sessionName := worker.SessionName
+	sessionName := cfg.worker.SessionName
 	if sessionName != "" {
-		zellijCmd = exec.Command("zellij", "--session", sessionName, "action", "new-tab", "--layout", layoutFile, "--name", worker.DisplayName)
+		zellijCmd = cfg.commander.CommandContext(ctx, "zellij", "--session", sessionName, "action", "new-tab", "--layout", layoutFile, "--name", cfg.worker.DisplayName)
 	} else {
-		zellijCmd = exec.Command("zellij", "action", "new-tab", "--layout", layoutFile, "--name", worker.DisplayName)
+		zellijCmd = cfg.commander.CommandContext(ctx, "zellij", "action", "new-tab", "--layout", layoutFile, "--name", cfg.worker.DisplayName)
 	}
 
 	if err := zellijCmd.Run(); err != nil {
-		return fmt.Errorf("failed to create Zellij tab: %w", err)
+		return fmt.Errorf("failed to create Zellij tab: %w. Suggestion: Ensure Zellij is installed and you're in a Zellij session, or use --runtime=sandboxed", err)
 	}
-
-	// Small delay then go back to previous tab
-	time.Sleep(300 * time.Millisecond)
-	var prevTabCmd *exec.Cmd
-	if worker.SessionName != "" {
-		prevTabCmd = exec.Command("zellij", "--session", worker.SessionName, "action", "go-to-previous-tab")
-	} else {
-		prevTabCmd = exec.Command("zellij", "action", "go-to-previous-tab")
-	}
-	prevTabCmd.Run()
 
 	return nil
 }
@@ -337,23 +200,23 @@ func StopSandboxedWorker(name string, timeout time.Duration) error {
 	cmd := exec.Command("docker", "ps", "-a", "--filter", fmt.Sprintf("name=^%s$", containerName), "--format", "{{.Names}}")
 	output, err := cmd.Output()
 	if err != nil {
-		return fmt.Errorf("failed to check container: %w", err)
+		return fmt.Errorf("failed to check container: %w. Suggestion: Ensure Docker is running with 'docker ps'", err)
 	}
 
 	if strings.TrimSpace(string(output)) == "" {
-		return fmt.Errorf("container %s not found", containerName)
+		return fmt.Errorf("container %s not found. Suggestion: Use 'docker ps -a' to see available containers, or check worker name is correct", containerName)
 	}
 
 	// Stop container
 	stopCmd := exec.Command("docker", "stop", "-t", fmt.Sprintf("%d", int(timeout.Seconds())), containerName)
 	if err := stopCmd.Run(); err != nil {
-		return fmt.Errorf("failed to stop container: %w", err)
+		return fmt.Errorf("failed to stop container: %w. Suggestion: Check Docker is running or try 'docker stop %s' manually", err, containerName)
 	}
 
 	// Remove container
 	rmCmd := exec.Command("docker", "rm", containerName)
 	if err := rmCmd.Run(); err != nil {
-		return fmt.Errorf("failed to remove container: %w", err)
+		return fmt.Errorf("failed to remove container: %w. Suggestion: The container may still be running; try 'docker rm -f %s' manually", err, containerName)
 	}
 
 	return nil
@@ -391,13 +254,4 @@ func ListAllContainers() ([]string, error) {
 		}
 	}
 	return containers, nil
-}
-
-func findWorkspaceRoot() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(output)), nil
 }

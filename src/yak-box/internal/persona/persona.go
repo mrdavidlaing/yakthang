@@ -1,13 +1,14 @@
+// Package persona manages persona data for yak-box workers and sessions.
 package persona
 
 import (
 	"fmt"
 	"math/rand"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
+	"github.com/yakthang/yakbox/internal/workspace"
 	"github.com/yakthang/yakbox/pkg/types"
 )
 
@@ -47,40 +48,29 @@ func init() {
 func GetRandomPersona() types.Persona {
 	index := rand.Intn(len(personas))
 	p := personas[index]
-	
+
 	// Load personality from file
 	p.Personality = LoadPersonality(p.Name)
-	
+
 	return p
 }
 
 // LoadPersonality loads personality text for a given persona name
 func LoadPersonality(name string) string {
 	// Try to load from standard location
-	workspaceRoot, err := findWorkspaceRoot()
+	workspaceRoot, err := workspace.FindRoot()
 	if err != nil {
 		return getDefaultPersonality(name)
 	}
-	
+
 	personalityFile := filepath.Join(workspaceRoot, ".opencode", "personalities", fmt.Sprintf("%s-worker.md", name))
-	
+
 	content, err := os.ReadFile(personalityFile)
 	if err != nil {
 		return getDefaultPersonality(name)
 	}
-	
-	return string(content)
-}
 
-// findWorkspaceRoot finds the git repository root
-func findWorkspaceRoot() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	// Remove trailing newline
-	return string(output[:len(output)-1]), nil
+	return string(content)
 }
 
 // getDefaultPersonality returns a default personality if file not found

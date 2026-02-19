@@ -1,3 +1,4 @@
+// Package worktree manages Git worktrees for yak-box projects.
 package worktree
 
 import (

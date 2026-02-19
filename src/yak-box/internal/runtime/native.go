@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/yakthang/yakbox/internal/workspace"
 	"github.com/yakthang/yakbox/pkg/types"
 )
 
@@ -74,7 +75,7 @@ exec opencode --prompt "$PROMPT" --agent build
 // before closing. This avoids the race where go-to-tab-name fails silently
 // and close-tab kills whatever tab happens to be focused.
 func StopNativeWorker(name, sessionName string) error {
-	root, _ := findWorkspaceRoot()
+	root, _ := workspace.FindRoot()
 	closeTabScript := filepath.Join(root, "close-zellij-tab.sh")
 
 	// Prefer the script if available (handles edge cases)

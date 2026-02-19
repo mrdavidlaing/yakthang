@@ -1,3 +1,4 @@
+// Package devcontainer handles devcontainer.json configuration parsing and execution.
 package devcontainer
 
 // SubstituteContext holds all variables available for substitution

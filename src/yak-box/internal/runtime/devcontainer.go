@@ -6,6 +6,8 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+
+	"github.com/yakthang/yakbox/internal/workspace"
 )
 
 const devcontainerPath = ".devcontainer"
@@ -21,7 +23,7 @@ func getStoredDevcontainerCommit() (string, error) {
 }
 
 func isImageUpToDate() (bool, error) {
-	workspaceRoot, err := findWorkspaceRoot()
+	workspaceRoot, err := workspace.FindRoot()
 	if err != nil {
 		return false, err
 	}
@@ -61,8 +63,9 @@ func isDevcontainerDirty(workspaceRoot string) (bool, error) {
 	return strings.TrimSpace(string(output)) != "", nil
 }
 
+// RebuildDevcontainer rebuilds the yak-shaver Docker image from the .devcontainer directory.
 func RebuildDevcontainer() error {
-	workspaceRoot, err := findWorkspaceRoot()
+	workspaceRoot, err := workspace.FindRoot()
 	if err != nil {
 		return fmt.Errorf("failed to find workspace root: %w", err)
 	}
@@ -108,7 +111,7 @@ func dirExists(path string) bool {
 
 // EnsureDevcontainer ensures the Docker image exists and is up-to-date
 func EnsureDevcontainer() error {
-	workspaceRoot, err := findWorkspaceRoot()
+	workspaceRoot, err := workspace.FindRoot()
 	if err != nil {
 		return fmt.Errorf("failed to find workspace root: %w", err)
 	}

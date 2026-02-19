@@ -1,3 +1,4 @@
+// Package prompt handles prompt generation and rendering for yak-box.
 package prompt
 
 import (

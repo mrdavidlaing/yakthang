@@ -108,3 +108,116 @@ func TestGetResolvedEnvironment(t *testing.T) {
 		t.Errorf("Expected VAR3=value1, got %s", resolved["VAR3"])
 	}
 }
+
+func TestLoadConfigCorruptJSON(t *testing.T) {
+	tmpDir := t.TempDir()
+	devcontainerDir := filepath.Join(tmpDir, ".devcontainer")
+	if err := os.MkdirAll(devcontainerDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	corruptContent := `{"image": "test", "mounts": [invalid]}`
+	configPath := filepath.Join(devcontainerDir, "devcontainer.json")
+	if err := os.WriteFile(configPath, []byte(corruptContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	config, err := LoadConfig(tmpDir)
+	if err == nil {
+		t.Fatalf("LoadConfig should fail with corrupt JSON, got nil error")
+	}
+	if config != nil {
+		t.Error("Expected config to be nil on corrupt JSON")
+	}
+}
+
+func TestLoadConfigMissingFields(t *testing.T) {
+	tmpDir := t.TempDir()
+	devcontainerDir := filepath.Join(tmpDir, ".devcontainer")
+	if err := os.MkdirAll(devcontainerDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	minimalContent := `{}`
+	configPath := filepath.Join(devcontainerDir, "devcontainer.json")
+	if err := os.WriteFile(configPath, []byte(minimalContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	config, err := LoadConfig(tmpDir)
+	if err != nil {
+		t.Fatalf("LoadConfig failed: %v", err)
+	}
+	if config == nil {
+		t.Error("Expected config to be non-nil for minimal JSON")
+	}
+}
+
+func TestLoadConfigInvalidTypes(t *testing.T) {
+	tmpDir := t.TempDir()
+	devcontainerDir := filepath.Join(tmpDir, ".devcontainer")
+	if err := os.MkdirAll(devcontainerDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	invalidTypeContent := `{"image": 123, "containerEnv": "not-a-map"}`
+	configPath := filepath.Join(devcontainerDir, "devcontainer.json")
+	if err := os.WriteFile(configPath, []byte(invalidTypeContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	config, err := LoadConfig(tmpDir)
+	if err == nil {
+		t.Fatalf("LoadConfig should fail with invalid types, got nil error")
+	}
+	if config != nil {
+		t.Error("Expected config to be nil on invalid types")
+	}
+}
+
+func TestLoadConfigMalformedMounts(t *testing.T) {
+	tmpDir := t.TempDir()
+	devcontainerDir := filepath.Join(tmpDir, ".devcontainer")
+	if err := os.MkdirAll(devcontainerDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	malformedContent := `{
+		"image": "test",
+		"mounts": ["not-enough-fields", "source=/tmp,target=/tmp"]
+	}`
+	configPath := filepath.Join(devcontainerDir, "devcontainer.json")
+	if err := os.WriteFile(configPath, []byte(malformedContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	config, err := LoadConfig(tmpDir)
+	if err != nil {
+		t.Logf("LoadConfig with malformed mounts returned error (acceptable): %v", err)
+	}
+	if config != nil && len(config.Mounts) > 0 {
+		t.Logf("Config loaded with malformed mounts: %v", config.Mounts)
+	}
+}
+
+func TestLoadConfigNullValues(t *testing.T) {
+	tmpDir := t.TempDir()
+	devcontainerDir := filepath.Join(tmpDir, ".devcontainer")
+	if err := os.MkdirAll(devcontainerDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	nullContent := `{"image": null, "containerEnv": null}`
+	configPath := filepath.Join(devcontainerDir, "devcontainer.json")
+	if err := os.WriteFile(configPath, []byte(nullContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	config, err := LoadConfig(tmpDir)
+	if err != nil {
+		t.Logf("LoadConfig with null values returned error: %v", err)
+	}
+	if config != nil {
+		t.Logf("Config loaded with null values: image=%q", config.Image)
+	}
+}

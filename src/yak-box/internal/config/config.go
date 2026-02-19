@@ -1,10 +1,11 @@
+// Package config provides configuration management for yak-box.
 package config
 
 import (
 	"os"
-	"os/exec"
 	"path/filepath"
-	"strings"
+
+	"github.com/yakthang/yakbox/internal/workspace"
 )
 
 type Config struct {
@@ -13,8 +14,9 @@ type Config struct {
 	MetadataDir   string
 }
 
+// LoadConfig loads the yak-box configuration from the workspace.
 func LoadConfig() (*Config, error) {
-	root, err := findWorkspaceRoot()
+	root, err := workspace.FindRoot()
 	if err != nil {
 		return nil, err
 	}
@@ -29,13 +31,4 @@ func LoadConfig() (*Config, error) {
 		YakPath:       yakPath,
 		MetadataDir:   filepath.Join(root, ".yak-boxes"),
 	}, nil
-}
-
-func findWorkspaceRoot() (string, error) {
-	cmd := exec.Command("git", "rev-parse", "--show-toplevel")
-	output, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(output)), nil
 }

@@ -1,3 +1,4 @@
+// Package zellij provides Zellij terminal layout generation for yak-box.
 package zellij
 
 import (

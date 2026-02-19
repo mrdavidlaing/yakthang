@@ -223,6 +223,12 @@ func LoadConfig(projectPath string) (*Config, error) {
 		config.RemoteUser = "root"
 	}
 
+	// Validate security configuration and print warnings
+	warnings := ValidateSecurityConfig(&config)
+	for _, warning := range warnings {
+		fmt.Fprintf(os.Stderr, "WARNING: %s\n", warning.Message)
+	}
+
 	return &config, nil
 }
 

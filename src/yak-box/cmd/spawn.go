@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -8,10 +9,12 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/yakthang/yakbox/internal/errors"
 	"github.com/yakthang/yakbox/internal/persona"
 	"github.com/yakthang/yakbox/internal/prompt"
 	"github.com/yakthang/yakbox/internal/runtime"
 	"github.com/yakthang/yakbox/internal/sessions"
+	"github.com/yakthang/yakbox/internal/ui"
 	"github.com/yakthang/yakbox/pkg/devcontainer"
 	"github.com/yakthang/yakbox/pkg/types"
 	"github.com/yakthang/yakbox/pkg/worktree"
@@ -51,31 +54,67 @@ Native mode: Runs opencode directly on the host with full system access.`,
 
   # Spawn in plan mode with custom yak path
   yak-box spawn --cwd ./frontend --name ui-worker --mode plan --yak-path .tasks`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		var errs []error
+
+		// Validate required flags
+		if spawnCWD == "" {
+			errs = append(errs, fmt.Errorf("--cwd is required (working directory for the worker)"))
+		}
+		if spawnName == "" {
+			errs = append(errs, fmt.Errorf("--name is required (worker name used in logs and metadata)"))
+		}
+
+		// Validate mode flag
+		if spawnMode != "plan" && spawnMode != "build" {
+			errs = append(errs, fmt.Errorf("--mode must be 'plan' or 'build', got '%s'", spawnMode))
+		}
+
+		// Validate resources flag
+		if spawnResources != "light" && spawnResources != "default" && spawnResources != "heavy" && spawnResources != "ram" {
+			errs = append(errs, fmt.Errorf("--resources must be 'light', 'default', 'heavy', or 'ram', got '%s'", spawnResources))
+		}
+
+		// Validate runtime flag
+		if spawnRuntime != "auto" && spawnRuntime != "sandboxed" && spawnRuntime != "native" {
+			errs = append(errs, fmt.Errorf("--runtime must be 'auto', 'sandboxed', or 'native', got '%s'", spawnRuntime))
+		}
+
+		// Return all errors at once
+		if len(errs) > 0 {
+			combined := "Validation errors:\n"
+			for _, err := range errs {
+				combined += fmt.Sprintf("  - %s\n", err)
+			}
+			return errors.NewValidationError(combined, nil)
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
-		if err := runSpawn(args); err != nil {
+		if err := runSpawn(cmd.Context(), args); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			os.Exit(errors.GetExitCode(err))
 		}
 	},
 }
 
-func runSpawn(args []string) error {
+func runSpawn(ctx context.Context, args []string) error {
 	runtimeType := spawnRuntime
 	if runtimeType == "auto" {
 		runtimeType = runtime.DetectRuntime()
 		if runtimeType == "unknown" {
-			return fmt.Errorf("no runtime available (docker or zellij). Use --runtime=sandboxed or --runtime=native to force a specific runtime")
+			return fmt.Errorf("no runtime available (docker or zellij). Suggestion: Install Docker and start the daemon, or install Zellij. Force with --runtime=sandboxed or --runtime=native")
 		}
 	}
 
 	absCWD, err := filepath.Abs(spawnCWD)
 	if err != nil {
-		return fmt.Errorf("failed to resolve working directory: %w", err)
+		return fmt.Errorf("failed to resolve working directory: %w. Suggestion: Ensure --cwd path is valid and accessible", err)
 	}
 
 	absYakPath, err := filepath.Abs(spawnYakPath)
 	if err != nil {
-		return fmt.Errorf("failed to resolve yak path: %w", err)
+		return fmt.Errorf("failed to resolve yak path: %w. Suggestion: Ensure --yak-path exists and is accessible (default: .yaks)", err)
 	}
 
 	// Handle automatic worktree creation if flag is set
@@ -87,7 +126,7 @@ func runSpawn(args []string) error {
 
 		wt, err := worktree.EnsureWorktree(absCWD, taskPath, true)
 		if err != nil {
-			return fmt.Errorf("failed to ensure worktree: %w", err)
+			return fmt.Errorf("failed to ensure worktree: %w. Suggestion: Ensure you're in a git repository with proper permissions, or disable --auto-worktree", err)
 		}
 
 		worktreePath = wt
@@ -101,18 +140,18 @@ func runSpawn(args []string) error {
 	if spawnClean {
 		fmt.Printf("Cleaning home directory for %s...\n", persona.Name)
 		if err := sessions.CleanHome(persona.Name); err != nil {
-			return fmt.Errorf("failed to clean home: %w", err)
+			return fmt.Errorf("failed to clean home: %w. Suggestion: Ensure .yak-boxes directory exists and is writable", err)
 		}
 	}
 
 	homeDir, err := sessions.EnsureHomeDir(persona.Name)
 	if err != nil {
-		return fmt.Errorf("failed to ensure home directory: %w", err)
+		return fmt.Errorf("failed to ensure home directory: %w. Suggestion: Check that .yak-boxes directory exists and is writable", err)
 	}
 
 	devConfig, err := devcontainer.LoadConfig(absCWD)
 	if err != nil {
-		return fmt.Errorf("failed to load devcontainer config: %w", err)
+		return fmt.Errorf("failed to load devcontainer config: %w. Suggestion: Ensure .devcontainer/devcontainer.json is valid JSON if it exists", err)
 	}
 
 	profile := runtime.GetResourceProfile(spawnResources)
@@ -161,17 +200,31 @@ func runSpawn(args []string) error {
 	}
 
 	if runtimeType == "sandboxed" {
+		ui.Info("⏳ Building container...\n")
 		if err := runtime.EnsureDevcontainer(); err != nil {
-			return fmt.Errorf("failed to ensure devcontainer: %w\n\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
+			ui.Error("❌ Build failed: %v\n", err)
+			return fmt.Errorf("failed to ensure devcontainer: %w\n\nSuggestion: Install Docker or use native mode.\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
 		}
 
-		if err := runtime.SpawnSandboxedWorker(worker, &persona, workerPrompt, profile, homeDir, devConfig); err != nil {
-			return fmt.Errorf("failed to spawn sandboxed worker: %w\n\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
+		if err := runtime.SpawnSandboxedWorker(ctx,
+			runtime.WithWorker(worker),
+			runtime.WithPersona(&persona),
+			runtime.WithPrompt(workerPrompt),
+			runtime.WithResourceProfile(profile),
+			runtime.WithHomeDir(homeDir),
+			runtime.WithDevConfig(devConfig),
+		); err != nil {
+			ui.Error("❌ Failed to spawn sandboxed worker: %v\n", err)
+			return fmt.Errorf("failed to spawn sandboxed worker: %w\n\nSuggestion: Check Docker is running and has enough resources.\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
 		}
+		ui.Success("✅ Container ready\n")
 	} else {
+		ui.Info("⏳ Starting native worker...\n")
 		if err := runtime.SpawnNativeWorker(worker, &persona, workerPrompt, homeDir); err != nil {
-			return fmt.Errorf("failed to spawn native worker: %w", err)
+			ui.Error("❌ Failed to spawn native worker: %v\n", err)
+			return fmt.Errorf("failed to spawn native worker: %w. Suggestion: Ensure Zellij is installed and running, or use --runtime=sandboxed instead", err)
 		}
+		ui.Success("✅ Native worker started\n")
 	}
 
 	taskName := ""

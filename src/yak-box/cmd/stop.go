@@ -7,8 +7,10 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
+	"github.com/yakthang/yakbox/internal/errors"
 	"github.com/yakthang/yakbox/internal/runtime"
 	"github.com/yakthang/yakbox/internal/sessions"
+	"github.com/yakthang/yakbox/internal/ui"
 )
 
 var (
@@ -42,20 +44,45 @@ via Docker ps or Zellij tabs as a fallback.`,
 
   # Stop with custom timeout
   yak-box stop --name backend-worker --timeout 60s`,
+	PreRunE: func(cmd *cobra.Command, args []string) error {
+		var errs []error
+
+		// Validate required flags
+		if stopName == "" {
+			errs = append(errs, fmt.Errorf("--name is required (worker name to stop)"))
+		}
+
+		// Validate timeout format
+		if stopTimeout != "" {
+			if _, err := time.ParseDuration(stopTimeout); err != nil {
+				errs = append(errs, fmt.Errorf("--timeout has invalid format: %v (use '30s', '1m', '5m30s', etc.)", err))
+			}
+		}
+
+		// Return all errors at once
+		if len(errs) > 0 {
+			combined := "Validation errors:\n"
+			for _, err := range errs {
+				combined += fmt.Sprintf("  - %s\n", err)
+			}
+			return errors.NewValidationError(combined, nil)
+		}
+		return nil
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := runStop(); err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			os.Exit(errors.GetExitCode(err))
 		}
 	},
 }
 
 func runStop() error {
-	fmt.Printf("Stopping worker: %s\n", stopName)
+	ui.Info("⏳ Stopping worker: %s...\n", stopName)
 
 	timeout, err := time.ParseDuration(stopTimeout)
 	if err != nil {
-		return fmt.Errorf("invalid timeout: %w", err)
+		return errors.NewValidationError("invalid timeout format. Use a valid duration like '30s', '1m', or '5m30s'", err)
 	}
 
 	session, err := sessions.Get(stopName)
@@ -79,18 +106,18 @@ func runStop() error {
 		}
 
 		if session == nil {
-			return fmt.Errorf("worker not found")
+			return errors.NewValidationError("worker not found. Use 'docker ps' or 'zellij list-sessions' to find running workers, or check .yak-boxes/sessions.json", nil)
 		}
 	}
 
 	yakPath := ".yaks"
 	if !stopForce && session.Task != "" {
-		fmt.Println("Clearing task assignments...")
+		ui.Info("⏳ Clearing task assignments...\n")
 		taskFile := filepath.Join(yakPath, session.Task, "assigned-to")
 		if err := os.Remove(taskFile); err != nil && !os.IsNotExist(err) {
 			fmt.Printf("Warning: Failed to clear assignment for %s: %v\n", session.Task, err)
 		} else {
-			fmt.Printf("Cleared assignment: %s\n", session.Task)
+			ui.Success("✅ Cleared assignment: %s\n", session.Task)
 		}
 	}
 
@@ -99,11 +126,11 @@ func runStop() error {
 			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
 			fmt.Printf("[dry-run] Would stop container: %s\n", session.Container)
 		} else {
-			fmt.Println("Closing Zellij tab...")
+			ui.Info("⏳ Closing Zellij tab...\n")
 			if err := runtime.StopNativeWorker(session.DisplayName, session.ZellijSession); err != nil {
 				fmt.Printf("Warning: failed to close tab: %v\n", err)
 			}
-			fmt.Println("Stopping container...")
+			ui.Info("⏳ Stopping container...\n")
 			if err := runtime.StopSandboxedWorker(stopName, timeout); err != nil {
 				fmt.Printf("Warning: %v\n", err)
 			}
@@ -112,7 +139,7 @@ func runStop() error {
 		if stopDryRun {
 			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
 		} else {
-			fmt.Println("Closing Zellij tab...")
+			ui.Info("⏳ Closing Zellij tab...\n")
 			if err := runtime.StopNativeWorker(session.DisplayName, session.ZellijSession); err != nil {
 				fmt.Printf("Warning: failed to close tab: %v\n", err)
 			}
@@ -125,7 +152,7 @@ func runStop() error {
 		}
 	}
 
-	fmt.Printf("Worker stopped: %s\n", stopName)
+	ui.Success("✅ Stopped: %s\n", stopName)
 	return nil
 }
 
