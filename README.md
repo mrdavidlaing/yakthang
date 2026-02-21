@@ -20,10 +20,11 @@ The primary interface is **Zellij** — a terminal multiplexer that provides the
 
 ### YakMap — Visual Task Map
 
-The left pane runs a **YakMap Zellij plugin** that visualizes your yak map in real-time. It reads from `.yaks/` (maintained by the `yx` CLI) and displays:
-- All tasks and their states
-- Dependencies between tasks
-- Worker assignments
+The left pane runs a **YakMap Zellij WASM plugin** (`bin/yak-map.wasm`) that visualizes your yak map in real-time. It reads `.yaks/` directly (no dependency on the `yx` binary) and displays:
+- All tasks and their states with color-coded status (green=wip, grey=done, white=todo)
+- Task hierarchy with tree visualization and continuation lines
+- Worker assignments and agent status annotations
+- Keyboard navigation (↑/↓) with selected task highlighting
 
 ### Yakob — The Orchestrator
 
@@ -74,22 +75,34 @@ Each task has:
 
 ### yak-box — Worker Manager
 
-CLI tool for spawning yak shavers:
+Go CLI tool for spawning yak shavers (built from `src/yak-box/`):
 
 ```bash
 # Spawn a sandboxed shaver for API tasks
-yak-box spawn --cwd ./api --name api-shasher --yaks auth/api
+yak-box spawn --cwd ./api --name api-shaver --yaks auth/api
 
 # Spawn a native shaver with heavy resources
-yak-box spawn --cwd ./backend --name backend-shasher --runtime native --resources heavy
+yak-box spawn --cwd ./backend --name backend-shaver --runtime native --resources heavy
 
-# Check status of all shavers
+# Spawn with automatic git worktree isolation
+yak-box spawn --cwd ./api --name api-auth --yaks auth/api --auto-worktree
+
+# Check status of all shavers (includes live cost)
 yak-box check
+
+# Stop a shaver gracefully
+yak-box stop api-shaver
 ```
 
 Shavers run in two modes:
-- **Sandboxed** — Isolated Docker container with resource limits
+- **Sandboxed** — Docker container with resource limits, security hardening, and persistent worker homes at `.yak-boxes/@home/{Persona}/`
 - **Native** — Direct execution on the host with full system access
+
+Key features:
+- **DevContainer support** — Reads `.devcontainer/devcontainer.json` for custom images, env vars, mounts, and post-create commands
+- **Automatic worktree management** — `--auto-worktree` creates isolated git worktrees per task at `~/.local/share/yakthang/worktrees/`
+- **Persistent worker homes** — Worker state (SQLite DB, shell history) survives container restarts and crashes
+- **Cost tracking** — `yak-box check` shows live cost per running worker; `cost-summary.sh` gives unified reports
 
 ### .yaks/ — Task Directory
 
@@ -235,16 +248,35 @@ yx field my-feature agent-status "blocked: waiting for API spec"
 ```
 yakthang/
 ├── bin/
-│   ├── yak-box           # Worker manager CLI
-│   └── yak-map.wasm      # YakMap Zellij plugin
-├── docs/                 # Documentation
+│   ├── yak-box           # Worker manager CLI (Go)
+│   ├── yak-map.wasm      # YakMap Zellij WASM plugin (Rust)
+│   ├── yx                # Task tracker CLI (shell)
+│   └── archive-yaks.sh   # Archive completed tasks to memory/
+├── src/
+│   ├── yak-box/          # yak-box source (Go)
+│   ├── yak-map/          # YakMap plugin source (Rust/WASM)
+│   └── yaks/             # yx CLI source (shell)
+├── docs/                 # Specs, design docs, guides
+├── memory/               # Archived task outcomes (organized by goal)
+├── scripts/              # Operational scripts
+├── .devcontainer/        # DevContainer config for worker images
+├── .opencode/            # OpenCode/OpenClaw workspace config
 ├── orchestrator.kdl      # Zellij layout definition
 ├── launch.sh             # Entry point
-├── .yaks/                # Task state directory
-└── .yak-boxes/           # Worker metadata directory
+├── cost-*.sh             # Cost tracking scripts
+├── .yaks/                # Task state directory (gitignored)
+├── .yak-boxes/           # Worker metadata + persistent homes
+│   └── @home/            # Persistent worker home dirs
+└── .worker-costs/        # Exported cost data + CSV history
 ```
 
 ## See Also
 
 - [docs/worker-spawning.md](docs/worker-spawning.md) — Worker spawning details
 - [docs/orchestrator-layout.md](docs/orchestrator-layout.md) — Terminal layout
+- [docs/cost-tracking.md](docs/cost-tracking.md) — Cost tracking system
+- [docs/task-management.md](docs/task-management.md) — Task management with yx
+- [docs/plan-build-modes.md](docs/plan-build-modes.md) — Plan vs Build worker modes
+- [docs/development/DOCKER-MODE.md](docs/development/DOCKER-MODE.md) — Docker runtime architecture
+- [docs/specs/yak-box-design.md](docs/specs/yak-box-design.md) — yak-box design spec
+- [docs/specs/yak-map-design.md](docs/specs/yak-map-design.md) — YakMap plugin design
