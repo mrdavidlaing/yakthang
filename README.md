@@ -166,7 +166,7 @@ The YakMap pane updates in real-time as shavers update task status.
 
 This opens Zellij with YakobsYurt:
 - **Left pane**: YakMap — live task visualization
-- **Right top**: Yakob (OpenClaw 2E) — orchestration
+- **Right top**: Yakob (OpenClaw) — orchestration
 - **Right bottom**: Shell — manual commands
 
 ### Work with Yakob

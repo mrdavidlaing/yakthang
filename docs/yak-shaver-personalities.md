@@ -53,10 +53,10 @@ where the orchestrator needs frequent progress updates.
 
 ## Assignment
 
-Personalities are assigned randomly at spawn time in `yak-box spawn` (see `bin/yak-box`):
+Personalities are assigned randomly at spawn time by `yak-box spawn` (see `src/yak-box/`):
 
-```bash
-SHAVER_INDEX=$((RANDOM % ${#WORKER_NAMES[@]}))
+```go
+shaverIndex := rand.Intn(len(personas))
 ```
 
 The personality is loaded from `.opencode/personalities/<name>-worker.md` and

@@ -13,7 +13,7 @@ The orchestrator tab ("Yakob's 🛖") is a vertical split with three panes:
 ```
 ┌──────────────┬──────────────────────────────┐
 │              │                              │
-│   yak-map    │     orchestrator (opencode)  │
+│   yak-map    │     orchestrator (openclaw)   │
 │   (33%)      │          (80% of 67%)        │
 │              │                              │
 │  live task   │  Yakob plans, spawns, and    │
@@ -35,14 +35,14 @@ the orchestrator's primary situational awareness tool.
 
 ### Orchestrator pane (right top, ~80% of 67%)
 
-Runs an interactive `opencode` instance. This is where Yakob (the orchestrator
+Runs an interactive `openclaw` instance. This is where Yakob (the orchestrator
 persona) operates. The orchestrator reads task state, writes task context,
 and spawns workers — but never edits application code directly.
 
 ### Shell pane (right bottom, ~20% of 67%)
 
 A plain shell for manual commands: running `yak-box check`, reading fields,
-git operations, or anything the orchestrator needs outside of opencode.
+git operations, or anything the orchestrator needs outside of openclaw.
 
 ## Worker Tabs
 
@@ -85,7 +85,7 @@ tab. Everything else is spawned from there.
   `.yaks/` directly, providing richer visualization (tree rendering, color
   coding, keyboard navigation) than the previous `watch` + `yx ls` approach.
 - **Opencode for both orchestrator and workers**: The orchestrator runs
-  interactive opencode; workers run via `yak-box spawn`.
+  interactive openclaw; workers run opencode via `yak-box spawn`.
 - **Focus returns to orchestrator**: After spawning a worker tab,
   `yak-box spawn` calls `zellij action go-to-previous-tab` so the
   orchestrator doesn't lose its place.
