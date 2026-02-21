@@ -35,10 +35,7 @@ func TestGenerateRunScript(t *testing.T) {
 			CWD:         "/test/cwd",
 			YakPath:     "/test/yak",
 			DisplayName: "Test Worker",
-		},
-		persona: &types.Persona{
-			Name:  "TestPersona",
-			Emoji: "🧪",
+			WorkerName:  "TestWorker",
 		},
 		profile: types.ResourceProfile{
 			Name:   "default",
@@ -65,7 +62,7 @@ func TestGenerateRunScript(t *testing.T) {
 		"--memory 2g",
 		"-v \"/test/workspace:/test/workspace:rw\"",
 		"-w \"/test/cwd\"",
-		"WORKER_NAME=\"TestPersona\"",
+		`WORKER_NAME="TestWorker"`,
 	}
 
 	for _, exp := range expected {
@@ -82,10 +79,7 @@ func TestGenerateRunScript_WithDevConfig(t *testing.T) {
 			CWD:         "/test/cwd",
 			YakPath:     "/test/yak",
 			DisplayName: "Test Worker",
-		},
-		persona: &types.Persona{
-			Name:  "TestPersona",
-			Emoji: "🧪",
+			WorkerName:  "TestWorker",
 		},
 		profile: types.ResourceProfile{
 			Name:   "default",

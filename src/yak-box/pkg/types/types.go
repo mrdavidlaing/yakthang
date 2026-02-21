@@ -3,15 +3,13 @@ package types
 
 import "time"
 
-type Persona struct {
-	Name        string
-	Emoji       string
-	Trait       string
-	Personality string
-}
+// WorkerNames is the pool of available worker names.
+// These are simple identifiers used for display and home directory isolation.
+var WorkerNames = []string{"Yakriel", "Yakueline", "Yakov", "Yakira"}
 
 type Worker struct {
 	Name          string
+	WorkerName    string // Yak-shaver identity (e.g. "Yakriel")
 	DisplayName   string
 	ContainerName string
 	Runtime       string

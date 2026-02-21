@@ -7,19 +7,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPersonaCreation(t *testing.T) {
-	persona := Persona{
-		Name:        "TestPersona",
-		Emoji:       "🤖",
-		Trait:       "helpful",
-		Personality: "A test personality",
-	}
-
-	assert.Equal(t, "TestPersona", persona.Name)
-	assert.Equal(t, "🤖", persona.Emoji)
-	assert.Equal(t, "helpful", persona.Trait)
-	assert.Equal(t, "A test personality", persona.Personality)
+func TestWorkerNames(t *testing.T) {
+	assert.Len(t, WorkerNames, 4)
+	assert.Contains(t, WorkerNames, "Yakriel")
+	assert.Contains(t, WorkerNames, "Yakueline")
+	assert.Contains(t, WorkerNames, "Yakov")
+	assert.Contains(t, WorkerNames, "Yakira")
 }
+
 
 func TestWorkerCreation(t *testing.T) {
 	now := time.Now()

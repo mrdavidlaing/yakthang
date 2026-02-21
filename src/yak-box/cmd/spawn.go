@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,7 +11,6 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/yakthang/yakbox/internal/errors"
-	"github.com/yakthang/yakbox/internal/persona"
 	"github.com/yakthang/yakbox/internal/prompt"
 	"github.com/yakthang/yakbox/internal/runtime"
 	"github.com/yakthang/yakbox/internal/sessions"
@@ -39,7 +39,7 @@ var spawnCmd = &cobra.Command{
 	Long: `Spawn a new worker with specified configuration.
 
 The spawn command creates a new worker (sandboxed or native) with a randomly
-selected personality, assembles the appropriate prompt, and assigns tasks.
+selected name, assembles the appropriate prompt, and assigns tasks.
 
 Sandboxed mode (default): Uses Docker container with resource limits and isolation.
 Native mode: Runs opencode directly on the host with full system access.`,
@@ -57,7 +57,6 @@ Native mode: Runs opencode directly on the host with full system access.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		var errs []error
 
-		// Validate required flags
 		if spawnCWD == "" {
 			errs = append(errs, fmt.Errorf("--cwd is required (working directory for the worker)"))
 		}
@@ -65,22 +64,18 @@ Native mode: Runs opencode directly on the host with full system access.`,
 			errs = append(errs, fmt.Errorf("--name is required (worker name used in logs and metadata)"))
 		}
 
-		// Validate mode flag
 		if spawnMode != "plan" && spawnMode != "build" {
 			errs = append(errs, fmt.Errorf("--mode must be 'plan' or 'build', got '%s'", spawnMode))
 		}
 
-		// Validate resources flag
 		if spawnResources != "light" && spawnResources != "default" && spawnResources != "heavy" && spawnResources != "ram" {
 			errs = append(errs, fmt.Errorf("--resources must be 'light', 'default', 'heavy', or 'ram', got '%s'", spawnResources))
 		}
 
-		// Validate runtime flag
 		if spawnRuntime != "auto" && spawnRuntime != "sandboxed" && spawnRuntime != "native" {
 			errs = append(errs, fmt.Errorf("--runtime must be 'auto', 'sandboxed', or 'native', got '%s'", spawnRuntime))
 		}
 
-		// Return all errors at once
 		if len(errs) > 0 {
 			combined := "Validation errors:\n"
 			for _, err := range errs {
@@ -96,6 +91,10 @@ Native mode: Runs opencode directly on the host with full system access.`,
 			os.Exit(errors.GetExitCode(err))
 		}
 	},
+}
+
+func pickWorkerName() string {
+	return types.WorkerNames[rand.Intn(len(types.WorkerNames))]
 }
 
 func runSpawn(ctx context.Context, args []string) error {
@@ -117,10 +116,8 @@ func runSpawn(ctx context.Context, args []string) error {
 		return fmt.Errorf("failed to resolve yak path: %w. Suggestion: Ensure --yak-path exists and is accessible (default: .yaks)", err)
 	}
 
-	// Handle automatic worktree creation if flag is set
 	worktreePath := ""
 	if spawnAutoWorktree && len(spawnYaks) > 0 {
-		// Use the first task for worktree creation
 		taskPath := spawnYaks[0]
 		fmt.Printf("Creating worktree for task: %s\n", taskPath)
 
@@ -130,21 +127,20 @@ func runSpawn(ctx context.Context, args []string) error {
 		}
 
 		worktreePath = wt
-		// Update CWD to point to the worktree
 		absCWD = wt
 		fmt.Printf("Using worktree: %s\n", wt)
 	}
 
-	persona := persona.GetRandomPersona()
+	workerName := pickWorkerName()
 
 	if spawnClean {
-		fmt.Printf("Cleaning home directory for %s...\n", persona.Name)
-		if err := sessions.CleanHome(persona.Name); err != nil {
+		fmt.Printf("Cleaning home directory for %s...\n", workerName)
+		if err := sessions.CleanHome(workerName); err != nil {
 			return fmt.Errorf("failed to clean home: %w. Suggestion: Ensure .yak-boxes directory exists and is writable", err)
 		}
 	}
 
-	homeDir, err := sessions.EnsureHomeDir(persona.Name)
+	homeDir, err := sessions.EnsureHomeDir(workerName)
 	if err != nil {
 		return fmt.Errorf("failed to ensure home directory: %w. Suggestion: Check that .yak-boxes directory exists and is writable", err)
 	}
@@ -161,7 +157,7 @@ func runSpawn(ctx context.Context, args []string) error {
 		userPrompt = args[0]
 	}
 
-	workerPrompt := prompt.BuildPrompt(persona, spawnMode, spawnYakPath, userPrompt, spawnYaks)
+	workerPrompt := prompt.BuildPrompt(spawnMode, spawnYakPath, userPrompt, spawnYaks)
 
 	yakTitle := ""
 	if len(spawnYaks) > 0 {
@@ -172,12 +168,11 @@ func runSpawn(ctx context.Context, args []string) error {
 		}
 	}
 
-	displayName := persona.Name + " " + persona.Emoji
+	displayName := workerName
 	if yakTitle != "" {
 		displayName += " " + yakTitle
 	}
 
-	// Sanitize spawnName for use as Docker container name (only allow [a-zA-Z0-9_-])
 	sanitizedName := strings.ReplaceAll(spawnName, " ", "-")
 	sanitizedName = strings.Map(func(r rune) rune {
 		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
@@ -188,6 +183,7 @@ func runSpawn(ctx context.Context, args []string) error {
 
 	worker := &types.Worker{
 		Name:          spawnName,
+		WorkerName:    workerName,
 		DisplayName:   displayName,
 		ContainerName: "yak-worker-" + sanitizedName,
 		Runtime:       runtimeType,
@@ -208,7 +204,6 @@ func runSpawn(ctx context.Context, args []string) error {
 
 		if err := runtime.SpawnSandboxedWorker(ctx,
 			runtime.WithWorker(worker),
-			runtime.WithPersona(&persona),
 			runtime.WithPrompt(workerPrompt),
 			runtime.WithResourceProfile(profile),
 			runtime.WithHomeDir(homeDir),
@@ -220,7 +215,7 @@ func runSpawn(ctx context.Context, args []string) error {
 		ui.Success("✅ Container ready\n")
 	} else {
 		ui.Info("⏳ Starting native worker...\n")
-		pidFile, err := runtime.SpawnNativeWorker(worker, &persona, workerPrompt, homeDir)
+		pidFile, err := runtime.SpawnNativeWorker(worker, workerPrompt, homeDir)
 		if err != nil {
 			ui.Error("❌ Failed to spawn native worker: %v\n", err)
 			return fmt.Errorf("failed to spawn native worker: %w. Suggestion: Ensure Zellij is installed and running, or use --runtime=sandboxed instead", err)
@@ -235,13 +230,12 @@ func runSpawn(ctx context.Context, args []string) error {
 	}
 
 	if err := sessions.Register(spawnName, sessions.Session{
-		Worker:        persona.Name,
+		Worker:        workerName,
 		Task:          taskName,
 		Container:     worker.ContainerName,
 		SpawnedAt:     worker.SpawnedAt,
 		Runtime:       runtimeType,
 		CWD:           absCWD,
-		Persona:       persona.Name,
 		DisplayName:   displayName,
 		ZellijSession: spawnSession,
 		PidFile:       worker.PidFile,
@@ -250,13 +244,11 @@ func runSpawn(ctx context.Context, args []string) error {
 	}
 
 	for _, task := range spawnYaks {
-		assignment := persona.Name + " " + persona.Emoji
 		taskFile := filepath.Join(absYakPath, task, "assigned-to")
-		if err := os.WriteFile(taskFile, []byte(assignment), 0644); err != nil {
+		if err := os.WriteFile(taskFile, []byte(workerName), 0644); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to assign task %s: %v\n", task, err)
 		}
 
-		// Write worktree path if auto-worktree was used
 		if worktreePath != "" {
 			worktreeFile := filepath.Join(absYakPath, task, "worktree-path")
 			if err := os.WriteFile(worktreeFile, []byte(worktreePath), 0644); err != nil {
@@ -265,7 +257,7 @@ func runSpawn(ctx context.Context, args []string) error {
 		}
 	}
 
-	fmt.Printf("Spawned %s (%s) in %s\n", persona.Name, spawnName, runtimeType)
+	fmt.Printf("Spawned %s (%s) in %s\n", workerName, spawnName, runtimeType)
 	return nil
 }
 

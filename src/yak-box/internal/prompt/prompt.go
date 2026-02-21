@@ -3,12 +3,10 @@ package prompt
 
 import (
 	"fmt"
-
-	"github.com/yakthang/yakbox/pkg/types"
 )
 
 // BuildPrompt assembles the initial prompt for a worker
-func BuildPrompt(persona types.Persona, mode string, yakPath string, userPrompt string, tasks []string) string {
+func BuildPrompt(mode string, yakPath string, userPrompt string, tasks []string) string {
 	var roleDescription string
 	if mode == "plan" {
 		roleDescription = "Your supervisor is Yakob. The yaks are tasks — your job is to scout them and plan the shave. Do NOT pick up the clippers."
@@ -82,8 +80,6 @@ TASK TRACKER (yx)`
 
 %s
 
-%s
-
 You have access to a task tracker called yx. The task state lives in %s.
 
 Commands:
@@ -101,5 +97,5 @@ Reporting status (IMPORTANT -- the orchestrator monitors these fields):
   - When blocked:   echo "blocked: <reason>" | yx field <name> agent-status
   - When done:      echo "done: <summary>" | yx field <name> agent-status
 
-%s`, persona.Personality, roleDescription, userPrompt, taskAssignment, yakPath, workflow)
+%s`, roleDescription, userPrompt, taskAssignment, yakPath, workflow)
 }

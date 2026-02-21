@@ -32,17 +32,6 @@ func TestWithWorker(t *testing.T) {
 	}
 }
 
-func TestWithPersona(t *testing.T) {
-	cfg := &spawnConfig{}
-	persona := &types.Persona{Name: "test"}
-	opt := WithPersona(persona)
-	if err := opt(cfg); err != nil {
-		t.Errorf("WithPersona returned error: %v", err)
-	}
-	if cfg.persona != persona {
-		t.Error("WithPersona failed to set persona")
-	}
-}
 
 func TestWithPrompt(t *testing.T) {
 	cfg := &spawnConfig{}

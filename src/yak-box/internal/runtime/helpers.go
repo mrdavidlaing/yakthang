@@ -109,8 +109,7 @@ func generateRunScript(cfg *spawnConfig, workspaceRoot, promptFile, innerScript,
 		sb.WriteString("\t-e CARGO_BUILD_JOBS=4 \\\n")
 	}
 
-	sb.WriteString(fmt.Sprintf("\t-e WORKER_NAME=\"%s\" \\\n", cfg.persona.Name))
-	sb.WriteString(fmt.Sprintf("\t-e WORKER_EMOJI=\"%s\" \\\n", cfg.persona.Emoji))
+	sb.WriteString(fmt.Sprintf("\t-e WORKER_NAME=\"%s\" \\\n", cfg.worker.WorkerName))
 	sb.WriteString(fmt.Sprintf("\t-e YAK_PATH=\"%s\" \\\n", cfg.worker.YakPath))
 
 	// Devcontainer envs

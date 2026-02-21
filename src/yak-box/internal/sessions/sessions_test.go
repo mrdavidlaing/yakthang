@@ -61,7 +61,7 @@ func TestLoad(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 				}
@@ -138,7 +138,7 @@ func TestSave(t *testing.T) {
 					SpawnedAt:   time.Now(),
 					Runtime:     "runtime1",
 					CWD:         "/path/to/cwd",
-					Persona:     "persona1",
+					WorkerName:  "worker1",
 					DisplayName: "Session 1",
 				},
 			},
@@ -154,7 +154,7 @@ func TestSave(t *testing.T) {
 					SpawnedAt:   time.Now(),
 					Runtime:     "runtime1",
 					CWD:         "/path/to/cwd",
-					Persona:     "persona1",
+					WorkerName:  "worker1",
 					DisplayName: "Session 1",
 				},
 				"session2": Session{
@@ -164,7 +164,7 @@ func TestSave(t *testing.T) {
 					SpawnedAt:   time.Now(),
 					Runtime:     "runtime2",
 					CWD:         "/path/to/cwd2",
-					Persona:     "persona2",
+					WorkerName:  "worker2",
 					DisplayName: "Session 2",
 				},
 			},
@@ -180,7 +180,7 @@ func TestSave(t *testing.T) {
 					SpawnedAt:     time.Now(),
 					Runtime:       "runtime1",
 					CWD:           "/path/to/cwd",
-					Persona:       "persona1",
+					WorkerName:  "worker1",
 					DisplayName:   "Full Session",
 					ZellijSession: "zellij_session1",
 				},
@@ -246,7 +246,7 @@ func TestRegister(t *testing.T) {
 				SpawnedAt:   time.Now(),
 				Runtime:     "runtime1",
 				CWD:         "/path/to/cwd",
-				Persona:     "persona1",
+				WorkerName:  "worker1",
 				DisplayName: "New Session",
 			},
 			expectError: false,
@@ -261,7 +261,7 @@ func TestRegister(t *testing.T) {
 				SpawnedAt:   time.Now(),
 				Runtime:     "runtime1",
 				CWD:         "/path/to/cwd",
-				Persona:     "persona1",
+				WorkerName:  "worker1",
 				DisplayName: "Session",
 			},
 			expectError: false,
@@ -276,7 +276,7 @@ func TestRegister(t *testing.T) {
 				SpawnedAt:   time.Now(),
 				Runtime:     "runtime2",
 				CWD:         "/path/to/cwd2",
-				Persona:     "persona2",
+				WorkerName:  "worker2",
 				DisplayName: "Updated Session",
 			},
 			expectError: false,
@@ -347,7 +347,7 @@ func TestUnregister(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 				}
@@ -375,7 +375,7 @@ func TestUnregister(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 				}
@@ -446,7 +446,7 @@ func TestGet(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 				}
@@ -474,7 +474,7 @@ func TestGet(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 				}
@@ -558,7 +558,7 @@ func TestGetByContainer(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 					"session2": Session{
@@ -568,7 +568,7 @@ func TestGetByContainer(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime2",
 						CWD:         "/path/to/cwd2",
-						Persona:     "persona2",
+						WorkerName:  "worker2",
 						DisplayName: "Session 2",
 					},
 				}
@@ -596,7 +596,7 @@ func TestGetByContainer(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 				}
@@ -688,7 +688,7 @@ func TestList(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 				}
@@ -715,7 +715,7 @@ func TestList(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime1",
 						CWD:         "/path/to/cwd",
-						Persona:     "persona1",
+						WorkerName:  "worker1",
 						DisplayName: "Session 1",
 					},
 					"session2": Session{
@@ -725,7 +725,7 @@ func TestList(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime2",
 						CWD:         "/path/to/cwd2",
-						Persona:     "persona2",
+						WorkerName:  "worker2",
 						DisplayName: "Session 2",
 					},
 					"session3": Session{
@@ -735,7 +735,7 @@ func TestList(t *testing.T) {
 						SpawnedAt:   time.Now(),
 						Runtime:     "runtime3",
 						CWD:         "/path/to/cwd3",
-						Persona:     "persona3",
+						WorkerName:  "worker3",
 						DisplayName: "Session 3",
 					},
 				}
@@ -969,7 +969,7 @@ func TestListHomes(t *testing.T) {
 				if err := initTestGitRepo(tmpDir); err != nil {
 					t.Fatalf("failed to init test repo: %v", err)
 				}
-				homePath := filepath.Join(tmpDir, yakBoxesDir, homeDir, "persona1")
+				homePath := filepath.Join(tmpDir, yakBoxesDir, homeDir, "worker1")
 				os.MkdirAll(homePath, 0755)
 			},
 			expectError: false,
@@ -983,7 +983,7 @@ func TestListHomes(t *testing.T) {
 				}
 				for i := 1; i <= 3; i++ {
 					personaNum := string(rune('0' + i))
-					homePath := filepath.Join(tmpDir, yakBoxesDir, homeDir, "persona"+personaNum)
+					homePath := filepath.Join(tmpDir, yakBoxesDir, homeDir, "worker"+personaNum)
 					os.MkdirAll(homePath, 0755)
 				}
 			},
@@ -998,8 +998,8 @@ func TestListHomes(t *testing.T) {
 				}
 				homesPath := filepath.Join(tmpDir, yakBoxesDir, homeDir)
 				os.MkdirAll(homesPath, 0755)
-				os.MkdirAll(filepath.Join(homesPath, "persona1"), 0755)
-				os.MkdirAll(filepath.Join(homesPath, "persona2"), 0755)
+				os.MkdirAll(filepath.Join(homesPath, "worker1"), 0755)
+				os.MkdirAll(filepath.Join(homesPath, "worker2"), 0755)
 				os.WriteFile(filepath.Join(homesPath, "somefile.txt"), []byte("content"), 0644)
 			},
 			expectError: false,
@@ -1051,7 +1051,7 @@ func TestSessionRoundtrip(t *testing.T) {
 					SpawnedAt:   time.Now(),
 					Runtime:     "runtime1",
 					CWD:         "/path/to/cwd",
-					Persona:     "persona1",
+					WorkerName:  "worker1",
 					DisplayName: "Session 1",
 				},
 			},
@@ -1066,7 +1066,7 @@ func TestSessionRoundtrip(t *testing.T) {
 					SpawnedAt:     time.Now(),
 					Runtime:       "runtime_full",
 					CWD:           "/path/to/cwd",
-					Persona:       "persona_full",
+					WorkerName:  "worker_full",
 					DisplayName:   "Full Session",
 					ZellijSession: "zellij1",
 				},
@@ -1111,8 +1111,8 @@ func TestSessionRoundtrip(t *testing.T) {
 				if actualSession.Worker != expectedSession.Worker {
 					t.Errorf("Worker mismatch for session %q: got %q, expected %q", sessionID, actualSession.Worker, expectedSession.Worker)
 				}
-				if actualSession.Persona != expectedSession.Persona {
-					t.Errorf("Persona mismatch for session %q: got %q, expected %q", sessionID, actualSession.Persona, expectedSession.Persona)
+				if actualSession.WorkerName != expectedSession.WorkerName {
+					t.Errorf("WorkerName mismatch for session %q: got %q, expected %q", sessionID, actualSession.WorkerName, expectedSession.WorkerName)
 				}
 				if actualSession.DisplayName != expectedSession.DisplayName {
 					t.Errorf("DisplayName mismatch for session %q: got %q, expected %q", sessionID, actualSession.DisplayName, expectedSession.DisplayName)
@@ -1149,7 +1149,7 @@ func TestConcurrentSessions(t *testing.T) {
 			SpawnedAt:   time.Now(),
 			Runtime:     "runtime0",
 			CWD:         "/path/to/cwd0",
-			Persona:     "persona0",
+			WorkerName:  "worker0",
 			DisplayName: "Session 0",
 		},
 	}
@@ -1167,7 +1167,7 @@ func TestConcurrentSessions(t *testing.T) {
 				SpawnedAt:   time.Now(),
 				Runtime:     "runtime" + string(rune('0'+byte(idx%10))),
 				CWD:         "/path/to/cwd",
-				Persona:     "persona" + string(rune('0'+byte(idx%10))),
+				WorkerName:  "worker" + string(rune('0'+byte(idx%10))),
 				DisplayName: "Concurrent Session " + string(rune('0'+byte(idx%10))),
 			}
 			done <- Register("session"+string(rune('0'+byte(idx%10))), session)
@@ -1229,7 +1229,7 @@ func TestSaveErrorCreatingDirectory(t *testing.T) {
 		"test": Session{
 			Worker:      "worker",
 			CWD:         "/path",
-			Persona:     "persona",
+			WorkerName:  "worker",
 			DisplayName: "Test",
 			SpawnedAt:   time.Now(),
 			Runtime:     "runtime",
@@ -1255,7 +1255,7 @@ func TestEnsureHomeDirCreatesAllDirectories(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(originalWD)
 
-	homePath, err := EnsureHomeDir("testpersona")
+	homePath, err := EnsureHomeDir("testworker")
 	if err != nil {
 		t.Fatalf("EnsureHomeDir() error = %v", err)
 	}
@@ -1294,13 +1294,13 @@ func TestGetHomeDirReturnsCorrectPath(t *testing.T) {
 	os.Chdir(tmpDir)
 	defer os.Chdir(originalWD)
 
-	persona := "mypersona"
-	homePath, err := GetHomeDir(persona)
+	workerName := "myworker"
+	homePath, err := GetHomeDir(workerName)
 	if err != nil {
 		t.Fatalf("GetHomeDir() error = %v", err)
 	}
 
-	expected := filepath.Join(tmpDir, yakBoxesDir, homeDir, persona)
+	expected := filepath.Join(tmpDir, yakBoxesDir, homeDir, workerName)
 	if homePath != expected {
 		t.Errorf("GetHomeDir() = %q, expected %q", homePath, expected)
 	}
@@ -1313,8 +1313,8 @@ func TestGetHomeDirReturnsCorrectPath(t *testing.T) {
 		t.Errorf("home path should contain homeDir")
 	}
 
-	if !strings.Contains(homePath, persona) {
-		t.Errorf("home path should contain persona")
+	if !strings.Contains(homePath, workerName) {
+		t.Errorf("home path should contain workerName")
 	}
 }
 
@@ -1327,9 +1327,9 @@ func TestListHomesWithDifferentStructures(t *testing.T) {
 	homesPath := filepath.Join(tmpDir, yakBoxesDir, homeDir)
 	os.MkdirAll(homesPath, 0755)
 
-	os.MkdirAll(filepath.Join(homesPath, "persona1"), 0755)
-	os.MkdirAll(filepath.Join(homesPath, "persona2"), 0755)
-	os.MkdirAll(filepath.Join(homesPath, "persona3"), 0755)
+	os.MkdirAll(filepath.Join(homesPath, "worker1"), 0755)
+	os.MkdirAll(filepath.Join(homesPath, "worker2"), 0755)
+	os.MkdirAll(filepath.Join(homesPath, "worker3"), 0755)
 
 	os.WriteFile(filepath.Join(homesPath, "file.txt"), []byte("content"), 0644)
 	os.WriteFile(filepath.Join(homesPath, ".hidden"), []byte("hidden"), 0644)
@@ -1350,23 +1350,23 @@ func TestListHomesWithDifferentStructures(t *testing.T) {
 		t.Errorf("ListHomes() returned %d homes, expected 3", len(homes))
 	}
 
-	expectedPersonas := map[string]bool{
-		"persona1": false,
-		"persona2": false,
-		"persona3": false,
+	expectedWorkers := map[string]bool{
+		"worker1": false,
+		"worker2": false,
+		"worker3": false,
 	}
 
 	for _, home := range homes {
-		if _, ok := expectedPersonas[home]; ok {
-			expectedPersonas[home] = true
+		if _, ok := expectedWorkers[home]; ok {
+			expectedWorkers[home] = true
 		} else {
-			t.Errorf("unexpected persona in ListHomes(): %q", home)
+			t.Errorf("unexpected worker in ListHomes(): %q", home)
 		}
 	}
 
-	for persona, found := range expectedPersonas {
+	for worker, found := range expectedWorkers {
 		if !found {
-			t.Errorf("expected persona %q not found in ListHomes()", persona)
+			t.Errorf("expected worker %q not found in ListHomes()", worker)
 		}
 	}
 }
@@ -1419,7 +1419,7 @@ func TestRegisterAndGetMultipleSessions(t *testing.T) {
 			sess: Session{
 				Worker:      "worker1",
 				Container:   "cont1",
-				Persona:     "persona1",
+				WorkerName:  "worker1",
 				DisplayName: "Session 1",
 				SpawnedAt:   time.Now(),
 				Runtime:     "runtime1",
@@ -1431,7 +1431,7 @@ func TestRegisterAndGetMultipleSessions(t *testing.T) {
 			sess: Session{
 				Worker:      "worker2",
 				Container:   "cont2",
-				Persona:     "persona2",
+				WorkerName:  "worker2",
 				DisplayName: "Session 2",
 				SpawnedAt:   time.Now(),
 				Runtime:     "runtime2",
@@ -1479,7 +1479,7 @@ func TestUnregisterMultipleSessions(t *testing.T) {
 		session := Session{
 			Worker:      "worker",
 			Container:   "container",
-			Persona:     "persona",
+			WorkerName:  "worker",
 			DisplayName: "Session",
 			SpawnedAt:   time.Now(),
 			Runtime:     "runtime",
@@ -1519,7 +1519,7 @@ func TestSessionTypeFields(t *testing.T) {
 		SpawnedAt:     time.Now(),
 		Runtime:       "test_runtime",
 		CWD:           "/test/path",
-		Persona:       "test_persona",
+		WorkerName:  "test_worker",
 		DisplayName:   "Test Display Name",
 		ZellijSession: "test_zellij",
 	}
@@ -1539,8 +1539,8 @@ func TestSessionTypeFields(t *testing.T) {
 	if session.CWD != "/test/path" {
 		t.Error("CWD field not set correctly")
 	}
-	if session.Persona != "test_persona" {
-		t.Error("Persona field not set correctly")
+	if session.WorkerName != "test_worker" {
+		t.Error("WorkerName field not set correctly")
 	}
 	if session.DisplayName != "Test Display Name" {
 		t.Error("DisplayName field not set correctly")
@@ -1600,7 +1600,7 @@ func TestConcurrentSaveLoadRaceCondition(t *testing.T) {
 					SpawnedAt:   time.Now(),
 					Runtime:     "runtime" + string(rune('0'+byte(idx))),
 					CWD:         "/path",
-					Persona:     "persona" + string(rune('0'+byte(idx))),
+					WorkerName:  "worker" + string(rune('0'+byte(idx))),
 					DisplayName: "Session " + string(rune('0'+byte(idx))),
 				},
 			}
@@ -1674,7 +1674,7 @@ func TestSessionFilePermissionsIssue(t *testing.T) {
 		"test": Session{
 			Worker:      "worker",
 			Container:   "container",
-			Persona:     "persona",
+			WorkerName:  "worker",
 			DisplayName: "Test",
 			SpawnedAt:   time.Now(),
 			Runtime:     "runtime",

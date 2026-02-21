@@ -68,17 +68,13 @@ func TestSpawnSandboxedWorker_SuccessfulSpawnWithDefaults(t *testing.T) {
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
 		SessionName: "",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -113,17 +109,13 @@ func TestSpawnSandboxedWorker_WithSessionName(t *testing.T) {
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
 		SessionName: "test-session",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -149,14 +141,8 @@ func TestSpawnSandboxedWorker_MissingWorker(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
-	}
-
 	err := SpawnSandboxedWorker(
 		context.Background(),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 	)
@@ -164,33 +150,7 @@ func TestSpawnSandboxedWorker_MissingWorker(t *testing.T) {
 	if err == nil {
 		t.Error("Expected error when worker is missing")
 	}
-	if !strings.Contains(err.Error(), "worker and persona are required") {
-		t.Errorf("Wrong error message: %v", err)
-	}
-}
-
-func TestSpawnSandboxedWorker_MissingPersona(t *testing.T) {
-	tmpDir := t.TempDir()
-	defer os.RemoveAll(tmpDir)
-
-	worker := &types.Worker{
-		Name:        "test-worker",
-		DisplayName: "Test Worker",
-		CWD:         tmpDir,
-		YakPath:     "/test/yak",
-	}
-
-	err := SpawnSandboxedWorker(
-		context.Background(),
-		WithWorker(worker),
-		WithPrompt("test prompt"),
-		WithHomeDir(tmpDir),
-	)
-
-	if err == nil {
-		t.Error("Expected error when persona is missing")
-	}
-	if !strings.Contains(err.Error(), "worker and persona are required") {
+	if !strings.Contains(err.Error(), "worker is required") {
 		t.Errorf("Wrong error message: %v", err)
 	}
 }
@@ -221,16 +181,12 @@ func TestSpawnSandboxedWorker_InvalidHomeDir(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         "/tmp",
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(invalidDir),
 	)
@@ -252,10 +208,7 @@ func TestSpawnSandboxedWorker_CustomResourceProfile(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 	profile := types.ResourceProfile{
 		Name:   "heavy",
@@ -268,7 +221,6 @@ func TestSpawnSandboxedWorker_CustomResourceProfile(t *testing.T) {
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithResourceProfile(profile),
@@ -299,10 +251,7 @@ func TestSpawnSandboxedWorker_WithDevConfig(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 	devConfig := &devcontainer.Config{
 		Image: "custom-image:1.0",
@@ -318,7 +267,6 @@ func TestSpawnSandboxedWorker_WithDevConfig(t *testing.T) {
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithDevConfig(devConfig),
@@ -356,17 +304,13 @@ func TestSpawnSandboxedWorker_WithWorktreePath(t *testing.T) {
 		CWD:          tmpDir,
 		YakPath:      "/test/yak",
 		WorktreePath: worktreePath,
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:   "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -398,17 +342,13 @@ func TestSpawnSandboxedWorker_PromptFileContent(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt(testPrompt),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -437,17 +377,13 @@ func TestSpawnSandboxedWorker_ZellijLayoutContent(t *testing.T) {
 		DisplayName: "My Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -486,17 +422,13 @@ func TestSpawnSandboxedWorker_InnerScriptContent(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -534,17 +466,13 @@ func TestSpawnSandboxedWorker_PasswdFileContent(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -698,17 +626,13 @@ func TestSpawnSandboxedWorker_ContainerNameGeneration(t *testing.T) {
 		DisplayName: "My Special Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -730,7 +654,7 @@ func TestSpawnSandboxedWorker_ContainerNameGeneration(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_PersonaEnvVars(t *testing.T) {
+func TestSpawnSandboxedWorker_WorkerEnvVars(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -739,17 +663,13 @@ func TestSpawnSandboxedWorker_PersonaEnvVars(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "MasterBuilder",
-		Emoji: "🏗️",
+		WorkerName:  "MasterBuilder",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -769,9 +689,6 @@ func TestSpawnSandboxedWorker_PersonaEnvVars(t *testing.T) {
 	if !strings.Contains(contentStr, "WORKER_NAME=\"MasterBuilder\"") {
 		t.Error("run.sh does not set WORKER_NAME correctly")
 	}
-	if !strings.Contains(contentStr, "WORKER_EMOJI") {
-		t.Error("run.sh does not set WORKER_EMOJI")
-	}
 }
 
 func TestSpawnSandboxedWorker_ZellijCommandFails(t *testing.T) {
@@ -783,17 +700,13 @@ func TestSpawnSandboxedWorker_ZellijCommandFails(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	failingCmdr := &TestCommander{failingCmd: "zellij"}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(failingCmdr),
@@ -827,10 +740,7 @@ func TestSpawnSandboxedWorker_MultipleOptions(t *testing.T) {
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
 		SessionName: "my-session",
-	}
-	persona := &types.Persona{
-		Name:  "ComplexBot",
-		Emoji: "🎯",
+		WorkerName:  "ComplexBot",
 	}
 	profile := types.ResourceProfile{
 		Name:   "light",
@@ -846,7 +756,6 @@ func TestSpawnSandboxedWorker_MultipleOptions(t *testing.T) {
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("complex prompt"),
 		WithHomeDir(tmpDir),
 		WithResourceProfile(profile),
@@ -890,17 +799,13 @@ func TestSpawnSandboxedWorker_WindowsLineEndings(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt\nwith\nnewlines"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -929,17 +834,13 @@ func TestSpawnSandboxedWorker_EmptyPrompt(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt(""),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -968,17 +869,13 @@ func TestSpawnSandboxedWorker_SpecialCharactersInWorkerName(t *testing.T) {
 		DisplayName: "Test Worker With Dashes",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1009,17 +906,13 @@ func TestSpawnSandboxedWorker_WorktreePathOptional(t *testing.T) {
 		CWD:          tmpDir,
 		YakPath:      "/test/yak",
 		WorktreePath: "",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:   "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1050,17 +943,13 @@ func TestSpawnSandboxedWorker_DefaultCommanderUsed(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1080,17 +969,13 @@ func TestSpawnSandboxedWorker_GroupFileContent(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1124,17 +1009,13 @@ func TestSpawnSandboxedWorker_ShellExecScriptContent(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1173,17 +1054,13 @@ func TestSpawnSandboxedWorker_LargePrompt(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt(largePrompt),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1208,21 +1085,17 @@ func TestSpawnSandboxedWorker_UnicodeCharacters(t *testing.T) {
 	defer os.RemoveAll(tmpDir)
 
 	worker := &types.Worker{
-		Name:        "test-worker-🚀",
+		Name:        "test-worker",
 		DisplayName: "Test Worker with Unicode 🎉",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot-🤖",
-		Emoji: "🧙",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("Prompt with unicode: 你好 مرحبا"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1253,16 +1126,12 @@ func TestSpawnSandboxedWorkerNullBytePath(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test"),
 		WithHomeDir(invalidHome),
 	)
@@ -1281,10 +1150,7 @@ func TestSpawnSandboxedWorkerContextCancellation(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -1293,7 +1159,6 @@ func TestSpawnSandboxedWorkerContextCancellation(t *testing.T) {
 	err := SpawnSandboxedWorker(
 		ctx,
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
 	)
@@ -1320,17 +1185,13 @@ func TestSpawnSandboxedWorkerScriptFileCorruption(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt("test"),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),
@@ -1352,17 +1213,13 @@ func TestSpawnSandboxedWorkerExtremelyLongPrompt(t *testing.T) {
 		DisplayName: "Test Worker",
 		CWD:         tmpDir,
 		YakPath:     "/test/yak",
-	}
-	persona := &types.Persona{
-		Name:  "TestBot",
-		Emoji: "🤖",
+		WorkerName:  "TestBot",
 	}
 
 	cmdr := &TestCommander{}
 	err := SpawnSandboxedWorker(
 		context.Background(),
 		WithWorker(worker),
-		WithPersona(persona),
 		WithPrompt(massivePrompt),
 		WithHomeDir(tmpDir),
 		WithCommander(cmdr),

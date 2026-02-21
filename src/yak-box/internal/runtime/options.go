@@ -22,7 +22,6 @@ func (c *defaultCommander) CommandContext(ctx context.Context, name string, args
 
 type spawnConfig struct {
 	worker    *types.Worker
-	persona   *types.Persona
 	prompt    string
 	profile   types.ResourceProfile
 	homeDir   string
@@ -37,14 +36,6 @@ type SpawnOption func(*spawnConfig) error
 func WithWorker(worker *types.Worker) SpawnOption {
 	return func(c *spawnConfig) error {
 		c.worker = worker
-		return nil
-	}
-}
-
-// WithPersona sets the persona configuration
-func WithPersona(persona *types.Persona) SpawnOption {
-	return func(c *spawnConfig) error {
-		c.persona = persona
 		return nil
 	}
 }

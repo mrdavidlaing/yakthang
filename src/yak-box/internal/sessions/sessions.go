@@ -29,7 +29,7 @@ type Session struct {
 	SpawnedAt     time.Time `json:"spawned_at"`
 	Runtime       string    `json:"runtime"`
 	CWD           string    `json:"cwd"`
-	Persona       string    `json:"persona"`
+	WorkerName    string    `json:"worker_name,omitempty"`
 	DisplayName   string    `json:"display_name"`
 	ZellijSession string    `json:"zellij_session,omitempty"`
 	PidFile       string    `json:"pid_file,omitempty"`
@@ -56,12 +56,12 @@ func ensureYakBoxesDir() error {
 	return os.MkdirAll(dir, 0755)
 }
 
-func ensureHomeDir(persona string) error {
+func ensureHomeDir(workerName string) error {
 	root, err := getRoot()
 	if err != nil {
 		return err
 	}
-	dir := filepath.Join(root, yakBoxesDir, homeDir, persona)
+	dir := filepath.Join(root, yakBoxesDir, homeDir, workerName)
 	return os.MkdirAll(dir, 0755)
 }
 
@@ -178,23 +178,23 @@ func List() (Sessions, error) {
 }
 
 // GetHomeDir returns the path to a worker's persistent home directory
-func GetHomeDir(persona string) (string, error) {
+func GetHomeDir(workerName string) (string, error) {
 	root, err := getRoot()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(root, yakBoxesDir, homeDir, persona), nil
+	return filepath.Join(root, yakBoxesDir, homeDir, workerName), nil
 }
 
 // EnsureHomeDir creates a worker's persistent home directory
-func EnsureHomeDir(persona string) (string, error) {
-	if err := ensureHomeDir(persona); err != nil {
+func EnsureHomeDir(workerName string) (string, error) {
+	if err := ensureHomeDir(workerName); err != nil {
 		return "", err
 	}
 
 	// Pre-create .local directory structure with correct permissions
 	// to prevent Docker from creating it as root
-	homePath, err := GetHomeDir(persona)
+	homePath, err := GetHomeDir(workerName)
 	if err != nil {
 		return "", err
 	}
@@ -218,12 +218,12 @@ func EnsureHomeDir(persona string) (string, error) {
 }
 
 // CleanHome removes a worker's persistent home directory
-func CleanHome(persona string) error {
+func CleanHome(workerName string) error {
 	root, err := getRoot()
 	if err != nil {
 		return err
 	}
-	dir := filepath.Join(root, yakBoxesDir, homeDir, persona)
+	dir := filepath.Join(root, yakBoxesDir, homeDir, workerName)
 	return os.RemoveAll(dir)
 }
 

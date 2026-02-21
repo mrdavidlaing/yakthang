@@ -107,12 +107,12 @@ func SpawnSandboxedWorker(ctx context.Context, opts ...SpawnOption) error {
 	}
 	for _, opt := range opts {
 		if err := opt(cfg); err != nil {
-			return fmt.Errorf("option error: %w. Suggestion: Check all spawn options (worker, persona, prompt, resources, etc.) are provided correctly", err)
+			return fmt.Errorf("option error: %w. Suggestion: Check all spawn options (worker, prompt, resources, etc.) are provided correctly", err)
 		}
 	}
 
-	if cfg.worker == nil || cfg.persona == nil {
-		return fmt.Errorf("worker and persona are required. Suggestion: Ensure both worker and persona config are provided via spawn options")
+	if cfg.worker == nil {
+		return fmt.Errorf("worker is required. Suggestion: Ensure worker config is provided via spawn options")
 	}
 
 	containerName := containerNamePrefix + cfg.worker.Name

@@ -16,7 +16,7 @@ import (
 
 // SpawnNativeWorker spawns a worker in a Zellij session on the host.
 // Returns the path to the PID file so callers can store it in the session for cleanup.
-func SpawnNativeWorker(worker *types.Worker, persona *types.Persona, prompt string, homeDir string) (pidFile string, err error) {
+func SpawnNativeWorker(worker *types.Worker, prompt string, homeDir string) (pidFile string, err error) {
 	// Use persistent scripts directory in worker's home
 	workerDir := filepath.Join(homeDir, "scripts")
 	if err := os.MkdirAll(workerDir, 0755); err != nil {
