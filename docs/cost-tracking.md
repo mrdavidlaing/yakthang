@@ -244,4 +244,4 @@ Workers use the `github-copilot` provider which bills via **premium requests** (
 
 Internal models (`providerID: opencode`, e.g. `big-pickle`) are not priced — they report `$0` in cost output.
 
-Model names in the DB use dots (e.g., `claude-sonnet-4.5`); the pricing lookup normalizes dots to dashes for table key matching.
+Model names in the DB use dots (e.g., `claude-sonnet-4.6`); the pricing lookup normalizes dots to dashes for table key matching.

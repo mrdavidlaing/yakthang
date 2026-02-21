@@ -54,11 +54,12 @@ yak-box spawn --cwd <dir> --name <tab-name> [flags] "<prompt>"
 
 ### Resource Profiles
 
-| Profile | CPUs | Memory | PIDs |
-|---------|------|--------|------|
-| `light` | 0.5 | 1g | 256 |
-| `default` | 1.0 | 2g | 512 |
-| `heavy` | 2.0 | 4g | 1024 |
+| Profile | CPUs | Memory | Swap | PIDs |
+|---------|------|--------|------|------|
+| `light` | 0.5 | 1g | — | 256 |
+| `default` | 1.0 | 2g | — | 512 |
+| `heavy` | 2.0 | 4g | — | 1024 |
+| `ram` | unlimited | 8g | 16g | 2048 |
 
 ## Stop Command
 
@@ -103,14 +104,6 @@ yak-box check [flags]
 1. Task statuses: `agent-status` field from all tasks in `.yaks`
 2. Running workers: Docker container name, status, running time
 3. Live cost: OpenCode cost from each running container
-
-## Kill Command
-
-```bash
-yak-box kill <worker-name>
-```
-
-Simple wrapper around `docker stop -t 10`. Does NOT clean up metadata or task assignments — use `shutdown` for full cleanup.
 
 ## Data Structures
 
@@ -160,7 +153,7 @@ type Worker struct {
 ## File Structure
 
 ```
-src/yakbox/
+src/yak-box/
 ├── go.mod
 ├── main.go
 ├── cmd/
@@ -171,16 +164,29 @@ src/yakbox/
 ├── internal/
 │   ├── config/
 │   │   └── config.go       # Configuration loading
+│   ├── env/
+│   │   └── filter.go       # Environment variable filtering
+│   ├── errors/
+│   │   └── errors.go       # Structured error types
+│   ├── pathutil/
+│   │   └── validate.go     # Path validation and sanitization
 │   ├── persona/
 │   │   └── persona.go      # Personality selection
-│   ├── runtime/
-│   │   ├── sandboxed.go    # Container-based runtime
-│   │   ├── devcontainer.go # DevContainer runtime
-│   │   └── native.go       # Direct host execution
-│   ├── metadata/
-│   │   └── metadata.go     # Worker metadata management
 │   ├── prompt/
 │   │   └── prompt.go       # Prompt assembly
+│   ├── runtime/
+│   │   ├── sandboxed.go    # Container-based runtime
+│   │   ├── devcontainer.go # DevContainer integration
+│   │   ├── native.go       # Direct host execution
+│   │   ├── options.go      # Runtime option parsing
+│   │   └── helpers.go      # Shared runtime utilities
+│   ├── sessions/
+│   │   └── sessions.go     # OpenCode session management
+│   ├── ui/
+│   │   ├── output.go       # Formatted CLI output
+│   │   └── table.go        # Table rendering
+│   ├── workspace/
+│   │   └── workspace.go    # Workspace resolution
 │   └── zellij/
 │       └── layout.go       # KDL layout generation
 ├── pkg/
@@ -188,6 +194,7 @@ src/yakbox/
 │   │   ├── config.go       # devcontainer.json parsing
 │   │   ├── build.go        # Image building
 │   │   ├── lifecycle.go    # Lifecycle hooks
+│   │   ├── security.go     # Container security hardening
 │   │   ├── types.go        # DevContainer types
 │   │   └── variables.go    # Variable substitution
 │   ├── worktree/
@@ -195,6 +202,8 @@ src/yakbox/
 │   │   └── manager_test.go
 │   └── types/
 │       └── types.go        # Shared types
+├── tests/
+│   └── shellspec/          # Integration tests (ShellSpec)
 ```
 
 Note: Container images are configured via `.devcontainer/devcontainer.json` at the repository root or `--cwd` directory.
@@ -243,7 +252,6 @@ tests/
 2. **Preserve shell script behavior**: The Go implementation must produce identical results
 3. **Error handling**: Detailed error messages matching shell script style (icons, etc.)
 4. **Idempotency**: Safe to run stop multiple times
-5. **Deprecated alias**: `kill` command kept as alias for `stop --force`
 5. **Fallback detection**: Match shell script's fallback logic for missing metadata
 
 ## Migration Path

@@ -20,7 +20,7 @@ handles tab creation, prompt injection, and identity assignment.
 | `--yak-path` | No | `$PWD/.yaks` | Path to shared task state |
 | `--auto-worktree` | No | false | Create git worktree for task isolation |
 | `--runtime` | No | `auto` | Runtime: `auto`, `sandboxed`, `native` |
-| `--resources` | No | `default` | Resource profile: `light`, `default`, `heavy` |
+| `--resources` | No | `default` | Resource profile: `light`, `default`, `heavy`, `ram` |
 
 ## What Happens When You Spawn
 

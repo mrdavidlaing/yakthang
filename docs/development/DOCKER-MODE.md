@@ -137,7 +137,8 @@ export OPENCODE_API_KEY="sk-open-..."
 yak-box spawn will refuse to start a Docker worker if the key is not set.
 
 The container does NOT mount the host's `$HOME` or opencode auth.json.
-Each container has its own isolated home directory on tmpfs.
+Each worker persona has a persistent home directory at `.yak-boxes/@home/{Persona}/`
+(see [Persistent worker homes](#persistent-worker-homes) above).
 
 ## Testing
 
