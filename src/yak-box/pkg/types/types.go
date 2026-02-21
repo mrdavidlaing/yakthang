@@ -21,6 +21,7 @@ type Worker struct {
 	SpawnedAt     time.Time
 	SessionName   string
 	WorktreePath  string // Path to git worktree (if using --auto-worktree)
+	PidFile       string // Path to PID file for native workers
 }
 
 type ResourceProfile struct {

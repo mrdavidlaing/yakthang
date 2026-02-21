@@ -137,8 +137,17 @@ func runStop() error {
 		}
 	} else if session.Runtime == "native" {
 		if stopDryRun {
+			fmt.Printf("[dry-run] Would kill native process tree via PID file: %s\n", session.PidFile)
 			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
 		} else {
+			if session.PidFile != "" {
+				ui.Info("⏳ Killing native process tree...\n")
+				if err := runtime.KillNativeProcessTree(session.PidFile, timeout); err != nil {
+					fmt.Printf("Warning: failed to kill process tree: %v\n", err)
+				} else {
+					ui.Success("✅ Process tree terminated\n")
+				}
+			}
 			ui.Info("⏳ Closing Zellij tab...\n")
 			if err := runtime.StopNativeWorker(session.DisplayName, session.ZellijSession); err != nil {
 				fmt.Printf("Warning: failed to close tab: %v\n", err)

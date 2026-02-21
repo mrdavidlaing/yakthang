@@ -220,10 +220,12 @@ func runSpawn(ctx context.Context, args []string) error {
 		ui.Success("✅ Container ready\n")
 	} else {
 		ui.Info("⏳ Starting native worker...\n")
-		if err := runtime.SpawnNativeWorker(worker, &persona, workerPrompt, homeDir); err != nil {
+		pidFile, err := runtime.SpawnNativeWorker(worker, &persona, workerPrompt, homeDir)
+		if err != nil {
 			ui.Error("❌ Failed to spawn native worker: %v\n", err)
 			return fmt.Errorf("failed to spawn native worker: %w. Suggestion: Ensure Zellij is installed and running, or use --runtime=sandboxed instead", err)
 		}
+		worker.PidFile = pidFile
 		ui.Success("✅ Native worker started\n")
 	}
 
@@ -242,6 +244,7 @@ func runSpawn(ctx context.Context, args []string) error {
 		Persona:       persona.Name,
 		DisplayName:   displayName,
 		ZellijSession: spawnSession,
+		PidFile:       worker.PidFile,
 	}); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to register session: %v\n", err)
 	}

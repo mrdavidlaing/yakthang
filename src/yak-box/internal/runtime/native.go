@@ -5,33 +5,42 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/yakthang/yakbox/internal/workspace"
 	"github.com/yakthang/yakbox/pkg/types"
 )
 
-// SpawnNativeWorker spawns a worker in a Zellij session on the host
-func SpawnNativeWorker(worker *types.Worker, persona *types.Persona, prompt string, homeDir string) error {
+// SpawnNativeWorker spawns a worker in a Zellij session on the host.
+// Returns the path to the PID file so callers can store it in the session for cleanup.
+func SpawnNativeWorker(worker *types.Worker, persona *types.Persona, prompt string, homeDir string) (pidFile string, err error) {
 	// Use persistent scripts directory in worker's home
 	workerDir := filepath.Join(homeDir, "scripts")
 	if err := os.MkdirAll(workerDir, 0755); err != nil {
-		return fmt.Errorf("failed to create scripts dir: %w", err)
+		return "", fmt.Errorf("failed to create scripts dir: %w", err)
 	}
 
 	promptFile := filepath.Join(workerDir, "prompt.txt")
 	if err := os.WriteFile(promptFile, []byte(prompt), 0644); err != nil {
-		return fmt.Errorf("failed to write prompt file: %w", err)
+		return "", fmt.Errorf("failed to write prompt file: %w", err)
 	}
+
+	pidFile = filepath.Join(workerDir, "worker.pid")
 
 	wrapperScript := filepath.Join(workerDir, "run.sh")
 	wrapperContent := fmt.Sprintf(`#!/usr/bin/env bash
 export YAK_PATH="%s"
 PROMPT="$(cat "%s")"
+# Write PID before exec so yak-box stop can find and kill the process tree.
+# exec replaces this process, so $$ will be the PID of opencode.
+echo $$ > "%s"
 exec opencode --prompt "$PROMPT" --agent build
-`, worker.YakPath, promptFile)
+`, worker.YakPath, promptFile, pidFile)
 	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
-		return fmt.Errorf("failed to write wrapper script: %w", err)
+		return "", fmt.Errorf("failed to write wrapper script: %w", err)
 	}
 
 	layoutFile := filepath.Join(workerDir, "layout.kdl")
@@ -52,7 +61,7 @@ exec opencode --prompt "$PROMPT" --agent build
 }
 `, worker.DisplayName, worker.CWD, wrapperScript, worker.CWD)
 	if err := os.WriteFile(layoutFile, []byte(layoutContent), 0644); err != nil {
-		return fmt.Errorf("failed to write layout file: %w", err)
+		return "", fmt.Errorf("failed to write layout file: %w", err)
 	}
 
 	zellijSession := worker.SessionName
@@ -64,10 +73,10 @@ exec opencode --prompt "$PROMPT" --agent build
 	}
 
 	if err := zellijCmd.Run(); err != nil {
-		return fmt.Errorf("failed to create zellij tab: %w", err)
+		return "", fmt.Errorf("failed to create zellij tab: %w", err)
 	}
 
-	return nil
+	return pidFile, nil
 }
 
 // StopNativeWorker stops a native worker by closing the Zellij tab.
@@ -148,4 +157,56 @@ func findZellijTabIndex(name, sessionName string) (int, error) {
 func fileExists(path string) bool {
 	_, err := os.Stat(path)
 	return err == nil
+}
+
+// KillNativeProcessTree reads the PID from pidFile, sends SIGTERM to the
+// process group, waits up to timeout, then escalates to SIGKILL.
+// This ensures child processes (gopls, bash-language-server, etc.) are also killed.
+func KillNativeProcessTree(pidFile string, timeout time.Duration) error {
+	data, err := os.ReadFile(pidFile)
+	if err != nil {
+		return fmt.Errorf("failed to read pid file %s: %w", pidFile, err)
+	}
+
+	pid, err := strconv.Atoi(strings.TrimSpace(string(data)))
+	if err != nil {
+		return fmt.Errorf("invalid pid in %s: %w", pidFile, err)
+	}
+
+	proc, err := os.FindProcess(pid)
+	if err != nil {
+		return fmt.Errorf("process %d not found: %w", pid, err)
+	}
+
+	// Signal 0 checks if process is alive without killing it
+	if err := proc.Signal(syscall.Signal(0)); err != nil {
+		os.Remove(pidFile)
+		return nil
+	}
+
+	// Send SIGTERM to the entire process group (negative PID kills children too)
+	pgid, err := syscall.Getpgid(pid)
+	if err != nil {
+		pgid = pid
+	}
+
+	if err := syscall.Kill(-pgid, syscall.SIGTERM); err != nil {
+		proc.Signal(syscall.SIGTERM)
+	}
+
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if err := proc.Signal(syscall.Signal(0)); err != nil {
+			os.Remove(pidFile)
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	if err := syscall.Kill(-pgid, syscall.SIGKILL); err != nil {
+		proc.Signal(syscall.SIGKILL)
+	}
+
+	os.Remove(pidFile)
+	return nil
 }
