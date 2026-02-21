@@ -271,6 +271,29 @@ install_openclaw() {
 }
 
 #------------------------------------------------------------------------------
+# 6b. Install RTK (context compression for AI agent output)
+#------------------------------------------------------------------------------
+
+install_rtk() {
+	log "Installing RTK..."
+
+	if command -v rtk &>/dev/null; then
+		log "RTK already installed: $(rtk --version 2>&1 || echo 'unknown')"
+		return 0
+	fi
+
+	curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh
+
+	if [[ -f "$HOME/.local/bin/rtk" ]]; then
+		install -m 0755 "$HOME/.local/bin/rtk" /usr/local/bin/rtk
+	elif [[ -f /root/.local/bin/rtk ]]; then
+		install -m 0755 /root/.local/bin/rtk /usr/local/bin/rtk
+	fi
+
+	log "RTK installed: $(rtk --version 2>&1 || echo 'installed')"
+}
+
+#------------------------------------------------------------------------------
 # 7. Install yx (Yak task manager) from source
 #------------------------------------------------------------------------------
 
@@ -615,6 +638,7 @@ main() {
 	create_yakob_user
 	install_opencode
 	install_openclaw
+	install_rtk
 	install_yx
 	configure_security
 	configure_yakob_git
