@@ -35,19 +35,22 @@ yak-box spawn --cwd <dir> --name <tab-name> [flags] "<prompt>"
 | `--session` | No | `yakthang` | Zellij session name (overrides ZELLIJ_SESSION_NAME env var) |
 | `--mode` | No | `build` | Agent mode: `plan` or `build` |
 | `--resources` | No | `default` | Resource profile: `light`, `default`, `heavy`, `ram` |
-| `--yaks` | No | [] | Yack paths from .yaks/ to assign (can repeat) |
+| `--yaks` | No | [] | Task paths from .yaks/ to assign (can repeat) |
 | `--yak-path` | No | `.yaks` | Path to task state directory |
 | `--runtime` | No | `auto` | Runtime: `auto`, `sandboxed`, `native` |
+| `--auto-worktree` | No | false | Create git worktree for task isolation |
 
 ### Behavior
 
 1. **Personality selection**: Randomly pick from Yakriel, Yakueline, Yakov, Yakira
 2. **Runtime detection**: sandboxed (Docker) if available, else native
 3. **Prompt assembly**: Combine personality + role description + yx instructions + user prompt
-4. **Sandboxed mode**: Default. Uses `.devcontainer/` from repository root to build the container image. Constrained with resource limits (CPU, memory, pids), tmpfs mounts, bind-mounted workspace. Full isolation.
+4. **Sandboxed mode**: Default. Uses `.devcontainer/devcontainer.json` from the repository root (or `--cwd` directory) to configure the container image, environment variables, and mounts. Falls back to the default `yak-worker` image when no devcontainer config is found. Constrained with resource limits (CPU, memory, pids), security hardening (read-only rootfs, dropped capabilities, no-new-privileges), and bind-mounted workspace. Full isolation.
 5. **Native mode**: Runs opencode directly on the host. Full system access, no container isolation. Useful when worker needs to interact with host tooling.
-6. **Metadata**: Write to `.yak-boxes/<name>.meta`
-7. **Task assignment**: Update yx field `assigned-to` for each task
+6. **Worktree management**: When `--auto-worktree` is set, creates an isolated git worktree at `~/.local/share/yakthang/worktrees/<project>/<task-path>` and uses it as the worker's CWD. Worktree path is recorded in the task's `worktree-path` field.
+7. **Persistent worker homes**: Each persona gets a persistent home at `.yak-boxes/@home/{Persona}/`. OpenCode's SQLite database and shell history survive container restarts and crashes.
+8. **Metadata**: Write to `.yak-boxes/<name>.meta`
+9. **Task assignment**: Update yx field `assigned-to` for each task
 
 ### Resource Profiles
 
@@ -163,9 +166,8 @@ src/yakbox/
 ├── cmd/
 │   ├── root.go
 │   ├── spawn.go
-│   ├── shutdown.go
-│   ├── check.go
-│   └── kill.go
+│   ├── stop.go
+│   └── check.go
 ├── internal/
 │   ├── config/
 │   │   └── config.go       # Configuration loading
@@ -173,6 +175,7 @@ src/yakbox/
 │   │   └── persona.go      # Personality selection
 │   ├── runtime/
 │   │   ├── sandboxed.go    # Container-based runtime
+│   │   ├── devcontainer.go # DevContainer runtime
 │   │   └── native.go       # Direct host execution
 │   ├── metadata/
 │   │   └── metadata.go     # Worker metadata management
@@ -181,11 +184,20 @@ src/yakbox/
 │   └── zellij/
 │       └── layout.go       # KDL layout generation
 ├── pkg/
+│   ├── devcontainer/
+│   │   ├── config.go       # devcontainer.json parsing
+│   │   ├── build.go        # Image building
+│   │   ├── lifecycle.go    # Lifecycle hooks
+│   │   ├── types.go        # DevContainer types
+│   │   └── variables.go    # Variable substitution
+│   ├── worktree/
+│   │   ├── manager.go      # Git worktree automation
+│   │   └── manager_test.go
 │   └── types/
 │       └── types.go        # Shared types
 ```
 
-Note: Container images are built from `.devcontainer/` at the repository root.
+Note: Container images are configured via `.devcontainer/devcontainer.json` at the repository root or `--cwd` directory.
 
 ## Dependencies
 
@@ -236,14 +248,7 @@ tests/
 
 ## Migration Path
 
-Phase 1 (current task):
-- [ ] Initialize Go module
-- [ ] Set up CLI structure
-- [ ] Create this design doc
-
-Phase 2 (future):
-- [ ] Implement spawn command
-- [ ] Implement stop command
-- [ ] Implement check command
-- [ ] Add tests
-- [ ] Replace shell scripts with symlinks or wrapper scripts
+Phase 1: ~~Initialize Go module, CLI structure, design doc~~ ✅
+Phase 2: ~~Implement spawn, stop, check commands~~ ✅
+Phase 3: ~~DevContainer support, worktree management, persistent homes~~ ✅
+Phase 4: ~~Quality audit — security hardening, test coverage, UX polish~~ ✅

@@ -14,8 +14,11 @@ adds container isolation around the opencode process.
 
 - Docker Engine installed, user in docker group
 - Zellij running (Docker workers still use Zellij tabs for the TUI)
-- Worker image built: `docker build -f worker.Dockerfile -t yak-worker:latest .`
 - `OPENCODE_API_KEY` exported in your environment (e.g. `~/.profile`)
+
+Worker images are built automatically from `.devcontainer/devcontainer.json`
+(or a default base image when no devcontainer config is present). The old
+`worker.Dockerfile` approach has been replaced.
 
 ## How Docker Mode Works
 
@@ -43,16 +46,27 @@ yak-box spawn auto-detects the runtime (Docker first, then Zellij):
 
 ## Building the Worker Image
 
-```bash
-# Build from repository root (requires yx binary in tmp/)
-docker build -f worker.Dockerfile -t yak-worker:latest .
+Worker images are now configured via `.devcontainer/devcontainer.json`:
 
-# Verify
-docker images yak-worker
+```json
+{
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": { ... },
+  "postCreateCommand": "apt-get update && ...",
+  "containerEnv": { "MY_VAR": "value" },
+  "mounts": [ ... ]
+}
 ```
 
-The image contains: Ubuntu 24.04, git, bash, opencode CLI, yx binary.
-It does NOT contain credentials — those are passed via environment variables.
+If no devcontainer config is found, yak-box uses a default base image.
+The image is built/pulled automatically on first spawn — no manual build
+step required.
+
+For the repository-root devcontainer at `.devcontainer/`:
+```bash
+# Verify the config
+cat .devcontainer/devcontainer.json
+```
 
 ## Container Architecture
 
@@ -70,8 +84,21 @@ It does NOT contain credentials — those are passed via environment variables.
 | Mount | Size | Purpose |
 |-------|------|---------|
 | /tmp | 2g | Bun runtime, native binaries (needs `exec`) |
-| /home/worker | 1g | Opencode state, logs, plugins |
-| /home/worker/.cache | 1g | Bun/npm cache |
+
+### Persistent worker homes
+
+Each worker persona gets a persistent home directory at
+`.yak-boxes/@home/{Persona}/`. This directory is bind-mounted into the
+container and survives restarts, crashes, and kills.
+
+| Path | Purpose |
+|------|---------|
+| `.yak-boxes/@home/{Persona}/` | Worker home directory |
+| `.yak-boxes/@home/{Persona}/.local/share/opencode/opencode.db` | OpenCode SQLite DB |
+| `.yak-boxes/@home/{Persona}/.bash_history` | Shell history |
+
+This replaced the previous ephemeral tmpfs approach where worker state
+was lost on container shutdown.
 
 ### Security hardening
 

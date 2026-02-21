@@ -9,7 +9,7 @@ handles tab creation, prompt injection, and identity assignment.
 ## Usage
 
 ```bash
-./bin/yak-box spawn --cwd <dir> --name <tab-name> [--mode plan|build] "<prompt>"
+./bin/yak-box spawn --cwd <dir> --name <tab-name> [--mode plan|build] [--auto-worktree] "<prompt>"
 ```
 
 | Option | Required | Default | Description |
@@ -18,6 +18,9 @@ handles tab creation, prompt injection, and identity assignment.
 | `--name` | Yes | — | Logical name (used in logs, not tab title) |
 | `--mode` | No | `build` | Agent mode: `plan` or `build` |
 | `--yak-path` | No | `$PWD/.yaks` | Path to shared task state |
+| `--auto-worktree` | No | false | Create git worktree for task isolation |
+| `--runtime` | No | `auto` | Runtime: `auto`, `sandboxed`, `native` |
+| `--resources` | No | `default` | Resource profile: `light`, `default`, `heavy` |
 
 ## What Happens When You Spawn
 
@@ -55,15 +58,35 @@ natively on the host in the Zellij command pane.
 The wrapper script execs `docker run -it` which launches a container with
 the opencode TUI. The container is hardened with a read-only filesystem,
 dropped capabilities, non-root user, and resource limits. The Zellij command
-pane provides the terminal that Docker bridges into the container.
+pane provides the terminal that Docker bridges into.
 
 Key differences from Zellij mode:
 - opencode runs inside a container, not directly on the host
 - Auth is via `OPENCODE_API_KEY` env var (not host's auth.json)
-- Container has its own ephemeral HOME directory (tmpfs)
+- Each worker persona gets a persistent home at `.yak-boxes/@home/{Persona}/`
+- Worker's OpenCode SQLite DB survives container restarts and crashes
 - Workspace and .yaks are bind-mounted into the container
 
+#### DevContainer Support
+
+When spawning sandboxed workers, yak-box looks for `.devcontainer/devcontainer.json`
+in the working directory (or repository root). If found, it uses the config to:
+- Build a custom container image (via `image` or `build.dockerfile`)
+- Pass environment variables into the container
+- Add extra bind mounts
+- Run post-create commands for toolchain setup
+
+This allows per-project worker environments without modifying yak-box itself.
+
 See [Docker Mode](development/DOCKER-MODE.md) for architecture details.
+
+### Worktree Isolation
+
+When `--auto-worktree` is set and tasks are assigned, yak-box creates an
+isolated git worktree at `~/.local/share/yakthang/worktrees/<project>/<task-path>`.
+The worker's CWD is set to the worktree, preventing conflicts when multiple
+workers edit the same repository. The worktree path is recorded in the task's
+`worktree-path` field via yx.
 
 ## Yak-Shaver Personalities
 
@@ -110,4 +133,12 @@ their system prompt. This means:
 # Worker with custom yak-path (if .yaks is elsewhere)
 ./bin/yak-box spawn --cwd ./api --name "api-auth" --yak-path /path/to/.yaks \
   "Work on auth/api/* tasks."
+
+# Worker with automatic worktree isolation
+./bin/yak-box spawn --cwd ./api --name "api-auth" --yaks auth/api --auto-worktree \
+  "Work on auth/api/* tasks."
+
+# Worker with heavy resources for demanding tasks
+./bin/yak-box spawn --cwd ./backend --name "backend-heavy" --resources heavy \
+  "Run the full test suite and fix failures."
 ```
