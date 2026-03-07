@@ -1,1 +1,0 @@
-done: Fixed bug in stop.go - now passes meta.DisplayName instead of stopName to StopNativeWorker
