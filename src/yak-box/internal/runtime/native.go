@@ -292,8 +292,10 @@ exec opencode --prompt "$PROMPT" --agent build
 }
 
 // setupClaudeSettings configures Claude Code settings for the worker.
-// It injects apiKeyHelper and .claude bootstrap files so workers use API key
-// auth non-interactively, and preserves statusline config when goccc exists.
+// When an API key is provided, it injects apiKeyHelper so workers use API key
+// auth non-interactively. When no API key is present (OAuth mode), the helper
+// is omitted so Claude Code falls through to its OAuth credentials.
+// It also preserves statusline config when goccc exists.
 func setupClaudeSettings(homeDir, apiKey string) error {
 	claudeDir := filepath.Join(homeDir, ".claude")
 	if err := os.MkdirAll(claudeDir, 0755); err != nil {
@@ -304,11 +306,17 @@ func setupClaudeSettings(homeDir, apiKey string) error {
 		return fmt.Errorf("failed to create .claude/debug directory: %w", err)
 	}
 
-	apiKeyHelperPath := filepath.Join(claudeDir, "api-key-helper.sh")
-	apiKeyHelper := "#!/usr/bin/env bash\n" +
-		"echo \"${_ANTHROPIC_API_KEY}\"\n"
-	if err := os.WriteFile(apiKeyHelperPath, []byte(apiKeyHelper), 0755); err != nil {
-		return fmt.Errorf("failed to write api-key-helper.sh: %w", err)
+	// Only write apiKeyHelper when an API key is available.
+	// In OAuth mode (Max/Pro subscription), omitting the helper lets Claude Code
+	// use its own OAuth credentials from ~/.claude/ instead.
+	apiKeyHelperPath := ""
+	if apiKey != "" {
+		apiKeyHelperPath = filepath.Join(claudeDir, "api-key-helper.sh")
+		apiKeyHelper := "#!/usr/bin/env bash\n" +
+			"echo \"${_ANTHROPIC_API_KEY}\"\n"
+		if err := os.WriteFile(apiKeyHelperPath, []byte(apiKeyHelper), 0755); err != nil {
+			return fmt.Errorf("failed to write api-key-helper.sh: %w", err)
+		}
 	}
 
 	// Pre-seed .claude.json so Claude Code starts without blocking on
@@ -329,8 +337,9 @@ func setupClaudeSettings(homeDir, apiKey string) error {
 	}
 
 	settingsFile := filepath.Join(claudeDir, "settings.json")
-	settings := map[string]any{
-		"apiKeyHelper": apiKeyHelperPath,
+	settings := map[string]any{}
+	if apiKeyHelperPath != "" {
+		settings["apiKeyHelper"] = apiKeyHelperPath
 	}
 	if _, err := exec.LookPath("goccc"); err == nil {
 		settings["statusLine"] = map[string]string{
