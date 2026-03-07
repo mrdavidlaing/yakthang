@@ -27,7 +27,7 @@ The left pane runs a **YakMap Zellij plugin** that visualizes your yak map in re
 
 ### Yakob — The Orchestrator
 
-The right pane runs **Yakob**, a long-running OpenClaw instance that:
+The right pane runs **Yakob**, a long-running Claude instance that:
 - Plans and organizes work into the yak map
 - Spawns yak shavers to work on tasks
 - Monitors progress and handles blocked tasks
@@ -37,7 +37,7 @@ You interact with Yakob directly in this pane — map new yaks, spawn yak shaver
 
 ### Yak Shavers — The Workers
 
-Yak shavers spawn as **additional Zellij tabs**, each running an OpenCode instance with the context of a specific yak. They operate **semi-autonomously**:
+Yak shavers spawn as **additional Zellij tabs**, each running a Claude Code instance with the context of a specific yak. They operate **semi-autonomously**:
 - Given a yak's context, they work independently
 - For straightforward tasks, they proceed without intervention
 - For complex issues, you can focus their tab and provide additional guidance
@@ -163,7 +163,7 @@ The YakMap pane updates in real-time as shavers update task status.
 
 This opens Zellij with YakobsYurt:
 - **Left pane**: YakMap — live task visualization
-- **Right top**: Yakob (OpenClaw 2E) — orchestration
+- **Right top**: Yakob (Claude) — orchestration
 - **Right bottom**: Shell — manual commands
 
 ### Work with Yakob

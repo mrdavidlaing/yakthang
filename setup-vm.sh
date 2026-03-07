@@ -202,7 +202,7 @@ install_gh_cli() {
 }
 
 #------------------------------------------------------------------------------
-# 4. Install Node.js 22 (required for OpenClaw Gateway)
+# 4. Install Node.js 22
 #------------------------------------------------------------------------------
 
 install_nodejs() {
@@ -253,25 +253,7 @@ install_opencode() {
 }
 
 #------------------------------------------------------------------------------
-# 6. Install OpenClaw Gateway
-#------------------------------------------------------------------------------
-
-install_openclaw() {
-	log "Installing OpenClaw Gateway..."
-
-	if command -v openclaw &>/dev/null; then
-		log "OpenClaw already installed: $(openclaw --version)"
-		return 0
-	fi
-
-	log "Installing OpenClaw via npm..."
-	npm install -g openclaw@latest
-
-	log "OpenClaw installed: $(openclaw --version)"
-}
-
-#------------------------------------------------------------------------------
-# 7. Install yx (Yak task manager) from source
+# 6. Install yx (Yak task manager) from source
 #------------------------------------------------------------------------------
 
 install_yx() {
@@ -413,25 +395,6 @@ configure_yakob_git() {
 }
 
 #------------------------------------------------------------------------------
-# 10b. Run OpenClaw onboard (handles auth + Slack config interactively)
-#------------------------------------------------------------------------------
-
-run_openclaw_onboard() {
-	log "Running OpenClaw onboard..."
-
-	local openclaw_workspace="/home/yakob/yakthang/.openclaw/workspace"
-
-	# openclaw onboard handles:
-	#   - API key or setup-token authentication
-	#   - Slack configuration (app token, bot token, user ID)
-	#   - Generates ~/.openclaw/openclaw.json
-	log "Starting interactive onboard (authenticate via API key or setup-token)..."
-	su - yakob -c "openclaw onboard --workspace ${openclaw_workspace}"
-
-	log "OpenClaw onboard complete"
-}
-
-#------------------------------------------------------------------------------
 # 11. Create workspace directory
 #------------------------------------------------------------------------------
 
@@ -452,58 +415,7 @@ setup_workspace() {
 }
 
 #------------------------------------------------------------------------------
-# 12. Setup OpenClaw workspace
-#------------------------------------------------------------------------------
-
-setup_openclaw_workspace() {
-	log "Setting up OpenClaw workspace..."
-
-	local openclaw_workspace="/home/yakob/yakthang/.openclaw/workspace"
-	local yaks_source="/home/yakob/yakthang/.yaks"
-
-	# Create OpenClaw workspace directory
-	if [[ -d "$openclaw_workspace" ]]; then
-		log "OpenClaw workspace already exists: $openclaw_workspace"
-	else
-		mkdir -p "$openclaw_workspace"
-		log "Created OpenClaw workspace: $openclaw_workspace"
-	fi
-
-	# Symlink .yaks directory
-	local yaks_link="$openclaw_workspace/.yaks"
-	if [[ -L "$yaks_link" ]]; then
-		log ".yaks symlink already exists"
-	elif [[ -e "$yaks_link" ]]; then
-		log "WARNING: $yaks_link exists but is not a symlink, skipping"
-	else
-		ln -s "$yaks_source" "$yaks_link"
-		log "Created symlink: $yaks_link -> $yaks_source"
-	fi
-
-	# Create OpenClaw agent directories (required by openclaw doctor)
-	local agent_sessions_dir="/home/yakob/.openclaw/agents/main/sessions"
-	local credentials_dir="/home/yakob/.openclaw/credentials"
-
-	if [[ ! -d "$agent_sessions_dir" ]]; then
-		mkdir -p "$agent_sessions_dir"
-		log "Created agent sessions directory: $agent_sessions_dir"
-	fi
-
-	if [[ ! -d "$credentials_dir" ]]; then
-		mkdir -p "$credentials_dir"
-		chmod 700 "$credentials_dir"
-		log "Created credentials directory: $credentials_dir"
-	fi
-
-	# Ensure correct ownership
-	chown -R yakob:yakob /home/yakob/yakthang/.openclaw
-	chown -R yakob:yakob /home/yakob/.openclaw
-
-	log "OpenClaw workspace setup complete"
-}
-
-#------------------------------------------------------------------------------
-# 13. Copy worker.Dockerfile and build image
+# 12. Copy worker.Dockerfile and build image
 #------------------------------------------------------------------------------
 
 build_worker_image() {
@@ -550,49 +462,6 @@ build_worker_image() {
 }
 
 #------------------------------------------------------------------------------
-# 14. Create OpenClaw Gateway systemd service
-#------------------------------------------------------------------------------
-
-create_systemd_service() {
-	log "Creating OpenClaw Gateway systemd service..."
-
-	local service_file="/etc/systemd/system/openclaw-gateway.service"
-
-	cat >"$service_file" <<'EOF'
-[Unit]
-Description=OpenClaw Gateway (Yakob Orchestrator)
-After=network.target docker.service
-Requires=docker.service
-
-[Service]
-Type=simple
-User=yakob
-Group=yakob
-WorkingDirectory=/home/yakob/yakthang
-
-Environment="ZELLIJ_SESSION_NAME=yakthang"
-Environment="PATH=/usr/local/bin:/usr/bin:/bin"
-
-ExecStart=/usr/bin/openclaw gateway --port 18789
-
-Restart=on-failure
-RestartSec=10
-TimeoutStopSec=30
-
-StandardOutput=journal
-StandardError=journal
-SyslogIdentifier=openclaw-gateway
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-	systemctl daemon-reload
-
-	log "Created systemd service: $service_file"
-}
-
-#------------------------------------------------------------------------------
 # Main
 #------------------------------------------------------------------------------
 
@@ -614,33 +483,21 @@ main() {
 	install_nodejs
 	create_yakob_user
 	install_opencode
-	install_openclaw
 	install_yx
 	configure_security
 	configure_yakob_git
 	setup_workspace
-	setup_openclaw_workspace
-	run_openclaw_onboard
 	build_worker_image
-	create_systemd_service
 
 	log "=================================================="
 	log "VM provisioning complete!"
 	log ""
 	log "Next steps:"
-	log "  1. Start a Zellij session for workers:"
-	log "     zellij --session yakthang"
+	log "  1. Start the orchestrator:"
+	log "     ./launch.sh"
 	log ""
-	log "  2. Enable and start OpenClaw Gateway:"
-	log "     sudo systemctl enable --now openclaw-gateway"
-	log ""
-	log "  3. Add cron jobs (as yakob, after gateway is running):"
-	log "     openclaw cron add --name 'Worker sweep' --cron '0 */2 * * *' --tz UTC --session main --system-event 'Check for blocked workers and stale tasks. Run check-workers.sh.' --wake now"
-	log "     openclaw cron add --name 'Daily summary' --cron '0 17 * * *' --tz UTC --session isolated --message 'Summarize today. Run yx ls, check-workers.sh, ./cost-summary.sh --today.' --announce"
-	log ""
-	log "  4. Verify:"
-	log "     openclaw doctor"
-	log "     openclaw agents list"
+	log "  2. Verify yx is working:"
+	log "     yx ls"
 }
 
 main "$@"

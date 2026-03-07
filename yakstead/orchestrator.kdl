@@ -2,11 +2,11 @@
 //
 // Tab 1 (Orchestrator):
 //   Left 1/3:  live `yx ls` watcher showing task state
-//   Right 2/3: orchestrator opencode instance that plans and spawns workers
+//   Right 2/3: orchestrator Claude Code instance that plans and spawns workers
 //
 // Workers are spawned as new tabs by the orchestrator via spawn-worker.sh
 
-// Custom Gruvbox theme with enhanced frame styling to match OpenCode graph boxes
+// Custom Gruvbox theme with enhanced frame styling
 // Key changes from gruvbox-dark:
 // - Added frame_unselected component (missing in built-in theme)
 // - Updated frame colors to use orchestrator accent color (#d79921 / 215 153 33)
@@ -156,8 +156,7 @@ layout {
     tab name="Yakob's 🛖" focus=true {
         pane split_direction="vertical" {
             // Left 1/3: live yak status with assignments (Zellij plugin)
-            pane size="33%" name="yak-map" {
-                cwd "/home/yakob/yakthang"
+            pane size="45%" name="yak-map" {
                 plugin location="file:bin/yak-map.wasm"
             }
 
@@ -177,5 +176,5 @@ layout {
     //   spawn-worker.sh --cwd ./api --name "auth-worker" \
     //     "You have access to yx. Run 'yx ls' to see tasks. ..."
     //
-    // Each worker gets its own tab with an opencode pane.
+    // Each worker gets its own tab via yak-box spawn.
 }

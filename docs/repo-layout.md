@@ -15,8 +15,7 @@ yakthang/
 │   └── yakbox/     # Docker orchestration tool (Go)
 ├── bin/            # Compiled binaries from src/
 ├── tmp/            # Ephemeral scratch space (gitignored)
-├── .yaks/          # Task state (managed by yx)
-└── .openclaw/      # OpenClaw workspace config
+└── .yaks/          # Task state (managed by yx)
 ```
 
 ## Principles
