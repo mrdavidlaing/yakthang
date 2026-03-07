@@ -1,1 +1,1 @@
-wip: starting
+done: auth login command already implemented in auth.go; added auth_test.go with tests for command existence, flags, and required --shaver validation; all tests pass
