@@ -198,21 +198,26 @@ Yakitty, Bob**
 The `--shaver-name` flag sets the shaver identity in the Zellij tab title
 (left side of `Yakoff 🪒🦬 worker-name`) and in the yak's `assigned-to` field.
 
-### Always pass all three skills
+### Always pass all available skills
 
-**Every spawn MUST include all three skills:**
+**Every spawn MUST include all skills from `.claude/skills/`.** Discover them
+dynamically before each spawn — do not hardcode a list:
 
+```bash
+skill_flags=$(ls -d .claude/skills/*/ 2>/dev/null | sed 's|/$||' | xargs -I{} echo "--skill {}" | tr '\n' ' ')
 ```
---skill .claude/skills/yak-shaving-handbook \
---skill .claude/skills/shortcut-linking \
---skill .claude/skills/yak-brand \
-```
+
+This picks up both platform skills (symlinks to the yakthang repo) and any
+project-specific skills (real directories). New skills are picked up
+automatically — no changes to Yakob needed.
 
 These are not injected automatically — Yakob must pass them explicitly on every spawn.
 
 ### Example
 
 ```bash
+skill_flags=$(ls -d .claude/skills/*/ 2>/dev/null | sed 's|/$||' | xargs -I{} echo "--skill {}" | tr '\n' ' ')
+
 yak-box spawn \
   --cwd ./api \
   --name "api-auth" \
@@ -220,9 +225,7 @@ yak-box spawn \
   --tool claude \
   --runtime native \
   --yaks auth-login --yaks auth-logout \
-  --skill .claude/skills/yak-shaving-handbook \
-  --skill .claude/skills/shortcut-linking \
-  --skill .claude/skills/yak-brand \
+  $(echo $skill_flags) \
   "Work on the auth tasks. For each task, read its context with
    'yx context --show <name>', do the work, then 'yx done <name>'."
 ```
