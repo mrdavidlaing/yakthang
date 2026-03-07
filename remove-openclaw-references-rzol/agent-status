@@ -1,1 +1,1 @@
-wip: deleting openclaw files, updating source files
+done: removed all openclaw/openod refs; deleted 6 files, rewrote cost-summary.sh, updated setup-vm.sh, orchestrator.kdl, README, docs, Cargo.toml, plugin.yaml
