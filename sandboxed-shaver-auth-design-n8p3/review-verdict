@@ -1,1 +1,0 @@
-pass: all 6 deliverables covered, code claims verified at helpers.go:124-126 (home mount), preflight.go:139-155 (auth gate), native.go:316-324 (setupClaudeSettings OAuth path), sessions.go (persistent home). Implementation plan lists 6 tasks and 5+1 files.
