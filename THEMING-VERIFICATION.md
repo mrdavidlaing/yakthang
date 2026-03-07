@@ -20,7 +20,7 @@ To verify the theming changes work correctly:
 
 2. **Check orchestrator tab frames**
    - [ ] YakMap pane (left) has a visible frame
-   - [ ] OpenCode/OpenClaw pane (top right) has a frame
+   - [ ] Claude (Yakob) pane (top right) has a frame
    - [ ] Shell pane (bottom right) has a frame
    - [ ] Focused pane shows yellow/gold frame (#d79921 color)
    - [ ] Unfocused panes show subtle gray frames
@@ -40,7 +40,7 @@ To verify the theming changes work correctly:
    - [ ] All pane frames appear similar in style
    - [ ] No panes are missing frames
    - [ ] Color scheme is consistent across all panes
-   - [ ] Selected pane frame color matches OpenCode accent color
+   - [ ] Selected pane frame color matches Claude accent color
 
 ## Expected Visual Behavior
 
@@ -91,6 +91,6 @@ If frames don't appear correctly:
 ✅ All panes have consistent frame styling
 ✅ Focused pane uses orchestrator accent color
 ✅ Unfocused panes have subtle but visible frames
-✅ Frame colors match OpenCode graph box aesthetic
+✅ Frame colors match Claude accent color aesthetic
 ✅ Visual hierarchy is clear and consistent
 

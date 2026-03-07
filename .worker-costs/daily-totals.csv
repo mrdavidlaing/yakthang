@@ -1,3 +1,2 @@
-date,openclaw_cost,opencode_cost,total_cost,sessions,workers
-2026-02-14,10.81,0,10.81,2,0
-2026-02-15,0.00,0.230297,0.230297,0,1
+date,worker_cost,total_cost,workers
+2026-02-15,0.230297,0.230297,1

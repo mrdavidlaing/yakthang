@@ -17,5 +17,5 @@ if echo "$SESSIONS" | grep -q "^${SESSION_NAME} "; then
     zellij attach "${SESSION_NAME}"
 else
     echo "Starting new session '${SESSION_NAME}'..."
-    zellij -s "${SESSION_NAME}" --layout "$SCRIPT_DIR/orchestrator.kdl"
+    zellij -s "${SESSION_NAME}" -n "$SCRIPT_DIR/orchestrator.kdl"
 fi
