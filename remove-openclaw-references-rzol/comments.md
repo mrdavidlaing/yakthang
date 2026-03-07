@@ -1,0 +1,1 @@
+Deleted cost-openclaw.sh and docs/deployment/ (5 files). Removed openclaw functions from setup-vm.sh. Rewrote cost-summary.sh. Updated orchestrator.kdl, README.md, Cargo.toml, plugin.yaml, docs, .gitignore. No openclaw/openod refs remain outside .yaks/ and .yak-boxes/ runtime dirs.
