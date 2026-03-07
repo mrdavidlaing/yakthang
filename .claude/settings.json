@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yx ls:*)",
+      "Bash(yak-box spawn:*)",
+      "Bash(yx context:*)",
+      "Bash(yx field:*)",
+      "Bash(git submodule:*)"
+    ]
+  }
+}
