@@ -1,1 +1,1 @@
-wip: deleting src/yak-box/.claude/, rewriting AGENTS.md files, updating Go module path
+done: deleted src/yak-box/.claude/, updated Go module path to github.com/wellmaintained/yakthang/src/yak-box across 27 files, rewrote AGENTS.md to strip standalone-repo artifacts, consolidated .gitignore
