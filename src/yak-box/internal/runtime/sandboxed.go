@@ -40,7 +40,7 @@ func GetResourceProfile(name string) types.ResourceProfile {
 		return types.ResourceProfile{
 			Name:   "heavy",
 			CPUs:   "2.0",
-			Memory: "4g",
+			Memory: "6g",
 			Swap:   "",
 			PIDs:   1024,
 			Tmpfs: map[string]string{
@@ -53,8 +53,8 @@ func GetResourceProfile(name string) types.ResourceProfile {
 		return types.ResourceProfile{
 			Name:   "ram",
 			CPUs:   "0",
-			Memory: "8g",
-			Swap:   "16g",
+			Memory: "12g",
+			Swap:   "24g",
 			PIDs:   2048,
 			Tmpfs: map[string]string{
 				"/tmp":                    "size=4g,exec,uid=1000,gid=1000",
@@ -66,7 +66,7 @@ func GetResourceProfile(name string) types.ResourceProfile {
 		return types.ResourceProfile{
 			Name:   "default",
 			CPUs:   "1.0",
-			Memory: "2g",
+			Memory: "3g",
 			Swap:   "",
 			PIDs:   512,
 			Tmpfs: map[string]string{

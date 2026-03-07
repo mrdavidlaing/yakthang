@@ -567,8 +567,8 @@ func TestGetResourceProfile_Heavy(t *testing.T) {
 	if profile.CPUs != "2.0" {
 		t.Errorf("Expected CPUs '2.0', got %s", profile.CPUs)
 	}
-	if profile.Memory != "4g" {
-		t.Errorf("Expected Memory '4g', got %s", profile.Memory)
+	if profile.Memory != "6g" {
+		t.Errorf("Expected Memory '6g', got %s", profile.Memory)
 	}
 }
 
@@ -581,8 +581,8 @@ func TestGetResourceProfile_Ram(t *testing.T) {
 	if profile.CPUs != "0" {
 		t.Errorf("Expected CPUs '0', got %s", profile.CPUs)
 	}
-	if profile.Swap != "16g" {
-		t.Errorf("Expected Swap '16g', got %s", profile.Swap)
+	if profile.Swap != "24g" {
+		t.Errorf("Expected Swap '24g', got %s", profile.Swap)
 	}
 }
 
@@ -595,8 +595,8 @@ func TestGetResourceProfile_Default(t *testing.T) {
 	if profile.CPUs != "1.0" {
 		t.Errorf("Expected CPUs '1.0', got %s", profile.CPUs)
 	}
-	if profile.Memory != "2g" {
-		t.Errorf("Expected Memory '2g', got %s", profile.Memory)
+	if profile.Memory != "3g" {
+		t.Errorf("Expected Memory '3g', got %s", profile.Memory)
 	}
 	if profile.PIDs != 512 {
 		t.Errorf("Expected PIDs 512, got %d", profile.PIDs)
