@@ -5,7 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
-	"github.com/wellmaintained/yak-box/internal/errors"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/errors"
 )
 
 func TestMessageFlags(t *testing.T) {

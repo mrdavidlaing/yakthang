@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wellmaintained/yak-box/internal/workspace"
-	"github.com/wellmaintained/yak-box/internal/zellij"
-	"github.com/wellmaintained/yak-box/pkg/types"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/workspace"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/zellij"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 const (

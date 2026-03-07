@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wellmaintained/yak-box/internal/workspace"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/workspace"
 )
 
 const devcontainerPath = ".devcontainer"

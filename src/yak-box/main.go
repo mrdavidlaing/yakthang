@@ -4,7 +4,7 @@ package main
 import (
 	"log"
 
-	"github.com/wellmaintained/yak-box/cmd"
+	"github.com/wellmaintained/yakthang/src/yak-box/cmd"
 )
 
 var version = "dev"

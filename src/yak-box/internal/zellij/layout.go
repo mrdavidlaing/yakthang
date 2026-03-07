@@ -6,7 +6,7 @@ package zellij
 import (
 	"fmt"
 
-	"github.com/wellmaintained/yak-box/pkg/types"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 // GenerateLayout generates a KDL layout file for a worker.

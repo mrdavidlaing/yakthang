@@ -1,4 +1,4 @@
-module github.com/wellmaintained/yak-box
+module github.com/wellmaintained/yakthang/src/yak-box
 
 go 1.25.0
 

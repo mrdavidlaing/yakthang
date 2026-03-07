@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/wellmaintained/yak-box/internal/workspace"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/workspace"
 )
 
 type Config struct {

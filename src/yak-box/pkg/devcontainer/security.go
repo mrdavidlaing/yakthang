@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wellmaintained/yak-box/internal/pathutil"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/pathutil"
 )
 
 // SecurityWarning represents a security-related warning about devcontainer configuration

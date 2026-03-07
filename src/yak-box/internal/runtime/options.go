@@ -5,8 +5,8 @@ import (
 	"context"
 	"os/exec"
 
-	"github.com/wellmaintained/yak-box/pkg/devcontainer"
-	"github.com/wellmaintained/yak-box/pkg/types"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/devcontainer"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 // Commander abstracts command execution for testing

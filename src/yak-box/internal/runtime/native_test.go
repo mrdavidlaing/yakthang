@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/wellmaintained/yak-box/pkg/types"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 func TestFileExists_Exists(t *testing.T) {

@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/wellmaintained/yak-box/internal/errors"
-	"github.com/wellmaintained/yak-box/internal/sessions"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/errors"
+	"github.com/wellmaintained/yakthang/src/yak-box/internal/sessions"
 )
 
 var diffName string

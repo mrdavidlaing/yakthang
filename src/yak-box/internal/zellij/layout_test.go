@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wellmaintained/yak-box/pkg/types"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 func TestGenerateLayout_Sandboxed(t *testing.T) {

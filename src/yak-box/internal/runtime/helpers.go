@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wellmaintained/yak-box/pkg/devcontainer"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/devcontainer"
 )
 
 func generateInitScript() string {

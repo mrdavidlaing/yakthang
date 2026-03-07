@@ -12,6 +12,7 @@ tmp-build
 bin/yak-box
 bin/yx
 bin/yak-map.wasm
+src/yak-box/yak-box
 
 # Cargo build artifacts
 **/target/

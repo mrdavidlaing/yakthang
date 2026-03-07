@@ -1,3 +1,1 @@
-yak-box
-.yaks
-.desloppify
+# yak-box binary is ignored at the monorepo root (.gitignore: src/yak-box/yak-box)

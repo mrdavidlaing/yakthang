@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wellmaintained/yak-box/pkg/devcontainer"
-	"github.com/wellmaintained/yak-box/pkg/types"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/devcontainer"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 type MockCommander struct {
