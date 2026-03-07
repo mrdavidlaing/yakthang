@@ -192,7 +192,7 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 	if err := preflight.Run(preflightDeps, os.Stderr); err != nil {
 		return err
 	}
-	if err := preflight.EnsureClaudeAuthEnv(spawnTool, os.LookupEnv); err != nil {
+	if err := preflight.EnsureClaudeAuthEnv(spawnTool, runtimeType, os.LookupEnv); err != nil {
 		return err
 	}
 

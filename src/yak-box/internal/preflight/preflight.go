@@ -134,9 +134,14 @@ func CheckDeps() []Dep {
 }
 
 // EnsureClaudeAuthEnv verifies the Anthropic API key is present when spawning
-// a Claude worker. Other tools do not require this environment variable.
-func EnsureClaudeAuthEnv(tool string, lookupEnv func(string) (string, bool)) error {
+// a sandboxed Claude worker. Native workers inherit the host's OAuth session
+// (~/.claude/) so the API key is not required.
+func EnsureClaudeAuthEnv(tool, runtime string, lookupEnv func(string) (string, bool)) error {
 	if tool != "claude" {
+		return nil
+	}
+	// Native runtime can authenticate via OAuth credentials in ~/.claude/
+	if runtime == "native" {
 		return nil
 	}
 	if lookupEnv == nil {
@@ -144,7 +149,7 @@ func EnsureClaudeAuthEnv(tool string, lookupEnv func(string) (string, bool)) err
 	}
 	apiKey, ok := lookupEnv("_ANTHROPIC_API_KEY")
 	if !ok || strings.TrimSpace(apiKey) == "" {
-		return fmt.Errorf("preflight check failed — _ANTHROPIC_API_KEY is required when using --tool claude. Set it in your environment and retry (example: export _ANTHROPIC_API_KEY=your-key)")
+		return fmt.Errorf("preflight check failed — _ANTHROPIC_API_KEY is required when using --tool claude with sandboxed runtime. Set it in your environment and retry (example: export _ANTHROPIC_API_KEY=your-key)")
 	}
 	return nil
 }

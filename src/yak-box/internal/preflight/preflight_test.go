@@ -134,43 +134,61 @@ func TestSpawnSandboxedDeps(t *testing.T) {
 	requireContains(t, names, "yx")
 }
 
-func TestEnsureClaudeAuthEnv_ClaudeMissing(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", func(string) (string, bool) {
+func TestEnsureClaudeAuthEnv_SandboxedClaudeMissing(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", func(string) (string, bool) {
 		return "", false
 	})
 	if err == nil {
-		t.Fatal("expected error when _ANTHROPIC_API_KEY is missing for claude")
+		t.Fatal("expected error when _ANTHROPIC_API_KEY is missing for sandboxed claude")
 	}
 	if !strings.Contains(err.Error(), "_ANTHROPIC_API_KEY") {
 		t.Errorf("error should mention _ANTHROPIC_API_KEY, got: %v", err)
 	}
-	if !strings.Contains(err.Error(), "--tool claude") {
-		t.Errorf("error should mention --tool claude context, got: %v", err)
+	if !strings.Contains(err.Error(), "sandboxed") {
+		t.Errorf("error should mention sandboxed runtime, got: %v", err)
 	}
 }
 
-func TestEnsureClaudeAuthEnv_ClaudeEmpty(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", func(string) (string, bool) {
+func TestEnsureClaudeAuthEnv_SandboxedClaudeEmpty(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", func(string) (string, bool) {
 		return "   ", true
 	})
 	if err == nil {
-		t.Fatal("expected error when _ANTHROPIC_API_KEY is blank for claude")
+		t.Fatal("expected error when _ANTHROPIC_API_KEY is blank for sandboxed claude")
 	}
 }
 
-func TestEnsureClaudeAuthEnv_ClaudePresent(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", func(string) (string, bool) {
+func TestEnsureClaudeAuthEnv_SandboxedClaudePresent(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", func(string) (string, bool) {
 		return "sk-ant-valid", true
 	})
 	if err != nil {
-		t.Fatalf("expected no error when _ANTHROPIC_API_KEY is set for claude, got: %v", err)
+		t.Fatalf("expected no error when _ANTHROPIC_API_KEY is set for sandboxed claude, got: %v", err)
+	}
+}
+
+func TestEnsureClaudeAuthEnv_NativeSkipsKeyCheck(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "native", func(string) (string, bool) {
+		return "", false
+	})
+	if err != nil {
+		t.Fatalf("expected no error for native runtime without API key, got: %v", err)
+	}
+}
+
+func TestEnsureClaudeAuthEnv_NativeWithKeyStillWorks(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "native", func(string) (string, bool) {
+		return "sk-ant-valid", true
+	})
+	if err != nil {
+		t.Fatalf("expected no error for native runtime with API key, got: %v", err)
 	}
 }
 
 func TestEnsureClaudeAuthEnv_NonClaudeIgnored(t *testing.T) {
 	tools := []string{"cursor", "opencode"}
 	for _, tool := range tools {
-		err := preflight.EnsureClaudeAuthEnv(tool, func(string) (string, bool) {
+		err := preflight.EnsureClaudeAuthEnv(tool, "sandboxed", func(string) (string, bool) {
 			return "", false
 		})
 		if err != nil {
