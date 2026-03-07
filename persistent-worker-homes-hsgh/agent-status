@@ -1,0 +1,1 @@
+done: persistent worker homes implemented - sessions.json for active sessions, @home/{persona} for persistent data, --clean flag added

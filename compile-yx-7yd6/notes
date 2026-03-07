@@ -1,0 +1,1 @@
+BLOCKER: Cannot rebuild yx binary in current environment due to cargo permission issues. Tried /opt/cargo and ~/.cargo-home - both permission denied. Submodule updated to origin/main but bin/yx still has old build. Need to rebuild in devcontainer after 'devcontainer build'.

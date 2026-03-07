@@ -1,0 +1,1 @@
+done: Created 3 scripts in scripts/ (setup-worker-network.sh, setup-worker-firewall.sh, update-api-ipset.sh) and updated spawn-worker.sh to use yak-workers network with bridge fallback

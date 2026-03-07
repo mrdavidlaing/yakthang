@@ -1,0 +1,1 @@
+done: shell pane now execs into container with retry logic
