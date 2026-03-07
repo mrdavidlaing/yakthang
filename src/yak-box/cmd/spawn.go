@@ -192,10 +192,6 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 	if err := preflight.Run(preflightDeps, os.Stderr); err != nil {
 		return err
 	}
-	if err := preflight.EnsureClaudeAuthEnv(spawnTool, runtimeType, os.LookupEnv); err != nil {
-		return err
-	}
-
 	startDir := "."
 	if strings.TrimSpace(spawnCWD) != "" {
 		startDir = spawnCWD
@@ -277,6 +273,10 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 	homeDir, err := sessions.EnsureHomeDir(workerName)
 	if err != nil {
 		return fmt.Errorf("failed to ensure home directory: %w. Suggestion: Check that .yak-boxes directory exists and is writable", err)
+	}
+
+	if err := preflight.EnsureClaudeAuthEnv(spawnTool, runtimeType, homeDir, os.LookupEnv); err != nil {
+		return err
 	}
 
 	if len(inheritedWorktrees) > 0 {

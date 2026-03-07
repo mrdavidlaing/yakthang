@@ -2,6 +2,7 @@ package preflight_test
 
 import (
 	"bytes"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -135,14 +136,11 @@ func TestSpawnSandboxedDeps(t *testing.T) {
 }
 
 func TestEnsureClaudeAuthEnv_SandboxedClaudeMissing(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", func(string) (string, bool) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", "", func(string) (string, bool) {
 		return "", false
 	})
 	if err == nil {
-		t.Fatal("expected error when _ANTHROPIC_API_KEY is missing for sandboxed claude")
-	}
-	if !strings.Contains(err.Error(), "_ANTHROPIC_API_KEY") {
-		t.Errorf("error should mention _ANTHROPIC_API_KEY, got: %v", err)
+		t.Fatal("expected error when no auth configured for sandboxed claude")
 	}
 	if !strings.Contains(err.Error(), "sandboxed") {
 		t.Errorf("error should mention sandboxed runtime, got: %v", err)
@@ -150,7 +148,7 @@ func TestEnsureClaudeAuthEnv_SandboxedClaudeMissing(t *testing.T) {
 }
 
 func TestEnsureClaudeAuthEnv_SandboxedClaudeEmpty(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", func(string) (string, bool) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", "", func(string) (string, bool) {
 		return "   ", true
 	})
 	if err == nil {
@@ -159,7 +157,7 @@ func TestEnsureClaudeAuthEnv_SandboxedClaudeEmpty(t *testing.T) {
 }
 
 func TestEnsureClaudeAuthEnv_SandboxedClaudePresent(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", func(string) (string, bool) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", "", func(string) (string, bool) {
 		return "sk-ant-valid", true
 	})
 	if err != nil {
@@ -167,8 +165,26 @@ func TestEnsureClaudeAuthEnv_SandboxedClaudePresent(t *testing.T) {
 	}
 }
 
+func TestEnsureClaudeAuthEnv_SandboxedClaudeOAuth(t *testing.T) {
+	// Create a temp home dir with a fake OAuth credential file.
+	tmpHome := t.TempDir()
+	claudeDir := tmpHome + "/.claude"
+	if err := os.MkdirAll(claudeDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(claudeDir+"/credentials.json", []byte(`{"token":"fake"}`), 0600); err != nil {
+		t.Fatal(err)
+	}
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", tmpHome, func(string) (string, bool) {
+		return "", false
+	})
+	if err != nil {
+		t.Fatalf("expected no error when OAuth creds present in shaverHomeDir, got: %v", err)
+	}
+}
+
 func TestEnsureClaudeAuthEnv_NativeSkipsKeyCheck(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "native", func(string) (string, bool) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "native", "", func(string) (string, bool) {
 		return "", false
 	})
 	if err != nil {
@@ -177,7 +193,7 @@ func TestEnsureClaudeAuthEnv_NativeSkipsKeyCheck(t *testing.T) {
 }
 
 func TestEnsureClaudeAuthEnv_NativeWithKeyStillWorks(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "native", func(string) (string, bool) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "native", "", func(string) (string, bool) {
 		return "sk-ant-valid", true
 	})
 	if err != nil {
@@ -188,7 +204,7 @@ func TestEnsureClaudeAuthEnv_NativeWithKeyStillWorks(t *testing.T) {
 func TestEnsureClaudeAuthEnv_NonClaudeIgnored(t *testing.T) {
 	tools := []string{"cursor", "opencode"}
 	for _, tool := range tools {
-		err := preflight.EnsureClaudeAuthEnv(tool, "sandboxed", func(string) (string, bool) {
+		err := preflight.EnsureClaudeAuthEnv(tool, "sandboxed", "", func(string) (string, bool) {
 			return "", false
 		})
 		if err != nil {

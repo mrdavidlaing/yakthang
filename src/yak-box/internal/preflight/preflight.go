@@ -133,23 +133,58 @@ func CheckDeps() []Dep {
 	return []Dep{DockerOptional, Goccc}
 }
 
-// EnsureClaudeAuthEnv verifies the Anthropic API key is present when spawning
-// a sandboxed Claude worker. Native workers inherit the host's OAuth session
-// (~/.claude/) so the API key is not required.
-func EnsureClaudeAuthEnv(tool, runtime string, lookupEnv func(string) (string, bool)) error {
+// EnsureClaudeAuthEnv verifies that Claude authentication is available when spawning
+// a worker. Native workers inherit the host's OAuth session (~/.claude/) so the API
+// key is not required. For sandboxed workers, either an API key env var OR OAuth
+// credentials already present in shaverHomeDir/.claude/ are acceptable.
+// Pass shaverHomeDir="" to skip the OAuth credential check (e.g. before homeDir is created).
+func EnsureClaudeAuthEnv(tool, runtime, shaverHomeDir string, lookupEnv func(string) (string, bool)) error {
 	if tool != "claude" {
 		return nil
 	}
-	// Native runtime can authenticate via OAuth credentials in ~/.claude/
+	// Native runtime always passes: it inherits OAuth credentials from the host's
+	// ~/.claude/ via the HOME override set in the native wrapper script.
 	if runtime == "native" {
 		return nil
 	}
 	if lookupEnv == nil {
 		lookupEnv = os.LookupEnv
 	}
-	apiKey, ok := lookupEnv("_ANTHROPIC_API_KEY")
-	if !ok || strings.TrimSpace(apiKey) == "" {
-		return fmt.Errorf("preflight check failed — _ANTHROPIC_API_KEY is required when using --tool claude with sandboxed runtime. Set it in your environment and retry (example: export _ANTHROPIC_API_KEY=your-key)")
+	// Check API key first (fast path).
+	if key, ok := lookupEnv("_ANTHROPIC_API_KEY"); ok && strings.TrimSpace(key) != "" {
+		return nil
 	}
-	return nil
+	if key, ok := lookupEnv("ANTHROPIC_API_KEY"); ok && strings.TrimSpace(key) != "" {
+		return nil
+	}
+	// Check for OAuth credentials in the shaver's persistent home dir.
+	if shaverHomeDir != "" && hasOAuthCreds(shaverHomeDir) {
+		return nil
+	}
+	hint := ""
+	if shaverHomeDir != "" {
+		hint = fmt.Sprintf("\n  Option 1 (OAuth): run 'yak-box auth-login --shaver <name>' to log in via device flow\n  Option 2 (API key): export _ANTHROPIC_API_KEY=your-key")
+	} else {
+		hint = "\n  Option 1 (OAuth): run 'yak-box auth-login --shaver <name>' to log in via device flow\n  Option 2 (API key): export _ANTHROPIC_API_KEY=your-key"
+	}
+	return fmt.Errorf("preflight check failed — no Claude auth configured for sandboxed runtime.%s", hint)
+}
+
+// hasOAuthCreds returns true when homeDir/.claude/ contains at least one non-empty JSON file.
+func hasOAuthCreds(homeDir string) bool {
+	claudeDir := homeDir + "/.claude"
+	entries, err := os.ReadDir(claudeDir)
+	if err != nil {
+		return false
+	}
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
+			continue
+		}
+		info, err := e.Info()
+		if err == nil && info.Size() > 0 {
+			return true
+		}
+	}
+	return false
 }

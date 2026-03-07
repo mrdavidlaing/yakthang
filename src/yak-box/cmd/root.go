@@ -29,4 +29,5 @@ func init() {
 	rootCmd.AddCommand(stopCmd)
 	rootCmd.AddCommand(checkCmd)
 	rootCmd.AddCommand(diffCmd)
+	rootCmd.AddCommand(authCmd)
 }
