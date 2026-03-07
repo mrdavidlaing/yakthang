@@ -24,7 +24,7 @@ var (
 )
 
 var stopCmd = &cobra.Command{
-	Use:   "stop --name <worker-name> [flags]",
+	Use:   "stop --yak-name <worker-name> [flags]",
 	Short: "Stop a worker",
 	Long: `Stop a running worker, optionally forcing termination.
 
@@ -37,22 +37,22 @@ The stop command gracefully shuts down a worker by:
 If session is missing, the command attempts to detect the worker
 via Docker ps or Zellij tabs as a fallback.`,
 	Example: `  # Gracefully stop a worker (clears task assignments)
-  yak-box stop --name api-auth
+  yak-box stop --yak-name api-auth
 
   # Force stop without cleanup (immediate termination)
-  yak-box stop --name api-auth --force
+  yak-box stop --yak-name api-auth --force
 
   # Dry run to see what would happen
-  yak-box stop --name api-auth --dry-run
+  yak-box stop --yak-name api-auth --dry-run
 
   # Stop with custom timeout
-  yak-box stop --name backend-worker --timeout 60s`,
+  yak-box stop --yak-name backend-worker --timeout 60s`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		var errs []error
 
 		// Validate required flags
 		if stopName == "" {
-			errs = append(errs, fmt.Errorf("--name is required (worker name to stop)"))
+			errs = append(errs, fmt.Errorf("--yak-name is required (worker name to stop)"))
 		}
 
 		// Validate timeout format
@@ -224,8 +224,8 @@ func extractWorkerCost(session *sessions.Session) string {
 }
 
 func init() {
-	stopCmd.Flags().StringVar(&stopName, "name", "", "Worker name to stop (required)")
-	stopCmd.MarkFlagRequired("name")
+	stopCmd.Flags().StringVar(&stopName, "yak-name", "", "Worker name to stop (required)")
+	stopCmd.MarkFlagRequired("yak-name")
 
 	stopCmd.Flags().StringVar(&stopTimeout, "timeout", "30s", "Docker stop timeout (e.g., '30s', '1m')")
 	stopCmd.Flags().BoolVarP(&stopForce, "force", "f", false, "Skip task cleanup and stop immediately")

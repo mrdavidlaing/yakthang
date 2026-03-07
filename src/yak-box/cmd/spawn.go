@@ -45,7 +45,7 @@ const (
 )
 
 var spawnCmd = &cobra.Command{
-	Use:   "spawn --name <tab-name> [flags]",
+	Use:   "spawn --yak-name <tab-name> [flags]",
 	Short: "Spawn a new worker",
 	Long: `Spawn a new worker with specified configuration.
 
@@ -60,21 +60,21 @@ Tool selection:
   --tool opencode: Uses OpenCode with --agent build mode.
   --tool cursor: Uses Cursor agent CLI with --force mode.`,
 	Example: `  # Spawn a worker for API authentication tasks
-  yak-box spawn --cwd ./api --name api-auth --yaks auth/api/login --yaks auth/api/logout
+  yak-box spawn --cwd ./api --yak-name api-auth --yaks auth/api/login --yaks auth/api/logout
 
   # Spawn with automatic worktree creation
-  yak-box spawn --cwd ./api --name api-auth --yaks auth/api --auto-worktree
+  yak-box spawn --cwd ./api --yak-name api-auth --yaks auth/api --auto-worktree
 
   # Spawn with heavy resources and native runtime
-  yak-box spawn --cwd ./backend --name backend-worker --resources heavy --runtime native
+  yak-box spawn --cwd ./backend --yak-name backend-worker --resources heavy --runtime native
 
   # Spawn in plan mode with custom yak path
-  yak-box spawn --cwd ./frontend --name ui-worker --mode plan --yak-path .tasks`,
+  yak-box spawn --cwd ./frontend --yak-name ui-worker --mode plan --yak-path .tasks`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		var errs []error
 
 		if strings.TrimSpace(spawnName) == "" {
-			errs = append(errs, fmt.Errorf("--name is required (worker name used in logs and metadata)"))
+			errs = append(errs, fmt.Errorf("--yak-name is required (worker name used in logs and metadata)"))
 		}
 
 		if spawnMode != "plan" && spawnMode != "build" {
@@ -263,14 +263,19 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 
 	workerName := strings.TrimSpace(spawnName)
 
+	shaverName := strings.TrimSpace(spawnShaverName)
+	if shaverName == "" {
+		shaverName = resolveShaverName()
+	}
+
 	if spawnClean {
-		fmt.Printf("Cleaning home directory for %s...\n", workerName)
-		if err := sessions.CleanHome(workerName); err != nil {
+		fmt.Printf("Cleaning home directory for %s...\n", shaverName)
+		if err := sessions.CleanHome(shaverName); err != nil {
 			return fmt.Errorf("failed to clean home: %w. Suggestion: Ensure .yak-boxes directory exists and is writable", err)
 		}
 	}
 
-	homeDir, err := sessions.EnsureHomeDir(workerName)
+	homeDir, err := sessions.EnsureHomeDir(shaverName)
 	if err != nil {
 		return fmt.Errorf("failed to ensure home directory: %w. Suggestion: Check that .yak-boxes directory exists and is writable", err)
 	}
@@ -335,10 +340,6 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		}
 		yakRwDirs = append(yakRwDirs, taskDir)
 	}
-	shaverName := strings.TrimSpace(spawnShaverName)
-	if shaverName == "" {
-		shaverName = resolveShaverName()
-	}
 	workerPrompt := prompt.BuildPrompt(spawnMode, absYakPath, userPrompt, displayPaths, shaverName, skillNames)
 	displayName := formatDisplayName(shaverName, spawnName)
 
@@ -370,7 +371,7 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		WorktreePath:  worktreePath,
 		Tool:          spawnTool,
 		Model:         resolvedModel,
-		ShaverName:    strings.TrimSpace(spawnShaverName), // only set when --shaver-name was provided
+		ShaverName:    shaverName,
 	}
 
 	if runtimeType == "sandboxed" {
@@ -686,8 +687,8 @@ func copyFile(src, dest string, mode os.FileMode) error {
 func init() {
 	spawnCmd.Flags().StringVar(&spawnCWD, "cwd", "", "Working directory for the worker (required unless yak worktrees field is set)")
 
-	spawnCmd.Flags().StringVar(&spawnName, "name", "", "Worker name used in logs and metadata (required)")
-	spawnCmd.MarkFlagRequired("name")
+	spawnCmd.Flags().StringVar(&spawnName, "yak-name", "", "Worker name used in logs and metadata (required)")
+	spawnCmd.MarkFlagRequired("yak-name")
 
 	spawnCmd.Flags().StringVar(&spawnSession, "session", "", "Zellij session name (default: auto-detect from ZELLIJ_SESSION_NAME)")
 

@@ -10,7 +10,7 @@ import (
 )
 
 func TestStopFlags(t *testing.T) {
-	assert.NotNil(t, stopCmd.Flags().Lookup("name"))
+	assert.NotNil(t, stopCmd.Flags().Lookup("yak-name"))
 	assert.NotNil(t, stopCmd.Flags().Lookup("timeout"))
 	assert.NotNil(t, stopCmd.Flags().Lookup("force"))
 	assert.NotNil(t, stopCmd.Flags().Lookup("dry-run"))
@@ -38,7 +38,7 @@ func TestStopValidation(t *testing.T) {
 			stopName: "",
 			timeout:  "30s",
 			wantErr:  true,
-			errMsg:   "--name is required",
+			errMsg:   "--yak-name is required",
 		},
 		{
 			name:     "invalid timeout format",
@@ -156,7 +156,7 @@ func TestStopFlagTypes(t *testing.T) {
 		name     string
 		flagName string
 	}{
-		{name: "name string flag", flagName: "name"},
+		{name: "yak-name string flag", flagName: "yak-name"},
 		{name: "timeout string flag", flagName: "timeout"},
 		{name: "force bool flag", flagName: "force"},
 		{name: "dry-run bool flag", flagName: "dry-run"},

@@ -16,7 +16,7 @@ import (
 func TestSpawnFlags(t *testing.T) {
 	// Verify core flags are registered
 	assert.NotNil(t, spawnCmd.Flags().Lookup("cwd"))
-	assert.NotNil(t, spawnCmd.Flags().Lookup("name"))
+	assert.NotNil(t, spawnCmd.Flags().Lookup("yak-name"))
 
 	// Verify optional flags are registered
 	assert.NotNil(t, spawnCmd.Flags().Lookup("mode"))
@@ -130,7 +130,7 @@ func TestSpawnValidation(t *testing.T) {
 			resources: "default",
 			runtime:   "auto",
 			wantErr:   true,
-			errMsg:    "--name is required",
+			errMsg:    "--yak-name is required",
 		},
 		{
 			name:      "invalid mode",
@@ -401,7 +401,7 @@ func TestSpawnValidationBatching(t *testing.T) {
 	errMsg := err.Error()
 
 	assert.Contains(t, errMsg, "Validation errors")
-	assert.Contains(t, errMsg, "--name is required")
+	assert.Contains(t, errMsg, "--yak-name is required")
 	assert.Contains(t, errMsg, "--mode must be")
 	assert.Contains(t, errMsg, "--resources must be")
 	assert.Contains(t, errMsg, "--runtime must be")
@@ -414,7 +414,7 @@ func TestSpawnFlagTypes(t *testing.T) {
 		want     interface{}
 	}{
 		{name: "cwd string flag", flagName: "cwd", want: ""},
-		{name: "name string flag", flagName: "name", want: ""},
+		{name: "yak-name string flag", flagName: "yak-name", want: ""},
 		{name: "session string flag", flagName: "session", want: "yak-box"},
 		{name: "mode string flag", flagName: "mode", want: "build"},
 		{name: "resources string flag", flagName: "resources", want: "default"},

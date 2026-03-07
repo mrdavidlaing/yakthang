@@ -179,7 +179,7 @@ Use `yak-box spawn` to launch a Claude Code instance in a new Zellij tab.
 ### Key flags to know
 
 - `--cwd` (required): Working directory for the worker
-- `--name` (required): Worker name (used in tabs, logs, metadata)
+- `--yak-name` (required): Worker name (used in tabs, logs, metadata)
 - `--shaver-name` (required): The shaver's identity — pick from the name pool below
 - `--tool claude`: Uses Claude Code (default). Workers get interactive Claude sessions.
 - `--runtime native`: Runs directly on the host. **Use this for interactive Claude Code sessions.** The default `sandboxed` runtime uses `--print` mode (non-interactive).
@@ -220,7 +220,7 @@ skill_flags=$(ls -d .claude/skills/*/ 2>/dev/null | sed 's|/$||' | xargs -I{} ec
 
 yak-box spawn \
   --cwd ./api \
-  --name "api-auth" \
+  --yak-name "api-auth" \
   --shaver-name "Yakriel" \
   --tool claude \
   --runtime native \
@@ -246,10 +246,10 @@ Each worker should be scoped to:
 ### Stopping workers
 
 Run `yak-box stop --help` to check syntax. Key: the worker name is passed via
-`--name`, not as a positional argument.
+`--yak-name`, not as a positional argument.
 
 ```bash
-yak-box stop --name "api-auth"
+yak-box stop --yak-name "api-auth"
 ```
 
 ### ⚠️ NEVER close Zellij tabs directly
