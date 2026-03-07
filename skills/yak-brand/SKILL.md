@@ -1,6 +1,6 @@
 ---
-name: commit
-description: Create a git commit based on instructions
+name: yak-brand
+description: Stamping the work. Create a git commit based on instructions
 allowed-tools: Bash(git:*), Read, Write, Edit, Grep, Glob
 argument-hint: [instructions for what to commit]
 ---

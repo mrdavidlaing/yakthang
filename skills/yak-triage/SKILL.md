@@ -1,6 +1,6 @@
 ---
 name: yak-triage
-description: Session start ritual for Yakob. Establishes the time window and WIP limit, surveys the yak map, and helps David decide what to tackle this session — before acceleration flow begins.
+description: Sorting the herd at the gate. Session start ritual for Yakob. Establishes the time window and WIP limit, surveys the yak map, and helps David decide what to tackle this session — before acceleration flow begins.
 ---
 
 # Yak Triage 🔍

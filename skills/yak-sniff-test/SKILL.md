@@ -1,6 +1,6 @@
 ---
-name: adversarial-review
-description: Use when a shaver reports done and Yakob needs to verify the work matches the brief using a fresh, independent reviewer agent before accepting or pruning the yak.
+name: yak-sniff-test
+description: Does this yak smell right? Use when a shaver reports done and Yakob needs to verify the work matches the brief using a fresh, independent reviewer agent before accepting or pruning the yak.
 ---
 
 # Adversarial Review

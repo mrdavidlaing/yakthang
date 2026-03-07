@@ -1,6 +1,6 @@
 ---
 name: yak-mapping
-description: Use when planning work by approaching goals and discovering blockers — emergent planning through action, not top-down decomposition
+description: Surveying the herd. Use when planning work by approaching goals and discovering blockers — emergent planning through action, not top-down decomposition
 ---
 
 # Yak Mapping

@@ -1,6 +1,6 @@
 ---
 name: yak-wrap
-description: End-of-session wrap-up for Yakob. Harvests done yaks into a worklog summary, prunes the map, and reorganizes remaining work for the next session. Can be called at any natural break point — not just end of day.
+description: Closing the barn. End-of-session wrap-up for Yakob. Harvests done yaks into a worklog summary, prunes the map, and reorganizes remaining work for the next session. Can be called at any natural break point — not just end of day.
 ---
 
 # Yak Wrap 🌅

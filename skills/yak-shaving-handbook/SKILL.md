@@ -1,6 +1,6 @@
 ---
 name: yak-shaving-handbook
-description: The complete operating guide for shavers in the yakthang environment. Covers task lifecycle (yx show, start, agent-status, done), message checking (yakob-message), heartbeat (yakob-heartbeat.sh), and notes for Yakob.
+description: The shaver's field guide. The complete operating guide for shavers in the yakthang environment. Covers task lifecycle (yx show, start, agent-status, done), message checking (yakob-message), heartbeat (yakob-heartbeat.sh), and notes for Yakob.
 ---
 
 # Yak Shaving Handbook
