@@ -161,11 +161,11 @@ layout {
                 plugin location="file:bin/yak-map.wasm"
             }
 
-            // Right 2/3: OpenClaw TUI + shell
+            // Right 2/3: Claude (Yakob) + shell
             pane split_direction="horizontal" size="67%" {
-                pane name="yakob-openclaw" focus=true {
-                    command "openclaw"
-                    args "tui" "--session" "orchestrator"
+                pane name="yakob" focus=true {
+                    command "claude"
+                    args "--agent" "yakob"
                 }
                 pane size="20%" name="shell (orchestrator)"
             }
