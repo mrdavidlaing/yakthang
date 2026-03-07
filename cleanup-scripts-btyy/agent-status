@@ -1,1 +1,0 @@
-done: Deleted 5 scripts (spawn-worker, shutdown-worker, check-workers, kill-worker, yak-map) replaced by yak-box. Kept cleanup-workers.sh and close-zellij-tab.sh as utilities.
