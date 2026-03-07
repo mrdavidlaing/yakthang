@@ -231,7 +231,11 @@ func generateNativeWrapperScript(worker *types.Worker, homeDir, hostHomeDir, pro
 			ghConfigDirLine = fmt.Sprintf("export GH_CONFIG_DIR=%q", filepath.Join(hostHomeDir, ".config", "gh"))
 		}
 		// Clean CLAUDECODE env var to avoid nested session conflicts.
+		// Pin the host's ~/.local/bin in PATH before overriding HOME, so tools
+		// installed there (claude, yx, yak-box) remain accessible.
 		content = fmt.Sprintf(`#!/usr/bin/env bash
+# Preserve host ~/.local/bin in PATH before HOME changes
+export PATH="%s:$PATH"
 export HOME=%q
 %s
 %s
@@ -262,7 +266,7 @@ trap _restore_keychain EXIT
 # Write PID before running Claude so yak-box stop can find and kill the process tree.
 echo $$ > "%s"
 claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"
-`, homeDir, gitConfigGlobalLine, ghConfigDirLine, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
+`, filepath.Join(hostHomeDir, ".local", "bin"), homeDir, gitConfigGlobalLine, ghConfigDirLine, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
 	case "cursor":
 		paneName = "cursor (build) [native]"
 		content = fmt.Sprintf(`#!/usr/bin/env bash
