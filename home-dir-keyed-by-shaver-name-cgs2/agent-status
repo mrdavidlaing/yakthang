@@ -1,1 +1,0 @@
-done: renamed --name to --yak-name on spawn/stop; home dirs now keyed by --shaver-name; all tests pass
