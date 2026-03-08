@@ -1,1 +1,1 @@
-wip: writing findings
+done: investigated desloppify - objective score 89.2% but clippy/cargo check fail to parse; tool not recommended for small Rust codebases. Skip.
