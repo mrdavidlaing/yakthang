@@ -42,6 +42,13 @@ RUN curl -fsSL https://opencode.ai/install | bash && \
     cp /root/.opencode/bin/opencode /usr/local/bin/opencode && \
     chmod +x /usr/local/bin/opencode
 
+# Install Claude Code CLI
+RUN curl -fsSL https://claude.ai/install.sh | bash
+ENV PATH="/root/.local/bin:${PATH}"
+
+# Pre-seed Claude config so first-run onboarding wizard doesn't block sandboxed workers
+RUN mkdir -p /root/.claude && echo '{"numStartups": 1}' > /root/.claude/.claude.json
+
 # Copy yx binary if present in build context (wildcard makes it optional)
 COPY yx* /tmp/
 RUN if [ -f /tmp/yx ]; then \
