@@ -1,1 +1,1 @@
-done: investigated desloppify - objective score 89.2% but clippy/cargo check fail to parse; tool not recommended for small Rust codebases. Skip.
+done: investigated desloppify on yak-map (Rust - skip, clippy fails) and yak-box (Go - worth adopting, obj 96.3%). Notes updated.
