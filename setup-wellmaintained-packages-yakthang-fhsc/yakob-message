@@ -1,1 +1,0 @@
-Replace the copied yakstead/ files with symlinks back to ~/Work/yakthang/yakstead/launch.sh and ~/Work/yakthang/yakstead/orchestrator.kdl. They're generic and work from any workspace — no need for copies.
