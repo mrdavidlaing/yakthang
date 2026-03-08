@@ -142,7 +142,7 @@ func runAuthLogin(shaverName string) error {
 		"run", "--rm", "-it",
 		"--name", containerName,
 		fmt.Sprintf("--user=%d:%d", uid, gid),
-		"--network=none", // no outbound network needed beyond what claude login requires
+		"--network=bridge", // OAuth device flow needs outbound network to exchange the auth code
 		"-v", fmt.Sprintf("%s:/home/yak-shaver:rw", homeDir),
 		"-v", fmt.Sprintf("%s:/etc/passwd:ro", passwdFile),
 		"-v", fmt.Sprintf("%s:/etc/group:ro", groupFile),

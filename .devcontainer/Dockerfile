@@ -43,8 +43,9 @@ RUN curl -fsSL https://opencode.ai/install | bash && \
     chmod +x /usr/local/bin/opencode
 
 # Install Claude Code CLI
-RUN curl -fsSL https://claude.ai/install.sh | bash
-ENV PATH="/root/.local/bin:${PATH}"
+RUN curl -fsSL https://claude.ai/install.sh | bash && \
+    cp /root/.local/bin/claude /usr/local/bin/claude && \
+    chmod +x /usr/local/bin/claude
 
 # Pre-seed Claude config so first-run onboarding wizard doesn't block sandboxed workers
 RUN mkdir -p /root/.claude && echo '{"numStartups": 1}' > /root/.claude/.claude.json
