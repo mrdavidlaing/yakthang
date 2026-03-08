@@ -32,7 +32,11 @@ install-yak-box: build-yak-box
 # Build and install yak-map WASM plugin to shared Zellij plugin dir
 install-yak-map: build-yak-map
     mkdir -p ~/.local/share/zellij/plugins
-    cp src/yak-map/target/wasm32-wasip1/release/yak_map.wasm ~/.local/share/zellij/plugins/yak-map.wasm
+    cp src/yak-map/target/wasm32-wasip1/release/yak-map.wasm ~/.local/share/zellij/plugins/yak-map.wasm
+
+# Launch yakstead Zellij session
+launch: install
+    yakstead/launch.sh
 
 # Clean all build artifacts
 clean:
