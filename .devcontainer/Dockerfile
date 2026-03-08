@@ -50,7 +50,9 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
 # Pre-seed Claude config so first-run onboarding wizard doesn't block sandboxed workers
 RUN mkdir -p /root/.claude && echo '{"numStartups": 1}' > /root/.claude/.claude.json
 
-# Copy yx binary if present in build context (wildcard makes it optional)
+# Copy yx binary if present in build context (wildcard makes it optional).
+# NOTE: yx is dynamically linked against libgit2 1.9 which isn't in Ubuntu 24.04.
+# Until yx is statically linked (see static-link-yx yak), yx won't work in the container.
 COPY yx* /tmp/
 RUN if [ -f /tmp/yx ]; then \
         mv /tmp/yx /usr/local/bin/yx && \
