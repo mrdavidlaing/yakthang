@@ -1,0 +1,30 @@
+desloppify 0.9.1 scan on yak-map (3 files, 1334 LOC, Rust/WASI):
+
+SCORES: overall 35.7/100 | objective 89.2/100 | strict 35.7/100 | verified 89.2/100
+
+The low strict/overall scores are misleading - they reflect 20 unscored subjective
+dimensions (all default to 0.0%) because the LLM review was not run. The real
+mechanical score is objective 89.2%.
+
+WHAT IT FOUND (mechanical):
+- Code quality: 100% (no issues)
+- Security: 100% (clean, 3 files scanned)
+- File health: 76.7% - 1 structural issue found
+
+RUST COVERAGE GAPS (significant):
+- cargo clippy: FAILED (tool_failed_unparsed_output) - primary Rust linter unavailable
+- cargo check: FAILED (tool_failed_unparsed_output) - no type error detection
+- Without clippy/check, objective mechanical coverage is severely reduced
+- No import analysis or function extraction available for Rust
+- Tree-sitter structural analysis DID work (found the 1 structural issue)
+- Boilerplate detection worked (117 clusters found/excluded)
+
+SUBJECTIVE REVIEW: 20 dimensions queued (elegance, type_safety, naming, design, etc.)
+but none assessed. Would require desloppify review --prepare (calls LLM API).
+
+RECOMMENDATION: Skip / revisit later.
+Reasons: (1) Rust-specific linters (clippy, cargo check) fail silently - tool cannot
+parse their output format; (2) yak-map is tiny (3 files, 1334 LOC), overhead
+disproportionate; (3) only 1 real finding from tree-sitter. For a larger Rust codebase
+with working clippy integration it may be worth trying. For now, cargo clippy + cargo
+check directly gives better signal with less ceremony.
