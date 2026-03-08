@@ -374,6 +374,39 @@ func TestCopySkillsToHome(t *testing.T) {
 		})
 	}
 
+	t.Run("copies symlinked skill directory", func(t *testing.T) {
+		homeDir := t.TempDir()
+		srcDir := t.TempDir()
+
+		// Create the real skill directory elsewhere.
+		realSkillDir := filepath.Join(srcDir, "real-skills", "yak-brand")
+		assert.NoError(t, os.MkdirAll(realSkillDir, 0755))
+		assert.NoError(t, os.WriteFile(filepath.Join(realSkillDir, "SKILL.md"), []byte("name: yak-brand"), 0644))
+		subDir := filepath.Join(realSkillDir, "subdir")
+		assert.NoError(t, os.MkdirAll(subDir, 0755))
+		assert.NoError(t, os.WriteFile(filepath.Join(subDir, "extra.md"), []byte("extra"), 0644))
+
+		// Create a symlink that points to the real skill directory.
+		symlinkDir := filepath.Join(srcDir, ".claude", "skills")
+		assert.NoError(t, os.MkdirAll(symlinkDir, 0755))
+		symlinkPath := filepath.Join(symlinkDir, "yak-brand")
+		assert.NoError(t, os.Symlink(realSkillDir, symlinkPath))
+
+		assert.NoError(t, copySkillsToHome([]string{symlinkPath}, homeDir, "claude"))
+
+		// Verify files were copied.
+		destSkillFile := filepath.Join(homeDir, ".claude", "skills", "yak-brand", "SKILL.md")
+		content, err := os.ReadFile(destSkillFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "name: yak-brand", string(content))
+
+		// Verify subdirectory was copied too.
+		destSubFile := filepath.Join(homeDir, ".claude", "skills", "yak-brand", "subdir", "extra.md")
+		content, err = os.ReadFile(destSubFile)
+		assert.NoError(t, err)
+		assert.Equal(t, "extra", string(content))
+	})
+
 	t.Run("returns error for unknown tool", func(t *testing.T) {
 		homeDir := t.TempDir()
 		srcDir := t.TempDir()

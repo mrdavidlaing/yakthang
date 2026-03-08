@@ -643,8 +643,13 @@ func copySkillsToHome(skillPaths []string, homeDir string, tool string) error {
 	}
 	for _, src := range skillPaths {
 		skillName := filepath.Base(src)
+		// Resolve symlinks so filepath.Walk sees the real directory.
+		resolved, err := filepath.EvalSymlinks(src)
+		if err != nil {
+			return fmt.Errorf("failed to resolve skill path %q: %w", skillName, err)
+		}
 		dest := filepath.Join(destBase, skillName)
-		if err := copyDirRecursive(src, dest); err != nil {
+		if err := copyDirRecursive(resolved, dest); err != nil {
 			return fmt.Errorf("failed to copy skill %q: %w", skillName, err)
 		}
 	}
@@ -652,6 +657,7 @@ func copySkillsToHome(skillPaths []string, homeDir string, tool string) error {
 }
 
 // copyDirRecursive copies src directory into dest, creating dest if needed.
+// It handles symlinks within the directory by resolving them before copying.
 func copyDirRecursive(src, dest string) error {
 	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -662,6 +668,23 @@ func copyDirRecursive(src, dest string) error {
 			return err
 		}
 		target := filepath.Join(dest, rel)
+
+		// Handle symlinks: filepath.Walk uses Lstat, so symlinks appear as ModeSymlink.
+		if info.Mode()&os.ModeSymlink != 0 {
+			resolved, err := filepath.EvalSymlinks(path)
+			if err != nil {
+				return err
+			}
+			resolvedInfo, err := os.Stat(resolved)
+			if err != nil {
+				return err
+			}
+			if resolvedInfo.IsDir() {
+				return copyDirRecursive(resolved, target)
+			}
+			return copyFile(resolved, target, resolvedInfo.Mode())
+		}
+
 		if info.IsDir() {
 			return os.MkdirAll(target, info.Mode())
 		}
