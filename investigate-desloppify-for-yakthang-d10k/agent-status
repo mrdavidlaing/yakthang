@@ -1,1 +1,0 @@
-done: investigated desloppify on yak-map (Rust - skip, clippy fails) and yak-box (Go - worth adopting, obj 96.3%). Notes updated.
