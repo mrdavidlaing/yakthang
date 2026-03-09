@@ -1,1 +1,1 @@
-fail: assertion exists in working tree but was not committed
+pass: ✓ assertion committed at line 1010, all 46 tests pass
