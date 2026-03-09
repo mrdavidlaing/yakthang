@@ -1007,6 +1007,7 @@ mod tests {
         assert!(rendered.contains("\x1b[9m"));
         assert!(rendered.contains("my-task"));
         assert!(rendered.contains("\x1b[0m"));
+        assert!(rendered.contains("✓"), "rendered: {:?}", rendered);
     }
 
     #[test]
