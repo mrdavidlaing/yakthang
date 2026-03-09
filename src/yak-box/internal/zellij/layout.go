@@ -22,11 +22,11 @@ func GenerateLayout(worker *types.Worker, runtimeKind, tool string) string {
         pane size=1 borderless=true {
             plugin location="compact-bar"
         }
-        pane size="67%%" name="%s" focus=true {
+        pane name="%s" focus=true {
             command "bash"
             args "%%WRAPPER%%"
         }
-        pane size="33%%" name="shell: container" {
+        pane size=5 name="shell: container" {
             command "bash"
             args "%%SHELL_EXEC_SCRIPT%%" "%%CONTAINER_NAME%%"
         }
@@ -43,11 +43,11 @@ func GenerateLayout(worker *types.Worker, runtimeKind, tool string) string {
         pane size=1 borderless=true {
             plugin location="compact-bar"
         }
-        pane size="67%%" name="%s" focus=true {
+        pane name="%s" focus=true {
             command "bash"
             args "%%WRAPPER%%"
         }
-        pane size="33%%" name="shell: %s"
+        pane size=5 name="shell: %s"
         pane size=2 borderless=true {
             plugin location="status-bar"
         }
