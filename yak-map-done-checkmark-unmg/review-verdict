@@ -1,1 +1,1 @@
-fail: assertion added at line 1010 but left as unstaged change — never committed by shaver
+pass: ✓ assertion committed at line 1010, all 46 tests pass
