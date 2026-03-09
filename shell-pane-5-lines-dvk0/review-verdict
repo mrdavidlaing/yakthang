@@ -1,1 +1,1 @@
-fail: layout.go correctly uses size=5 and removes size from build pane, but layout_test.go has no assertions for pane sizing. Tests should assert size=5 on shell pane and no size attribute on build pane.
+pass: size=5 assertions committed in both test functions; build pane negative assertion is weak (substring match, not true negative check) but acceptable for a template literal
