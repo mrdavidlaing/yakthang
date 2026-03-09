@@ -1,1 +1,1 @@
-wip: editing layout.go
+done: changed shell pane from 33%% to fixed 5 lines, removed size from main build pane so it fills remaining space; all tests pass
