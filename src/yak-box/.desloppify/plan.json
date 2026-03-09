@@ -1,0 +1,812 @@
+{
+  "version": 8,
+  "created": "2026-03-08T12:24:28+00:00",
+  "updated": "2026-03-09T19:53:07+00:00",
+  "queue_order": [
+    "subjective::abstraction_fitness",
+    "subjective::ai_generated_debt",
+    "subjective::api_surface_coherence",
+    "subjective::authorization_consistency",
+    "subjective::contract_coherence",
+    "subjective::convention_outlier",
+    "subjective::cross_module_architecture",
+    "subjective::dependency_health",
+    "subjective::design_coherence",
+    "subjective::error_consistency",
+    "subjective::high_level_elegance",
+    "subjective::incomplete_migration",
+    "subjective::initialization_coupling",
+    "subjective::logic_clarity",
+    "subjective::low_level_elegance",
+    "subjective::mid_level_elegance",
+    "subjective::naming_quality",
+    "subjective::package_organization",
+    "subjective::test_strategy",
+    "subjective::type_safety"
+  ],
+  "deferred": [],
+  "skipped": {},
+  "active_cluster": null,
+  "overrides": {
+    "test_coverage::pkg/devcontainer/lifecycle.go::untested_module": {
+      "issue_id": "test_coverage::pkg/devcontainer/lifecycle.go::untested_module",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/test_coverage",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "test_coverage::pkg/devcontainer/build.go::untested_module": {
+      "issue_id": "test_coverage::pkg/devcontainer/build.go::untested_module",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/test_coverage",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "test_coverage::main.go::untested_module": {
+      "issue_id": "test_coverage::main.go::untested_module",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/test_coverage",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::cmd/auth.go::unreviewed": {
+      "issue_id": "subjective_review::cmd/auth.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::cmd/check.go::unreviewed": {
+      "issue_id": "subjective_review::cmd/check.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::cmd/diff.go::unreviewed": {
+      "issue_id": "subjective_review::cmd/diff.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::cmd/message.go::unreviewed": {
+      "issue_id": "subjective_review::cmd/message.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::cmd/root.go::unreviewed": {
+      "issue_id": "subjective_review::cmd/root.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::cmd/spawn.go::unreviewed": {
+      "issue_id": "subjective_review::cmd/spawn.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::cmd/stop.go::unreviewed": {
+      "issue_id": "subjective_review::cmd/stop.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/config/config.go::unreviewed": {
+      "issue_id": "subjective_review::internal/config/config.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/env/filter.go::unreviewed": {
+      "issue_id": "subjective_review::internal/env/filter.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/errors/errors.go::unreviewed": {
+      "issue_id": "subjective_review::internal/errors/errors.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/pathutil/validate.go::unreviewed": {
+      "issue_id": "subjective_review::internal/pathutil/validate.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/preflight/preflight.go::unreviewed": {
+      "issue_id": "subjective_review::internal/preflight/preflight.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/prompt/prompt.go::unreviewed": {
+      "issue_id": "subjective_review::internal/prompt/prompt.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/runtime/auth.go::unreviewed": {
+      "issue_id": "subjective_review::internal/runtime/auth.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/runtime/devcontainer.go::unreviewed": {
+      "issue_id": "subjective_review::internal/runtime/devcontainer.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/runtime/helpers.go::unreviewed": {
+      "issue_id": "subjective_review::internal/runtime/helpers.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/runtime/native.go::unreviewed": {
+      "issue_id": "subjective_review::internal/runtime/native.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/runtime/options.go::unreviewed": {
+      "issue_id": "subjective_review::internal/runtime/options.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/runtime/sandboxed.go::unreviewed": {
+      "issue_id": "subjective_review::internal/runtime/sandboxed.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/sessions/opencode.go::unreviewed": {
+      "issue_id": "subjective_review::internal/sessions/opencode.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/sessions/sessions.go::unreviewed": {
+      "issue_id": "subjective_review::internal/sessions/sessions.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/ui/output.go::unreviewed": {
+      "issue_id": "subjective_review::internal/ui/output.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/ui/table.go::unreviewed": {
+      "issue_id": "subjective_review::internal/ui/table.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/workspace/workspace.go::unreviewed": {
+      "issue_id": "subjective_review::internal/workspace/workspace.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::internal/zellij/layout.go::unreviewed": {
+      "issue_id": "subjective_review::internal/zellij/layout.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/devcontainer/build.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/devcontainer/build.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/devcontainer/config.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/devcontainer/config.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/devcontainer/lifecycle.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/devcontainer/lifecycle.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/devcontainer/security.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/devcontainer/security.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/devcontainer/types.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/devcontainer/types.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/devcontainer/variables.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/devcontainer/variables.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/types/types.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/types/types.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::pkg/worktree/manager.go::unreviewed": {
+      "issue_id": "subjective_review::pkg/worktree/manager.go::unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective_review::.::holistic_unreviewed": {
+      "issue_id": "subjective_review::.::holistic_unreviewed",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/subjective_review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::abstraction_fitness": {
+      "issue_id": "subjective::abstraction_fitness",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::ai_generated_debt": {
+      "issue_id": "subjective::ai_generated_debt",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::api_surface_coherence": {
+      "issue_id": "subjective::api_surface_coherence",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::authorization_consistency": {
+      "issue_id": "subjective::authorization_consistency",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::contract_coherence": {
+      "issue_id": "subjective::contract_coherence",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::convention_outlier": {
+      "issue_id": "subjective::convention_outlier",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::cross_module_architecture": {
+      "issue_id": "subjective::cross_module_architecture",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::dependency_health": {
+      "issue_id": "subjective::dependency_health",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::design_coherence": {
+      "issue_id": "subjective::design_coherence",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::error_consistency": {
+      "issue_id": "subjective::error_consistency",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::high_level_elegance": {
+      "issue_id": "subjective::high_level_elegance",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::incomplete_migration": {
+      "issue_id": "subjective::incomplete_migration",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::initialization_coupling": {
+      "issue_id": "subjective::initialization_coupling",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::logic_clarity": {
+      "issue_id": "subjective::logic_clarity",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::low_level_elegance": {
+      "issue_id": "subjective::low_level_elegance",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::mid_level_elegance": {
+      "issue_id": "subjective::mid_level_elegance",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::naming_quality": {
+      "issue_id": "subjective::naming_quality",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::package_organization": {
+      "issue_id": "subjective::package_organization",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::test_strategy": {
+      "issue_id": "subjective::test_strategy",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "subjective::type_safety": {
+      "issue_id": "subjective::type_safety",
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "cluster": "auto/initial-review",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/env/filter_test.go::golangci_lint::159": {
+      "issue_id": "golangci_lint::internal/env/filter_test.go::golangci_lint::159",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::54": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::54",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::69": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::69",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::81": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::81",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::83": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::83",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::99": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::99",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::100": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::100",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::203": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::203",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::340": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::340",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::355": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::355",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1218": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1218",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1219": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1219",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1708": {
+      "issue_id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1708",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/ui/output_test.go::golangci_lint::20": {
+      "issue_id": "golangci_lint::internal/ui/output_test.go::golangci_lint::20",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/ui/output_test.go::golangci_lint::35": {
+      "issue_id": "golangci_lint::internal/ui/output_test.go::golangci_lint::35",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/preflight/preflight.go::golangci_lint::166": {
+      "issue_id": "golangci_lint::internal/preflight/preflight.go::golangci_lint::166",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/native.go::golangci_lint::186": {
+      "issue_id": "golangci_lint::internal/runtime/native.go::golangci_lint::186",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/native.go::golangci_lint::199": {
+      "issue_id": "golangci_lint::internal/runtime/native.go::golangci_lint::199",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/helpers.go::golangci_lint::256": {
+      "issue_id": "golangci_lint::internal/runtime/helpers.go::golangci_lint::256",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/native_test.go::golangci_lint::102": {
+      "issue_id": "golangci_lint::internal/runtime/native_test.go::golangci_lint::102",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::20": {
+      "issue_id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::20",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::30": {
+      "issue_id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::30",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::31": {
+      "issue_id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::31",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::44": {
+      "issue_id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::44",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::85": {
+      "issue_id": "golangci_lint::cmd/check.go::golangci_lint::85",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::98": {
+      "issue_id": "golangci_lint::cmd/check.go::golangci_lint::98",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::174": {
+      "issue_id": "golangci_lint::cmd/check.go::golangci_lint::174",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::202": {
+      "issue_id": "golangci_lint::cmd/check.go::golangci_lint::202",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/diff.go::golangci_lint::106": {
+      "issue_id": "golangci_lint::cmd/diff.go::golangci_lint::106",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/message.go::golangci_lint::125": {
+      "issue_id": "golangci_lint::cmd/message.go::golangci_lint::125",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/spawn.go::golangci_lint::523": {
+      "issue_id": "golangci_lint::cmd/spawn.go::golangci_lint::523",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/spawn.go::golangci_lint::714": {
+      "issue_id": "golangci_lint::cmd/spawn.go::golangci_lint::714",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::cmd/stop.go::golangci_lint::228": {
+      "issue_id": "golangci_lint::cmd/stop.go::golangci_lint::228",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    },
+    "golangci_lint::internal/pathutil/validate_test.go::golangci_lint::311": {
+      "issue_id": "golangci_lint::internal/pathutil/validate_test.go::golangci_lint::311",
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "cluster": "auto/golangci_lint",
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    }
+  },
+  "clusters": {
+    "auto/test_coverage": {
+      "name": "auto/test_coverage",
+      "description": "Fix 3 test coverage issues",
+      "issue_ids": [
+        "test_coverage::pkg/devcontainer/lifecycle.go::untested_module",
+        "test_coverage::pkg/devcontainer/build.go::untested_module",
+        "test_coverage::main.go::untested_module"
+      ],
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "updated_at": "2026-03-08T12:24:28+00:00",
+      "auto": true,
+      "cluster_key": "detector::test_coverage",
+      "action": "add tests for untested production modules \u2014 prioritize by import count",
+      "user_modified": false
+    },
+    "auto/subjective_review": {
+      "name": "auto/subjective_review",
+      "description": "Address 34 subjective_review review issues",
+      "issue_ids": [
+        "subjective_review::cmd/auth.go::unreviewed",
+        "subjective_review::cmd/check.go::unreviewed",
+        "subjective_review::cmd/diff.go::unreviewed",
+        "subjective_review::cmd/message.go::unreviewed",
+        "subjective_review::cmd/root.go::unreviewed",
+        "subjective_review::cmd/spawn.go::unreviewed",
+        "subjective_review::cmd/stop.go::unreviewed",
+        "subjective_review::internal/config/config.go::unreviewed",
+        "subjective_review::internal/env/filter.go::unreviewed",
+        "subjective_review::internal/errors/errors.go::unreviewed",
+        "subjective_review::internal/pathutil/validate.go::unreviewed",
+        "subjective_review::internal/preflight/preflight.go::unreviewed",
+        "subjective_review::internal/prompt/prompt.go::unreviewed",
+        "subjective_review::internal/runtime/auth.go::unreviewed",
+        "subjective_review::internal/runtime/devcontainer.go::unreviewed",
+        "subjective_review::internal/runtime/helpers.go::unreviewed",
+        "subjective_review::internal/runtime/native.go::unreviewed",
+        "subjective_review::internal/runtime/options.go::unreviewed",
+        "subjective_review::internal/runtime/sandboxed.go::unreviewed",
+        "subjective_review::internal/sessions/opencode.go::unreviewed",
+        "subjective_review::internal/sessions/sessions.go::unreviewed",
+        "subjective_review::internal/ui/output.go::unreviewed",
+        "subjective_review::internal/ui/table.go::unreviewed",
+        "subjective_review::internal/workspace/workspace.go::unreviewed",
+        "subjective_review::internal/zellij/layout.go::unreviewed",
+        "subjective_review::pkg/devcontainer/build.go::unreviewed",
+        "subjective_review::pkg/devcontainer/config.go::unreviewed",
+        "subjective_review::pkg/devcontainer/lifecycle.go::unreviewed",
+        "subjective_review::pkg/devcontainer/security.go::unreviewed",
+        "subjective_review::pkg/devcontainer/types.go::unreviewed",
+        "subjective_review::pkg/devcontainer/variables.go::unreviewed",
+        "subjective_review::pkg/types/types.go::unreviewed",
+        "subjective_review::pkg/worktree/manager.go::unreviewed",
+        "subjective_review::.::holistic_unreviewed"
+      ],
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "updated_at": "2026-03-08T12:24:28+00:00",
+      "auto": true,
+      "cluster_key": "detector::subjective_review",
+      "action": "run `desloppify review --prepare` to evaluate files against quality dimensions",
+      "user_modified": false
+    },
+    "auto/initial-review": {
+      "name": "auto/initial-review",
+      "description": "Initial review of 20 unscored subjective dimensions",
+      "issue_ids": [
+        "subjective::abstraction_fitness",
+        "subjective::ai_generated_debt",
+        "subjective::api_surface_coherence",
+        "subjective::authorization_consistency",
+        "subjective::contract_coherence",
+        "subjective::convention_outlier",
+        "subjective::cross_module_architecture",
+        "subjective::dependency_health",
+        "subjective::design_coherence",
+        "subjective::error_consistency",
+        "subjective::high_level_elegance",
+        "subjective::incomplete_migration",
+        "subjective::initialization_coupling",
+        "subjective::logic_clarity",
+        "subjective::low_level_elegance",
+        "subjective::mid_level_elegance",
+        "subjective::naming_quality",
+        "subjective::package_organization",
+        "subjective::test_strategy",
+        "subjective::type_safety"
+      ],
+      "created_at": "2026-03-08T12:24:28+00:00",
+      "updated_at": "2026-03-08T12:24:28+00:00",
+      "auto": true,
+      "cluster_key": "subjective::unscored",
+      "action": "desloppify review --prepare --dimensions abstraction_fitness,ai_generated_debt,api_surface_coherence,authorization_consistency,contract_coherence,convention_outlier,cross_module_architecture,dependency_health,design_coherence,error_consistency,high_level_elegance,incomplete_migration,initialization_coupling,logic_clarity,low_level_elegance,mid_level_elegance,naming_quality,package_organization,test_strategy,type_safety",
+      "user_modified": false
+    },
+    "auto/golangci_lint": {
+      "name": "auto/golangci_lint",
+      "description": "Fix 34 golangci_lint issues",
+      "issue_ids": [
+        "golangci_lint::internal/env/filter_test.go::golangci_lint::159",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::54",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::69",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::81",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::83",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::99",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::100",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::203",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::340",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::355",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1218",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1219",
+        "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1708",
+        "golangci_lint::internal/ui/output_test.go::golangci_lint::20",
+        "golangci_lint::internal/ui/output_test.go::golangci_lint::35",
+        "golangci_lint::internal/preflight/preflight.go::golangci_lint::166",
+        "golangci_lint::internal/runtime/native.go::golangci_lint::186",
+        "golangci_lint::internal/runtime/native.go::golangci_lint::199",
+        "golangci_lint::internal/runtime/helpers.go::golangci_lint::256",
+        "golangci_lint::internal/runtime/native_test.go::golangci_lint::102",
+        "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::20",
+        "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::30",
+        "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::31",
+        "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::44",
+        "golangci_lint::cmd/check.go::golangci_lint::85",
+        "golangci_lint::cmd/check.go::golangci_lint::98",
+        "golangci_lint::cmd/check.go::golangci_lint::174",
+        "golangci_lint::cmd/check.go::golangci_lint::202",
+        "golangci_lint::cmd/diff.go::golangci_lint::106",
+        "golangci_lint::cmd/message.go::golangci_lint::125",
+        "golangci_lint::cmd/spawn.go::golangci_lint::523",
+        "golangci_lint::cmd/spawn.go::golangci_lint::714",
+        "golangci_lint::cmd/stop.go::golangci_lint::228",
+        "golangci_lint::internal/pathutil/validate_test.go::golangci_lint::311"
+      ],
+      "created_at": "2026-03-09T19:53:07+00:00",
+      "updated_at": "2026-03-09T19:53:07+00:00",
+      "auto": true,
+      "cluster_key": "detector::golangci_lint",
+      "action": "review and fix each issue",
+      "user_modified": false
+    }
+  },
+  "superseded": {},
+  "promoted_ids": [],
+  "plan_start_scores": {
+    "strict": 38.5,
+    "overall": 38.5,
+    "objective": 96.3,
+    "verified": 96.3
+  },
+  "execution_log": [
+    {
+      "timestamp": "2026-03-08T12:24:28+00:00",
+      "action": "sync_unscored",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-03-08T12:24:28+00:00",
+      "action": "auto_cluster",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-03-08T12:24:28+00:00",
+      "action": "seed_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    },
+    {
+      "timestamp": "2026-03-09T19:48:51+00:00",
+      "action": "clear_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    },
+    {
+      "timestamp": "2026-03-09T19:48:56+00:00",
+      "action": "seed_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    },
+    {
+      "timestamp": "2026-03-09T19:50:28+00:00",
+      "action": "clear_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    },
+    {
+      "timestamp": "2026-03-09T19:53:07+00:00",
+      "action": "auto_cluster",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {
+        "changes": true
+      }
+    },
+    {
+      "timestamp": "2026-03-09T19:53:07+00:00",
+      "action": "seed_start_scores",
+      "issue_ids": [],
+      "cluster_name": null,
+      "actor": "system",
+      "note": null,
+      "detail": {}
+    }
+  ],
+  "epic_triage_meta": {},
+  "commit_log": [],
+  "uncommitted_issues": [],
+  "commit_tracking_branch": null,
+  "scan_count_at_plan_start": 5
+}

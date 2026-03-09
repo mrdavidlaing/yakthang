@@ -68,7 +68,7 @@ Filters can be applied to show only specific task states or prefixes.`,
 }
 
 func runCheck() error {
-	preflight.Run(preflight.CheckDeps(), os.Stderr) //nolint:errcheck — check deps are all optional
+	preflight.Run(preflight.CheckDeps(), os.Stderr) //nolint:errcheck // check deps are all optional
 
 	fmt.Println("=== Active Sessions ===")
 	activeSessions, err := sessions.List()

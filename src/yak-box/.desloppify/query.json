@@ -1,0 +1,376 @@
+{
+  "command": "show",
+  "query": "test_coverage",
+  "status_filter": "open",
+  "total": 3,
+  "summary": {
+    "by_tier": {
+      "T3": 3
+    },
+    "by_detector": {
+      "test_coverage": 3
+    },
+    "files": 3
+  },
+  "by_file": {
+    "main.go": [
+      {
+        "id": "test_coverage::main.go::untested_module",
+        "tier": 3,
+        "confidence": "high",
+        "summary": "Untested module (17 LOC, 0 importers)",
+        "detail": {
+          "kind": "untested_module",
+          "loc": 17,
+          "importer_count": 0,
+          "loc_weight": 4.123105625617661
+        }
+      }
+    ],
+    "pkg/devcontainer/build.go": [
+      {
+        "id": "test_coverage::pkg/devcontainer/build.go::untested_module",
+        "tier": 3,
+        "confidence": "high",
+        "summary": "Untested module (108 LOC, 0 importers)",
+        "detail": {
+          "kind": "untested_module",
+          "loc": 108,
+          "importer_count": 0,
+          "loc_weight": 10.392304845413264
+        }
+      }
+    ],
+    "pkg/devcontainer/lifecycle.go": [
+      {
+        "id": "test_coverage::pkg/devcontainer/lifecycle.go::untested_module",
+        "tier": 3,
+        "confidence": "high",
+        "summary": "Untested module (164 LOC, 0 importers)",
+        "detail": {
+          "kind": "untested_module",
+          "loc": 164,
+          "importer_count": 0,
+          "loc_weight": 12.806248474865697
+        }
+      }
+    ]
+  },
+  "total_matching": 3,
+  "noise_budget": 10,
+  "noise_global_budget": 0,
+  "narrative": {
+    "phase": "stagnation",
+    "headline": "Score plateaued at 38.5 for 5 scans. Naming quality (0.0%) is where the breakthrough is.",
+    "dimensions": {
+      "lowest_dimensions": [
+        {
+          "name": "Naming quality",
+          "strict": 0.0,
+          "failing": 0,
+          "impact": 0.0,
+          "subjective": true,
+          "impact_description": "re-review to improve"
+        },
+        {
+          "name": "Logic clarity",
+          "strict": 0.0,
+          "failing": 0,
+          "impact": 0.0,
+          "subjective": true,
+          "impact_description": "re-review to improve"
+        },
+        {
+          "name": "Type safety",
+          "strict": 0.0,
+          "failing": 0,
+          "impact": 0.0,
+          "subjective": true,
+          "impact_description": "re-review to improve"
+        }
+      ],
+      "biggest_gap_dimensions": [],
+      "stagnant_dimensions": [
+        {
+          "name": "Code quality",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Security",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "File health",
+          "strict": 97.9,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Duplication",
+          "strict": 100.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Test health",
+          "strict": 91.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Naming quality",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Logic clarity",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Type safety",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Contracts",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Error consistency",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Abstraction fit",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "AI generated debt",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "High elegance",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Mid elegance",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Low elegance",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Cross-module arch",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Init coupling",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Convention drift",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Dep health",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Test strategy",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "API coherence",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Auth consistency",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Stale migration",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Structure nav",
+          "strict": 0.0,
+          "stuck_scans": 5
+        },
+        {
+          "name": "Design coherence",
+          "strict": 0.0,
+          "stuck_scans": 5
+        }
+      ]
+    },
+    "actions": [
+      {
+        "type": "refactor",
+        "detector": "structural",
+        "count": 5,
+        "description": "5 structural issues \u2014 review large files \u2014 split only when responsibilities are clearly separable",
+        "command": "desloppify show structural --status open",
+        "impact": 0.0,
+        "dimension": "File health",
+        "priority": 1,
+        "lane": "refactor"
+      },
+      {
+        "type": "refactor",
+        "detector": "test_coverage",
+        "count": 3,
+        "description": "3 test_coverage issues \u2014 add tests for untested production modules \u2014 prioritize by import count",
+        "command": "desloppify show test_coverage --status open",
+        "impact": 0.0,
+        "dimension": "Test health",
+        "priority": 2,
+        "lane": "test_coverage"
+      },
+      {
+        "type": "refactor",
+        "detector": "signature",
+        "count": 1,
+        "description": "1 signature issues \u2014 consolidate inconsistent function signatures",
+        "command": "desloppify show signature --status open",
+        "impact": 0.0,
+        "dimension": "Unknown",
+        "priority": 3,
+        "lane": "refactor"
+      },
+      {
+        "type": "manual_fix",
+        "detector": "subjective_review",
+        "count": 34,
+        "description": "34 files need design review \u2014 run holistic review to refresh subjective scores",
+        "command": "desloppify review --prepare",
+        "impact": 0.0,
+        "dimension": "Test health",
+        "priority": 4,
+        "lane": "refactor"
+      }
+    ],
+    "strategy": {
+      "fixer_leverage": {
+        "auto_fixable_count": 0,
+        "total_count": 77,
+        "coverage": 0.0,
+        "impact_ratio": 0.0,
+        "recommendation": "none"
+      },
+      "lanes": {
+        "refactor": {
+          "actions": [
+            1,
+            3,
+            4
+          ],
+          "file_count": 38,
+          "total_impact": 0.0,
+          "automation": "manual",
+          "run_first": false
+        },
+        "test_coverage": {
+          "actions": [
+            2
+          ],
+          "file_count": 3,
+          "total_impact": 0.0,
+          "automation": "manual",
+          "run_first": false
+        }
+      },
+      "can_parallelize": false,
+      "hint": "Try a different dimension to break the plateau."
+    },
+    "tools": {
+      "fixers": [],
+      "move": {
+        "available": true,
+        "relevant": false,
+        "reason": null,
+        "usage": "desloppify move <source> <dest> [--dry-run]"
+      },
+      "plan": {
+        "command": "desloppify plan",
+        "description": "Generate prioritized markdown cleanup plan"
+      },
+      "badge": {
+        "generated": true,
+        "in_readme": false,
+        "path": "scorecard.png",
+        "recommendation": "Add to README: <img src=\"scorecard.png\" width=\"100%\">"
+      }
+    },
+    "debt": {
+      "overall_gap": 0.0,
+      "wontfix_count": 0,
+      "worst_dimension": null,
+      "worst_gap": 0.0,
+      "trend": "stable"
+    },
+    "milestone": null,
+    "primary_action": {
+      "command": "desloppify show structural --status open",
+      "description": "5 structural issues \u2014 review large files \u2014 split only when responsibilities are clearly separable"
+    },
+    "why_now": "Try a different dimension to break the plateau.",
+    "verification_step": {
+      "command": "desloppify scan",
+      "reason": "revalidate after changes"
+    },
+    "risk_flags": [],
+    "strict_target": {
+      "target": 95.0,
+      "current": 38.5,
+      "gap": 56.5,
+      "state": "below",
+      "warning": null
+    },
+    "reminders": [],
+    "reminder_history": {
+      "zone_classification": 3,
+      "report_scores": 5,
+      "feedback_nudge": 3,
+      "stagnant_nudge": 25
+    }
+  },
+  "config": {
+    "target_strict_score": 95,
+    "review_max_age_days": 30,
+    "review_batch_max_files": 80,
+    "holistic_max_age_days": 30,
+    "generate_scorecard": true,
+    "badge_path": "scorecard.png",
+    "exclude": [],
+    "ignore": [],
+    "ignore_metadata": {},
+    "zone_overrides": {},
+    "review_dimensions": [],
+    "large_files_threshold": 0,
+    "props_threshold": 0,
+    "issue_noise_budget": 10,
+    "issue_noise_global_budget": 0,
+    "execution_log_max_entries": 10000,
+    "needs_rescan": false,
+    "languages": {},
+    "commit_tracking_enabled": true,
+    "commit_pr": 0,
+    "commit_default_branch": "",
+    "commit_message_template": "desloppify: {status} {count} issue(s) \u2014 {summary}"
+  }
+}

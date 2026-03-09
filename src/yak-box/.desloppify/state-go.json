@@ -1,0 +1,2960 @@
+{
+  "version": 1,
+  "created": "2026-03-08T12:24:24+00:00",
+  "last_scan": "2026-03-09T19:53:07+00:00",
+  "scan_count": 5,
+  "overall_score": 38.5,
+  "objective_score": 96.3,
+  "strict_score": 38.5,
+  "verified_strict_score": 96.3,
+  "stats": {
+    "total": 77,
+    "auto_resolved": 0,
+    "false_positive": 0,
+    "fixed": 0,
+    "open": 77,
+    "wontfix": 0,
+    "by_tier": {
+      "2": {
+        "auto_resolved": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 34,
+        "wontfix": 0
+      },
+      "3": {
+        "auto_resolved": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 9,
+        "wontfix": 0
+      },
+      "4": {
+        "auto_resolved": 0,
+        "false_positive": 0,
+        "fixed": 0,
+        "open": 34,
+        "wontfix": 0
+      }
+    }
+  },
+  "issues": {
+    "structural::internal/sessions/sessions_test.go": {
+      "id": "structural::internal/sessions/sessions_test.go",
+      "detector": "structural",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: large (1722 LOC) / complexity score 175",
+      "detail": {
+        "loc": 1722,
+        "complexity_score": 175,
+        "complexity_signals": [
+          "161 if/else branches",
+          "37 for loops",
+          "27 defer"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:24+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::internal/runtime/sandboxed_test.go": {
+      "id": "structural::internal/runtime/sandboxed_test.go",
+      "detector": "structural",
+      "file": "internal/runtime/sandboxed_test.go",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: large (1314 LOC) / complexity score 109",
+      "detail": {
+        "loc": 1314,
+        "complexity_score": 109,
+        "complexity_signals": [
+          "113 if/else branches",
+          "31 defer"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:24+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::cmd/spawn_test.go": {
+      "id": "structural::cmd/spawn_test.go",
+      "detector": "structural",
+      "file": "cmd/spawn_test.go",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: large (737 LOC)",
+      "detail": {
+        "loc": 737
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:24+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::cmd/spawn.go": {
+      "id": "structural::cmd/spawn.go",
+      "detector": "structural",
+      "file": "cmd/spawn.go",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "Large file: large (730 LOC) / complexity score 98",
+      "detail": {
+        "loc": 730,
+        "complexity_score": 98,
+        "complexity_signals": [
+          "104 if/else branches",
+          "34 for loops"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:24+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "structural::internal/runtime/helpers_test.go": {
+      "id": "structural::internal/runtime/helpers_test.go",
+      "detector": "structural",
+      "file": "internal/runtime/helpers_test.go",
+      "tier": 3,
+      "confidence": "low",
+      "summary": "Large file: large (619 LOC) / complexity score 41",
+      "detail": {
+        "loc": 619,
+        "complexity_score": 41,
+        "complexity_signals": [
+          "66 if/else branches"
+        ]
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:24+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "signature::internal/preflight/preflight.go::signature_variance::Run": {
+      "id": "signature::internal/preflight/preflight.go::signature_variance::Run",
+      "detector": "signature",
+      "file": "internal/preflight/preflight.go",
+      "tier": 3,
+      "confidence": "medium",
+      "summary": "'Run' has 2 different signatures across 3 files",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::pkg/devcontainer/lifecycle.go::untested_module": {
+      "id": "test_coverage::pkg/devcontainer/lifecycle.go::untested_module",
+      "detector": "test_coverage",
+      "file": "pkg/devcontainer/lifecycle.go",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (164 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 164,
+        "importer_count": 0,
+        "loc_weight": 12.806248474865697
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::pkg/devcontainer/build.go::untested_module": {
+      "id": "test_coverage::pkg/devcontainer/build.go::untested_module",
+      "detector": "test_coverage",
+      "file": "pkg/devcontainer/build.go",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (108 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 108,
+        "importer_count": 0,
+        "loc_weight": 10.392304845413264
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "test_coverage::main.go::untested_module": {
+      "id": "test_coverage::main.go::untested_module",
+      "detector": "test_coverage",
+      "file": "main.go",
+      "tier": 3,
+      "confidence": "high",
+      "summary": "Untested module (17 LOC, 0 importers)",
+      "detail": {
+        "kind": "untested_module",
+        "loc": 17,
+        "importer_count": 0,
+        "loc_weight": 4.123105625617661
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::cmd/auth.go::unreviewed": {
+      "id": "subjective_review::cmd/auth.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "cmd/auth.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 176
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::cmd/check.go::unreviewed": {
+      "id": "subjective_review::cmd/check.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "cmd/check.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 240
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::cmd/diff.go::unreviewed": {
+      "id": "subjective_review::cmd/diff.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "cmd/diff.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 107
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::cmd/message.go::unreviewed": {
+      "id": "subjective_review::cmd/message.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "cmd/message.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 139
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::cmd/root.go::unreviewed": {
+      "id": "subjective_review::cmd/root.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "cmd/root.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 33
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::cmd/spawn.go::unreviewed": {
+      "id": "subjective_review::cmd/spawn.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "cmd/spawn.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 730
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::cmd/stop.go::unreviewed": {
+      "id": "subjective_review::cmd/stop.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "cmd/stop.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 233
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/config/config.go::unreviewed": {
+      "id": "subjective_review::internal/config/config.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/config/config.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 34
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/env/filter.go::unreviewed": {
+      "id": "subjective_review::internal/env/filter.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/env/filter.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 73
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/errors/errors.go::unreviewed": {
+      "id": "subjective_review::internal/errors/errors.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/errors/errors.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 120
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/pathutil/validate.go::unreviewed": {
+      "id": "subjective_review::internal/pathutil/validate.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/pathutil/validate.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 86
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/preflight/preflight.go::unreviewed": {
+      "id": "subjective_review::internal/preflight/preflight.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/preflight/preflight.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 190
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/prompt/prompt.go::unreviewed": {
+      "id": "subjective_review::internal/prompt/prompt.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/prompt/prompt.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 125
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/runtime/auth.go::unreviewed": {
+      "id": "subjective_review::internal/runtime/auth.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/runtime/auth.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 63
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/runtime/devcontainer.go::unreviewed": {
+      "id": "subjective_review::internal/runtime/devcontainer.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/runtime/devcontainer.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 160
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/runtime/helpers.go::unreviewed": {
+      "id": "subjective_review::internal/runtime/helpers.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/runtime/helpers.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 275
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/runtime/native.go::unreviewed": {
+      "id": "subjective_review::internal/runtime/native.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/runtime/native.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 364
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/runtime/options.go::unreviewed": {
+      "id": "subjective_review::internal/runtime/options.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/runtime/options.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 81
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/runtime/sandboxed.go::unreviewed": {
+      "id": "subjective_review::internal/runtime/sandboxed.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/runtime/sandboxed.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 270
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/sessions/opencode.go::unreviewed": {
+      "id": "subjective_review::internal/sessions/opencode.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/sessions/opencode.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 145
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/sessions/sessions.go::unreviewed": {
+      "id": "subjective_review::internal/sessions/sessions.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/sessions/sessions.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 283
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/ui/output.go::unreviewed": {
+      "id": "subjective_review::internal/ui/output.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/ui/output.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 33
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/ui/table.go::unreviewed": {
+      "id": "subjective_review::internal/ui/table.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/ui/table.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 38
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/workspace/workspace.go::unreviewed": {
+      "id": "subjective_review::internal/workspace/workspace.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/workspace/workspace.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 25
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::internal/zellij/layout.go::unreviewed": {
+      "id": "subjective_review::internal/zellij/layout.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "internal/zellij/layout.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 57
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/devcontainer/build.go::unreviewed": {
+      "id": "subjective_review::pkg/devcontainer/build.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/devcontainer/build.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 108
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/devcontainer/config.go::unreviewed": {
+      "id": "subjective_review::pkg/devcontainer/config.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/devcontainer/config.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 354
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/devcontainer/lifecycle.go::unreviewed": {
+      "id": "subjective_review::pkg/devcontainer/lifecycle.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/devcontainer/lifecycle.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 164
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/devcontainer/security.go::unreviewed": {
+      "id": "subjective_review::pkg/devcontainer/security.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/devcontainer/security.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 106
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/devcontainer/types.go::unreviewed": {
+      "id": "subjective_review::pkg/devcontainer/types.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/devcontainer/types.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 23
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/devcontainer/variables.go::unreviewed": {
+      "id": "subjective_review::pkg/devcontainer/variables.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/devcontainer/variables.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 139
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/types/types.go::unreviewed": {
+      "id": "subjective_review::pkg/types/types.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/types/types.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 46
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::pkg/worktree/manager.go::unreviewed": {
+      "id": "subjective_review::pkg/worktree/manager.go::unreviewed",
+      "detector": "subjective_review",
+      "file": "pkg/worktree/manager.go",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No design review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed",
+        "loc": 242
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "subjective_review::.::holistic_unreviewed": {
+      "id": "subjective_review::.::holistic_unreviewed",
+      "detector": "subjective_review",
+      "file": ".",
+      "tier": 4,
+      "confidence": "low",
+      "summary": "No holistic codebase review on record \u2014 run `desloppify review --prepare`",
+      "detail": {
+        "reason": "unreviewed"
+      },
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-08T12:24:26+00:00",
+      "last_seen": "2026-03-09T19:53:07+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/env/filter_test.go::golangci_lint::159": {
+      "id": "golangci_lint::internal/env/filter_test.go::golangci_lint::159",
+      "detector": "golangci_lint",
+      "file": "internal/env/filter_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `io.Copy` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::54": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::54",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.MkdirAll` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::69": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::69",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.WriteFile` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::81": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::81",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.MkdirAll` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::83": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::83",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.WriteFile` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::99": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::99",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.Chdir` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::100": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::100",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.Chdir` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::203": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::203",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.Chdir` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::340": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::340",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.MkdirAll` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::355": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::355",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.WriteFile` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1218": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1218",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.Chmod` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1219": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1219",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.Chmod` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1708": {
+      "id": "golangci_lint::internal/sessions/sessions_test.go::golangci_lint::1708",
+      "detector": "golangci_lint",
+      "file": "internal/sessions/sessions_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.Chmod` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/ui/output_test.go::golangci_lint::20": {
+      "id": "golangci_lint::internal/ui/output_test.go::golangci_lint::20",
+      "detector": "golangci_lint",
+      "file": "internal/ui/output_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `io.Copy` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/ui/output_test.go::golangci_lint::35": {
+      "id": "golangci_lint::internal/ui/output_test.go::golangci_lint::35",
+      "detector": "golangci_lint",
+      "file": "internal/ui/output_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `io.Copy` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/preflight/preflight.go::golangci_lint::166": {
+      "id": "golangci_lint::internal/preflight/preflight.go::golangci_lint::166",
+      "detector": "golangci_lint",
+      "file": "internal/preflight/preflight.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "S1039: unnecessary use of fmt.Sprintf",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/native.go::golangci_lint::186": {
+      "id": "golangci_lint::internal/runtime/native.go::golangci_lint::186",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/native.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `proc.Signal` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/native.go::golangci_lint::199": {
+      "id": "golangci_lint::internal/runtime/native.go::golangci_lint::199",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/native.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `proc.Signal` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/helpers.go::golangci_lint::256": {
+      "id": "golangci_lint::internal/runtime/helpers.go::golangci_lint::256",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/helpers.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "func `resolveAnthropicKeySuffix` is unused",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/native_test.go::golangci_lint::102": {
+      "id": "golangci_lint::internal/runtime/native_test.go::golangci_lint::102",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/native_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "const `nonexistentPID` is unused",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::20": {
+      "id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::20",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/sandboxed_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "field `responses` is unused",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::30": {
+      "id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::30",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/sandboxed_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "field `output` is unused",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::31": {
+      "id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::31",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/sandboxed_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "field `err` is unused",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::44": {
+      "id": "golangci_lint::internal/runtime/sandboxed_test.go::golangci_lint::44",
+      "detector": "golangci_lint",
+      "file": "internal/runtime/sandboxed_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "func `(*TestCommander).getCall` is unused",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::85": {
+      "id": "golangci_lint::cmd/check.go::golangci_lint::85",
+      "detector": "golangci_lint",
+      "file": "cmd/check.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `ui.PrintTable` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::98": {
+      "id": "golangci_lint::cmd/check.go::golangci_lint::98",
+      "detector": "golangci_lint",
+      "file": "cmd/check.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `filepath.Walk` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::174": {
+      "id": "golangci_lint::cmd/check.go::golangci_lint::174",
+      "detector": "golangci_lint",
+      "file": "cmd/check.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `ui.PrintTable` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/check.go::golangci_lint::202": {
+      "id": "golangci_lint::cmd/check.go::golangci_lint::202",
+      "detector": "golangci_lint",
+      "file": "cmd/check.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `ui.PrintTable` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/diff.go::golangci_lint::106": {
+      "id": "golangci_lint::cmd/diff.go::golangci_lint::106",
+      "detector": "golangci_lint",
+      "file": "cmd/diff.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `diffCmd.MarkFlagRequired` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/message.go::golangci_lint::125": {
+      "id": "golangci_lint::cmd/message.go::golangci_lint::125",
+      "detector": "golangci_lint",
+      "file": "cmd/message.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `enc.Encode` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/spawn.go::golangci_lint::523": {
+      "id": "golangci_lint::cmd/spawn.go::golangci_lint::523",
+      "detector": "golangci_lint",
+      "file": "cmd/spawn.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `filepath.Walk` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/spawn.go::golangci_lint::714": {
+      "id": "golangci_lint::cmd/spawn.go::golangci_lint::714",
+      "detector": "golangci_lint",
+      "file": "cmd/spawn.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `spawnCmd.MarkFlagRequired` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::cmd/stop.go::golangci_lint::228": {
+      "id": "golangci_lint::cmd/stop.go::golangci_lint::228",
+      "detector": "golangci_lint",
+      "file": "cmd/stop.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `stopCmd.MarkFlagRequired` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "production",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    },
+    "golangci_lint::internal/pathutil/validate_test.go::golangci_lint::311": {
+      "id": "golangci_lint::internal/pathutil/validate_test.go::golangci_lint::311",
+      "detector": "golangci_lint",
+      "file": "internal/pathutil/validate_test.go",
+      "tier": 2,
+      "confidence": "medium",
+      "summary": "Error return value of `os.Mkdir` is not checked",
+      "detail": {},
+      "status": "open",
+      "note": null,
+      "first_seen": "2026-03-09T19:53:03+00:00",
+      "last_seen": "2026-03-09T19:53:03+00:00",
+      "resolved_at": null,
+      "reopen_count": 0,
+      "lang": "go",
+      "zone": "test",
+      "suppressed": false,
+      "suppressed_at": null,
+      "suppression_pattern": null
+    }
+  },
+  "scan_coverage": {
+    "go": {
+      "status": "full",
+      "confidence": 1.0,
+      "detectors": {
+        "security": {
+          "detector": "security",
+          "status": "full",
+          "confidence": 1.0,
+          "summary": "Security coverage complete for enabled detectors.",
+          "impact": "",
+          "remediation": "",
+          "tool": "",
+          "reason": ""
+        }
+      },
+      "warnings": [],
+      "updated_at": "2026-03-09T19:53:07+00:00"
+    }
+  },
+  "score_confidence": {
+    "status": "full",
+    "confidence": 1.0,
+    "detectors": [],
+    "dimensions": []
+  },
+  "subjective_integrity": {
+    "status": "pass",
+    "target_score": 95.0,
+    "matched_count": 0,
+    "matched_dimensions": [],
+    "reset_dimensions": []
+  },
+  "subjective_assessments": {},
+  "scan_history": [
+    {
+      "timestamp": "2026-03-08T12:24:28+00:00",
+      "lang": "go",
+      "strict_score": 38.5,
+      "verified_strict_score": 96.3,
+      "objective_score": 96.3,
+      "overall_score": 38.5,
+      "open": 43,
+      "diff_new": 43,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 43,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": {
+        "status": "reduced",
+        "confidence": 0.0,
+        "detector_count": 1,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Security": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "File health": {
+          "score": 97.9,
+          "strict": 97.9
+        },
+        "Duplication": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Test health": {
+          "score": 91.0,
+          "strict": 91.0
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-09T19:48:50+00:00",
+      "lang": "go",
+      "strict_score": 38.5,
+      "verified_strict_score": 96.3,
+      "objective_score": 96.3,
+      "overall_score": 38.5,
+      "open": 43,
+      "diff_new": 0,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 43,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": {
+        "status": "reduced",
+        "confidence": 0.0,
+        "detector_count": 1,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Security": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "File health": {
+          "score": 97.9,
+          "strict": 97.9
+        },
+        "Duplication": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Test health": {
+          "score": 91.0,
+          "strict": 91.0
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-09T19:48:56+00:00",
+      "lang": "go",
+      "strict_score": 38.5,
+      "verified_strict_score": 96.3,
+      "objective_score": 96.3,
+      "overall_score": 38.5,
+      "open": 43,
+      "diff_new": 0,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 43,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": {
+        "status": "reduced",
+        "confidence": 0.0,
+        "detector_count": 1,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Security": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "File health": {
+          "score": 97.9,
+          "strict": 97.9
+        },
+        "Duplication": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Test health": {
+          "score": 91.0,
+          "strict": 91.0
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-09T19:50:28+00:00",
+      "lang": "go",
+      "strict_score": 38.5,
+      "verified_strict_score": 96.3,
+      "objective_score": 96.3,
+      "overall_score": 38.5,
+      "open": 43,
+      "diff_new": 0,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 43,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": {
+        "status": "reduced",
+        "confidence": 0.0,
+        "detector_count": 1,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Security": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "File health": {
+          "score": 97.9,
+          "strict": 97.9
+        },
+        "Duplication": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Test health": {
+          "score": 91.0,
+          "strict": 91.0
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        }
+      }
+    },
+    {
+      "timestamp": "2026-03-09T19:53:07+00:00",
+      "lang": "go",
+      "strict_score": 38.5,
+      "verified_strict_score": 96.3,
+      "objective_score": 96.3,
+      "overall_score": 38.5,
+      "open": 77,
+      "diff_new": 34,
+      "diff_resolved": 0,
+      "ignored": 0,
+      "raw_issues": 77,
+      "suppressed_pct": 0.0,
+      "ignore_patterns": 0,
+      "subjective_integrity": {
+        "status": "pass",
+        "matched_count": 0,
+        "reset_count": 0,
+        "target_score": 95.0
+      },
+      "score_confidence": {
+        "status": "full",
+        "confidence": 1.0,
+        "detector_count": 0,
+        "dimension_count": 0
+      },
+      "dimension_scores": {
+        "Code quality": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Security": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "File health": {
+          "score": 97.9,
+          "strict": 97.9
+        },
+        "Duplication": {
+          "score": 100.0,
+          "strict": 100.0
+        },
+        "Test health": {
+          "score": 91.0,
+          "strict": 91.0
+        },
+        "Naming quality": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Logic clarity": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Type safety": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Contracts": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Error consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Abstraction fit": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "AI generated debt": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "High elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Mid elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Low elegance": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Cross-module arch": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Init coupling": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Convention drift": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Dep health": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Test strategy": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "API coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Auth consistency": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Stale migration": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Structure nav": {
+          "score": 0.0,
+          "strict": 0.0
+        },
+        "Design coherence": {
+          "score": 0.0,
+          "strict": 0.0
+        }
+      }
+    }
+  ],
+  "lang_capabilities": {
+    "go": {
+      "fixers": [],
+      "typecheck_cmd": "go vet ./..."
+    }
+  },
+  "zone_distribution": {
+    "production": 34,
+    "test": 30
+  },
+  "tool_hash": "eb6de7c2b5fe",
+  "scan_path": ".",
+  "scan_completeness": {
+    "go": "full"
+  },
+  "potentials": {
+    "go": {
+      "structural": 34,
+      "flat_dirs": 18,
+      "golangci_lint": 34,
+      "signature": 1,
+      "test_coverage": 384,
+      "security": 34,
+      "subjective_review": 33,
+      "boilerplate_duplication": 0,
+      "dupes": 443,
+      "stale_wontfix": 0
+    }
+  },
+  "codebase_metrics": {
+    "go": {
+      "total_files": 64,
+      "total_loc": 13658,
+      "total_directories": 16
+    }
+  },
+  "dimension_scores": {
+    "Code quality": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 18,
+      "failing": 0,
+      "tier": 3,
+      "detectors": {
+        "flat_dirs": {
+          "potential": 18,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "Security": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 34,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "security": {
+          "potential": 34,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "File health": {
+      "score": 97.9,
+      "strict": 97.9,
+      "verified_strict_score": 97.9,
+      "checks": 34,
+      "failing": 1,
+      "tier": 3,
+      "detectors": {
+        "structural": {
+          "potential": 34,
+          "pass_rate": 0.9794117647058823,
+          "failing": 1,
+          "weighted_failures": 0.7
+        }
+      }
+    },
+    "Duplication": {
+      "score": 100.0,
+      "strict": 100.0,
+      "verified_strict_score": 100.0,
+      "checks": 443,
+      "failing": 0,
+      "tier": 3,
+      "detectors": {
+        "dupes": {
+          "potential": 443,
+          "pass_rate": 1.0,
+          "failing": 0,
+          "weighted_failures": 0.0
+        }
+      }
+    },
+    "Test health": {
+      "score": 91.0,
+      "strict": 91.0,
+      "verified_strict_score": 91.0,
+      "checks": 417,
+      "failing": 37,
+      "tier": 4,
+      "detectors": {
+        "test_coverage": {
+          "potential": 384,
+          "pass_rate": 0.9288498464950609,
+          "failing": 3,
+          "weighted_failures": 27.321658945896623
+        },
+        "subjective_review": {
+          "potential": 33,
+          "pass_rate": 0.6909090909090909,
+          "failing": 34,
+          "weighted_failures": 10.2
+        }
+      }
+    },
+    "Naming quality": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "naming_quality",
+          "configured_weight": 2.0,
+          "components": []
+        }
+      }
+    },
+    "Logic clarity": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "logic_clarity",
+          "configured_weight": 6.0,
+          "components": []
+        }
+      }
+    },
+    "Type safety": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "type_safety",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Contracts": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "contract_coherence",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Error consistency": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "error_consistency",
+          "configured_weight": 3.0,
+          "components": []
+        }
+      }
+    },
+    "Abstraction fit": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "abstraction_fitness",
+          "configured_weight": 8.0,
+          "components": []
+        }
+      }
+    },
+    "AI generated debt": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "ai_generated_debt",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "High elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "high_level_elegance",
+          "configured_weight": 22.0,
+          "components": []
+        }
+      }
+    },
+    "Mid elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "mid_level_elegance",
+          "configured_weight": 22.0,
+          "components": []
+        }
+      }
+    },
+    "Low elegance": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "low_level_elegance",
+          "configured_weight": 12.0,
+          "components": []
+        }
+      }
+    },
+    "Cross-module arch": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "cross_module_architecture",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Init coupling": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "initialization_coupling",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Convention drift": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "convention_outlier",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Dep health": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "dependency_health",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Test strategy": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "test_strategy",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "API coherence": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "api_surface_coherence",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Auth consistency": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "authorization_consistency",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Stale migration": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "incomplete_migration",
+          "configured_weight": 1.0,
+          "components": []
+        }
+      }
+    },
+    "Structure nav": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "package_organization",
+          "configured_weight": 5.0,
+          "components": []
+        }
+      }
+    },
+    "Design coherence": {
+      "score": 0.0,
+      "strict": 0.0,
+      "verified_strict_score": 0.0,
+      "checks": 10,
+      "failing": 0,
+      "tier": 4,
+      "detectors": {
+        "subjective_assessment": {
+          "potential": 10,
+          "pass_rate": 0.0,
+          "failing": 0,
+          "weighted_failures": 10.0,
+          "assessment_score": 0.0,
+          "placeholder": true,
+          "dimension_key": "design_coherence",
+          "configured_weight": 10.0,
+          "components": []
+        }
+      }
+    }
+  },
+  "reminder_history": {
+    "zone_classification": 3,
+    "report_scores": 5,
+    "feedback_nudge": 3,
+    "stagnant_nudge": 25
+  }
+}

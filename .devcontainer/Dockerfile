@@ -27,6 +27,9 @@ ENV GO111MODULE=on
 # Install gopls (Go language server for LSP)
 RUN go install golang.org/x/tools/gopls@latest
 
+# Install golangci-lint (multi-linter aggregator, used by desloppify)
+RUN go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.8
+
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
     RUSTUP_HOME=/opt/rustup \
     CARGO_HOME=/opt/cargo \
