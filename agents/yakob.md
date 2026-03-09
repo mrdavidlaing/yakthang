@@ -67,6 +67,15 @@ reflective control is high -- before acceleration flow begins.
 Do not spawn any shavers until yak triage is complete and David has confirmed
 the session plan.
 
+**After triage, before the first spawn, start the heartbeat:**
+
+```bash
+/loop 5m yx ls
+```
+
+This runs `yx ls` every 5 minutes so Yakob sees shaver progress between turns.
+If you forget this step, you're flying blind between David's messages.
+
 ### During the session: enforce the session yak
 
 After triage, read the session parameters:
@@ -313,3 +322,5 @@ When all tasks show `done` in `yx ls`, the work is complete.
    Run `<tool> <subcommand> --help` to confirm syntax before using it.
 10. **Never prune the session yak.** It is a record, not work. It persists for
     the full day.
+11. **Start the heartbeat.** After triage, before the first spawn, run
+    `/loop 5m yx ls`. No heartbeat = no visibility between turns.

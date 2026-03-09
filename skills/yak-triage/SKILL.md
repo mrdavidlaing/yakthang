@@ -166,11 +166,11 @@ Say "yak wrap" at any point to close out early.
 
 **Start the heartbeat** before spawning the first shaver:
 
-```bash
-.claude/skills/yak-shaving-handbook/yakob-heartbeat.sh .yaks 300
+```
+/loop 5m yx ls
 ```
 
-Run in the background. This keeps Yakob aware of shaver activity between turns.
+This runs `yx ls` every 5 minutes so Yakob sees shaver progress between turns.
 
 Then begin shaving.
 
