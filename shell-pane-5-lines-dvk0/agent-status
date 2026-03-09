@@ -1,1 +1,1 @@
-wip: starting
+done: updated layout_test.go to assert shell pane size=5 and build pane has no size= in both sandboxed and native layouts; all tests pass
