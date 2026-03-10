@@ -164,7 +164,7 @@ layout {
             pane split_direction="horizontal" size="67%" {
                 pane name="yakob" focus=true {
                     command "claude"
-                    args "--agent" "yakob"
+                    args "--agent" "yakob" "--dangerously-skip-permissions"
                 }
                 pane size="20%" name="shell (orchestrator)"
             }
