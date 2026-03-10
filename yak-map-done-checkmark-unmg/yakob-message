@@ -1,1 +1,0 @@
-The adversarial reviewer noted a minor test coverage gap: the done render test (render_task_done_shows_strikethrough, ~line 992) checks strikethrough but does NOT explicitly assert that the ✓ character is present. Please add an assertion to that test verifying the ✓ icon appears in the rendered output.
