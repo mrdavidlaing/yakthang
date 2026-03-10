@@ -1,0 +1,1 @@
+Created mattwynne/yaks#5. Framed as a collaborative feature request, not a demand. Prioritised blocked as highest-value. Included full analysis of what stays as fields vs what benefits from native state support. Added a state transition diagram showing how the three new states relate to the existing todo/wip/done flow.
