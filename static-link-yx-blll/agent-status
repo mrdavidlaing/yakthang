@@ -1,1 +1,1 @@
-wip: replacing COPY-based yx install with upstream install.sh (statically linked)
+wip: testing install script in Ubuntu 24.04 container
