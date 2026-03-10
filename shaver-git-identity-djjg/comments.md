@@ -1,5 +1,9 @@
-Investigation found both runtimes already pass through host git identity correctly via GIT_CONFIG_GLOBAL. Native runtime: sets GIT_CONFIG_GLOBAL to host ~/.gitconfig in run.sh wrapper (native.go:230). Sandboxed runtime: mounts host .gitconfig as read-only volume and sets GIT_CONFIG_GLOBAL env var (helpers.go:134-155).
+Root cause: host .gitconfig uses include.path=~/.gitconfig-mrdavidlaing with tilde. Git resolves ~ via HOME, but shavers have HOME overridden to their yak-box dir, so the include silently fails and user.name/user.email are never loaded. Yakthang worked by accident because it has the identity set in its local .git/config.
 
-Chose Option 3 (hybrid): keep host identity as git author, add shaver name to Co-Authored-By trailer for per-shaver traceability. Updated skills/yak-brand/SKILL.md to use $YAK_SHAVER_NAME env var (already available in both runtimes). Commits from shavers will now show e.g. "Co-Authored-By: Yakoff (Claude) <noreply@anthropic.com>" instead of generic "Co-Authored-By: Claude <noreply@anthropic.com>".
+Fix: resolveGitIdentityExports() in helpers.go shells out to git config --global user.name/email at spawn time (while HOME is still correct) and returns export lines for GIT_AUTHOR_NAME, GIT_AUTHOR_EMAIL, GIT_COMMITTER_NAME, GIT_COMMITTER_EMAIL. These env vars take precedence over config files and do not depend on ~ resolution.
 
-Existing deployed shaver skill copies (in .yak-boxes/@home/*) are not updated — they will pick up the change when next spawned from the source skill.
+Applied to both runtimes:
+- Native (native.go): gitIdentityLines embedded in wrapper script
+- Sandboxed (helpers.go generateRunScript): -e flags added to docker run
+
+Also updated yak-brand skill (skills/yak-brand/SKILL.md) to include shaver name in Co-Authored-By trailer when $YAK_SHAVER_NAME is set.
