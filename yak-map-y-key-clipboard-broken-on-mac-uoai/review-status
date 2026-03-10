@@ -1,1 +1,1 @@
-in-progress
+pass: Linux /proc path preserved, macOS lsof TTY detection added, pbcopy fallback works, early-exit prevents double-copy, all 46 tests pass
