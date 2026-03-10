@@ -1,1 +1,0 @@
-Fixed copy_via_zellij_tty: Linux /proc path is unchanged; macOS gets lsof-based PTY detection followed by pbcopy as native fallback. Both code paths terminate early on success so pbcopy only runs when no Zellij PTY is found via either method.
