@@ -1,1 +1,1 @@
-wip: upstream release binary is statically linked; investigating how yx is installed in containers
+wip: replacing COPY-based yx install with upstream install.sh (statically linked)
