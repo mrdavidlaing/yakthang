@@ -1,1 +1,0 @@
-pass: hybrid approach implemented correctly — host git identity as author, shaver name in Co-Authored-By. Both runtimes pin git identity via env vars. Build and tests pass. Caveats: changes not yet committed, no new unit tests for resolveGitIdentityExports(), skill file duplication between .claude/skills/ and skills/.
