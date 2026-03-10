@@ -1,1 +1,1 @@
-wip: checking upstream install.sh approach vs static linking
+wip: upstream release binary is statically linked; investigating how yx is installed in containers
