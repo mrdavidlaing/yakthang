@@ -44,14 +44,14 @@ yak-box spawn auto-detects the runtime (Docker first, then Zellij):
 ## Building the Worker Image
 
 ```bash
-# Build from repository root (requires yx binary in tmp/)
+# Build from repository root
 docker build -f worker.Dockerfile -t yak-worker:latest .
 
 # Verify
 docker images yak-worker
 ```
 
-The image contains: Ubuntu 24.04, git, bash, opencode CLI, yx binary.
+The image contains: Ubuntu 24.04, git, bash, opencode CLI, yx (installed from upstream release).
 It does NOT contain credentials — those are passed via environment variables.
 
 ## Container Architecture

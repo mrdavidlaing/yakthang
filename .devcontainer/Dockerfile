@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
     bash \
+    unzip \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
@@ -53,14 +54,10 @@ RUN curl -fsSL https://claude.ai/install.sh | bash && \
 # Pre-seed Claude config so first-run onboarding wizard doesn't block sandboxed workers
 RUN mkdir -p /root/.claude && echo '{"numStartups": 1}' > /root/.claude/.claude.json
 
-# Copy yx binary if present in build context (wildcard makes it optional).
-# NOTE: yx is dynamically linked against libgit2 1.9 which isn't in Ubuntu 24.04.
-# Until yx is statically linked (see static-link-yx yak), yx won't work in the container.
-COPY yx* /tmp/
-RUN if [ -f /tmp/yx ]; then \
-        mv /tmp/yx /usr/local/bin/yx && \
-        chmod +x /usr/local/bin/yx; \
-    fi
+# Install yx (yaks CLI) from upstream release (statically linked binary)
+RUN curl -fsSL -o /tmp/install-yx.sh https://raw.githubusercontent.com/mattwynne/yaks/main/install.sh && \
+    YX_SHELL_CHOICE=2 YX_AUTO_COMPLETE=n bash /tmp/install-yx.sh && \
+    rm /tmp/install-yx.sh
 
 # Trust any mounted workspace (container runs as root, repo owned by host user)
 RUN git config --global --add safe.directory '*'

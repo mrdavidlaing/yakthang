@@ -436,16 +436,6 @@ build_worker_image() {
 		return 1
 	fi
 
-	# Copy yx binary to workspace (required by Dockerfile)
-	# Use the installed binary — the temp build dir may not exist on re-runs
-	if [[ -x /usr/local/bin/yx ]]; then
-		cp /usr/local/bin/yx "$workspace/yx"
-		chown yakob:yakob "$workspace/yx"
-	else
-		log "ERROR: yx binary not found at /usr/local/bin/yx — run install_yx first"
-		return 1
-	fi
-
 	# Check if image already exists
 	if docker image inspect yak-worker:latest &>/dev/null; then
 		log "yak-worker:latest image already exists"
