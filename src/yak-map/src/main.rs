@@ -184,10 +184,13 @@ fn escape_single_quoted(s: &str) -> String {
 /// Write OSC 52 clipboard sequence to Zellij's outer terminal (the SSH PTY).
 /// Finds the Zellij client process (the one with a real PTY, not /dev/null) and
 /// writes to its fd/1 — the same TTY Zellij uses for copy-on-select.
+/// Falls back to pbcopy on macOS if no PTY is found via /proc or lsof.
 fn copy_via_zellij_tty(yx_name: &str) {
     let encoded = base64_encode(yx_name.as_bytes());
+    let name_quoted = escape_single_quoted(yx_name);
     // Zellij runs as two processes: a client (with the real TTY) and a server (/dev/null).
     // pgrep finds both; we pick the one whose fd/1 is a character device (the PTY).
+    // Linux uses /proc/$pid/fd/1; macOS uses lsof. pbcopy is a macOS-native fallback.
     // base64 output is alphanumeric + +/= — safe to embed in shell without quoting.
     let script = format!(
         r#"for pid in $(pgrep -x zellij 2>/dev/null); do
@@ -197,8 +200,20 @@ fn copy_via_zellij_tty(yx_name: &str) {
     exit 0
   fi
 done
+for pid in $(pgrep -x zellij 2>/dev/null); do
+  tty=$(lsof -p "$pid" -a -d 1 -F n 2>/dev/null | grep '^n' | sed 's/^n//' | head -1)
+  if [ -c "$tty" ] && [ "$tty" != /dev/null ]; then
+    printf '\033]52;c;{enc}\007' > "$tty"
+    exit 0
+  fi
+done
+if command -v pbcopy >/dev/null 2>&1; then
+  printf '%s' {name} | pbcopy
+  exit 0
+fi
 printf '\033]52;c;{enc}\007' > /dev/tty 2>/dev/null"#,
-        enc = encoded
+        enc = encoded,
+        name = name_quoted
     );
     run_command(&["sh", "-c", &script], BTreeMap::new());
 }
