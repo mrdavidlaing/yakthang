@@ -1,1 +1,1 @@
-wip: reading code, preparing fix
+done: added macOS clipboard support to copy_via_zellij_tty — lsof for TTY detection, pbcopy as native fallback; Linux /proc path unchanged; all 46 tests pass
