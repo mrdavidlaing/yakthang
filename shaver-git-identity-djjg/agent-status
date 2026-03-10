@@ -1,1 +1,1 @@
-wip: found root cause — git include paths use ~ which breaks when HOME is overridden; implementing fix in spawn code
+done: fixed git identity in both runtimes — host .gitconfig include paths with ~ broke when HOME was overridden; now resolves identity at spawn time via GIT_AUTHOR/COMMITTER env vars
