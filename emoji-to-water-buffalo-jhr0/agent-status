@@ -1,1 +1,1 @@
-wip: found 20 instances across 10 files, replacing now
+done: replaced all 🦬 with 🐃 across 10 files (agents, docs, src/yak-box); all Go tests pass
