@@ -1,1 +1,0 @@
-Created mattwynne/yaks#5. Originally proposed three new states (blocked, review, parked) but through discussion with David, collapsed all three into a single `waiting` state — all three cases share the pattern of 'needs external input to proceed.' The details of what it's waiting on stay in fields. Issue updated to reflect the simpler proposal.
