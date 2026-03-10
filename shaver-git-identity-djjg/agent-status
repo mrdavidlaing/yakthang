@@ -1,1 +1,1 @@
-wip: updated source yak-brand skill, verifying
+done: updated yak-brand skill to include shaver name in Co-Authored-By trailer; both runtimes already pass through host git identity via GIT_CONFIG_GLOBAL
