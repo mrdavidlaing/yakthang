@@ -1,1 +1,1 @@
-wip: running end-to-end Dockerfile build test
+done: upstream release binary is already statically linked; replaced COPY with install.sh in Dockerfile, removed yx staging from setup-vm.sh
