@@ -1,0 +1,1 @@
+pass: zero remaining 🦬 in codebase. Commit 5c129f5 shows clean 1:1 replacements across 10 files. yak-map correctly skipped (never had 🦬). All Go tests pass. Emoji only used in display strings — no breakage risk.
