@@ -1,1 +1,0 @@
-Extracted 11 ANSI escape code constants into an ansi module: RED, GREEN, YELLOW, CYAN, WHITE, DIM, RESET, BOLD, REVERSE, STRIKETHROUGH, BG_SELECTED. Replaced all raw codes in implementation and test code. Only remaining \x1b references are in the strip_ansi parser (parsing logic, not color values). All 46 tests pass, bin/dev check green.
