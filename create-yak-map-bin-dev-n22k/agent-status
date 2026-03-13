@@ -1,1 +1,0 @@
-done: created bin/dev with check/lint/test/cx; fixed 8 clippy warnings; WASM build exercised; complexity thresholds set at baseline (cognitive≤29, cyclomatic≤26)

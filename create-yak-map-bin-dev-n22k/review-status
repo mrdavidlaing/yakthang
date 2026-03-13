@@ -1,1 +1,0 @@
-pass: all acceptance criteria met — bin/dev exists with check/lint/test/cx, WASM build exercised, 46 tests pass, complexity thresholds set
