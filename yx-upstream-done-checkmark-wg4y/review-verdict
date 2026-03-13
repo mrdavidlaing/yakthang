@@ -1,1 +1,0 @@
-pass: PR #4 verified — diff correctly changes ● to ✓ for done in both user_display and tui_display, WIP/todo unchanged, tests updated
