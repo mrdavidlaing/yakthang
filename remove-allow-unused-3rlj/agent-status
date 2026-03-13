@@ -1,1 +1,1 @@
-wip: fixed unused var, running cargo check
+done: removed #\![allow(unused)] from main.rs; fixed 1 warning (unused configuration param → _configuration). Zero warnings, 46 tests pass, WASM build OK.
