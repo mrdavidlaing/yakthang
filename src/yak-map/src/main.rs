@@ -1,9 +1,21 @@
-#![allow(unused)]
-
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 use unicode_width::UnicodeWidthStr;
 use zellij_tile::prelude::*;
+
+mod ansi {
+    pub const RED: &str = "\x1b[31m";
+    pub const GREEN: &str = "\x1b[32m";
+    pub const YELLOW: &str = "\x1b[33m";
+    pub const CYAN: &str = "\x1b[36m";
+    pub const WHITE: &str = "\x1b[37m";
+    pub const DIM: &str = "\x1b[90m";
+    pub const RESET: &str = "\x1b[0m";
+    pub const BOLD: &str = "\x1b[1m";
+    pub const REVERSE: &str = "\x1b[7m";
+    pub const STRIKETHROUGH: &str = "\x1b[9m";
+    pub const BG_SELECTED: &str = "\x1b[48;5;237m";
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TaskState {
@@ -363,19 +375,19 @@ impl State {
     fn task_color(&self, task: &TaskLine) -> &'static str {
         if let Some(status) = &task.agent_status {
             if status.starts_with("blocked:") {
-                return "\x1b[31m";
+                return ansi::RED;
             }
             if status.starts_with("done:") {
-                return "\x1b[32m";
+                return ansi::GREEN;
             }
             if status.starts_with("wip:") {
-                return "\x1b[33m";
+                return ansi::YELLOW;
             }
         }
         match task.state {
-            TaskState::Wip => "\x1b[33m",
-            TaskState::Done => "\x1b[90m",
-            TaskState::Todo => "\x1b[37m",
+            TaskState::Wip => ansi::YELLOW,
+            TaskState::Done => ansi::DIM,
+            TaskState::Todo => ansi::WHITE,
         }
     }
 
@@ -401,8 +413,8 @@ impl State {
         }
 
         let mut prefix = String::new();
-        let line_color = "\x1b[90m";
-        let reset = "\x1b[0m";
+        let line_color = ansi::DIM;
+        let reset = ansi::RESET;
 
         // Show continuation columns for each ancestor level (from root-most to parent).
         // ancestor_continuations is ordered [parent, grandparent, ...], so we take
@@ -428,9 +440,9 @@ impl State {
     }
 
     fn highlight_line(&self, line: &str, padding: &str) -> String {
-        let bg = "\x1b[48;5;237m";
-        let highlighted = line.replace("\x1b[0m", &format!("\x1b[0m{bg}"));
-        format!("{bg}{}{}\x1b[0m", highlighted, padding)
+        let bg = ansi::BG_SELECTED;
+        let highlighted = line.replace(ansi::RESET, &format!("{}{bg}", ansi::RESET));
+        format!("{bg}{}{}{}", highlighted, padding, ansi::RESET)
     }
 
     fn render_task(&self, task: &TaskLine) -> String {
@@ -440,7 +452,7 @@ impl State {
         let color = self.task_color(task);
 
         let name = if matches!(task.state, TaskState::Done) {
-            format!("\x1b[9m{}\x1b[0m", task.name)
+            format!("{}{}{}", ansi::STRIKETHROUGH, task.name, ansi::RESET)
         } else {
             task.name.clone()
         };
@@ -458,20 +470,26 @@ impl State {
         };
 
         let assignment = if let Some(agent) = &task.assigned_to {
-            format!(" [\x1b[36m{}\x1b[0m]", agent)
+            format!(" [{}{}{}]", ansi::CYAN, agent, ansi::RESET)
         } else {
             String::new()
         };
 
         let status_color = if matches!(task.state, TaskState::Done) {
-            "\x1b[90m"
+            ansi::DIM
         } else {
             color
         };
 
         format!(
-            "{}{}{} {}{}{}\x1b[0m",
-            prefix, status_color, status, name, review_suffix, assignment
+            "{}{}{} {}{}{}{}",
+            prefix,
+            status_color,
+            status,
+            name,
+            review_suffix,
+            assignment,
+            ansi::RESET
         )
     }
 
@@ -495,7 +513,7 @@ impl State {
 }
 
 impl ZellijPlugin for State {
-    fn load(&mut self, configuration: BTreeMap<String, String>) {
+    fn load(&mut self, _configuration: BTreeMap<String, String>) {
         subscribe(&[EventType::Timer, EventType::Key]);
         set_timeout(2.0);
         request_permission(&[PermissionType::OpenFiles, PermissionType::RunCommands]);
@@ -591,7 +609,7 @@ impl ZellijPlugin for State {
         let _ = self.pending_clipboard.take(); // consumed; clipboard written via copy_via_zellij_tty
 
         if let Some(error) = &self.error {
-            println!("\x1b[31mError: {}\x1b[0m", error);
+            println!("{}Error: {}{}", ansi::RED, error, ansi::RESET);
             return;
         }
 
@@ -632,7 +650,7 @@ impl ZellijPlugin for State {
         if let Some(msg) = &self.toast_message.clone() {
             println!();
             let toast = format!(" {} ", msg);
-            println!("\x1b[7m\x1b[1m{}\x1b[0m", toast);
+            println!("{}{}{}{}", ansi::REVERSE, ansi::BOLD, toast, ansi::RESET);
         }
     }
 }
@@ -810,7 +828,7 @@ mod tests {
             agent_status: Some("blocked: waiting".to_string()),
             ..TaskLine::default()
         };
-        assert_eq!(state.task_color(&task), "\x1b[31m");
+        assert_eq!(state.task_color(&task), ansi::RED);
     }
 
     #[test]
@@ -820,7 +838,7 @@ mod tests {
             agent_status: Some("done: finished".to_string()),
             ..TaskLine::default()
         };
-        assert_eq!(state.task_color(&task), "\x1b[32m");
+        assert_eq!(state.task_color(&task), ansi::GREEN);
     }
 
     #[test]
@@ -830,7 +848,7 @@ mod tests {
             agent_status: Some("wip: working".to_string()),
             ..TaskLine::default()
         };
-        assert_eq!(state.task_color(&task), "\x1b[33m");
+        assert_eq!(state.task_color(&task), ansi::YELLOW);
     }
 
     #[test]
@@ -841,7 +859,7 @@ mod tests {
             agent_status: None,
             ..TaskLine::default()
         };
-        assert_eq!(state.task_color(&task), "\x1b[33m");
+        assert_eq!(state.task_color(&task), ansi::YELLOW);
     }
 
     #[test]
@@ -852,7 +870,7 @@ mod tests {
             agent_status: None,
             ..TaskLine::default()
         };
-        assert_eq!(state.task_color(&task), "\x1b[37m");
+        assert_eq!(state.task_color(&task), ansi::WHITE);
     }
 
     #[test]
@@ -926,7 +944,16 @@ mod tests {
         let grandchild = state.tasks.iter().find(|t| t.name == "grandchild").unwrap();
         // parent "child" has sibling "child2", so continuation line shows
         let prefix = state.tree_prefix(grandchild);
-        assert_eq!(prefix, "\x1b[90m│ \x1b[0m\x1b[90m╰─\x1b[0m");
+        assert_eq!(
+            prefix,
+            format!(
+                "{}│ {}{}╰─{}",
+                ansi::DIM,
+                ansi::RESET,
+                ansi::DIM,
+                ansi::RESET
+            )
+        );
     }
 
     #[test]
@@ -946,7 +973,7 @@ mod tests {
         // task-a has no sibling at depth 0, so no continuation
         let child2 = state.tasks.iter().find(|t| t.name == "child2").unwrap();
         let prefix = state.tree_prefix(child2);
-        assert_eq!(prefix, "\x1b[90m╰─\x1b[0m");
+        assert_eq!(prefix, format!("{}╰─{}", ansi::DIM, ansi::RESET));
     }
 
     #[test]
@@ -965,7 +992,7 @@ mod tests {
         let grandchild = state.tasks.iter().find(|t| t.name == "grandchild").unwrap();
         // parent "child" has no siblings, so empty continuation column + connector
         let prefix = state.tree_prefix(grandchild);
-        assert_eq!(prefix, "  \x1b[90m╰─\x1b[0m");
+        assert_eq!(prefix, format!("  {}╰─{}", ansi::DIM, ansi::RESET));
     }
 
     #[test]
@@ -985,7 +1012,16 @@ mod tests {
         let d = state.tasks.iter().find(|t| t.name == "d").unwrap();
         // Columns: [grandparent b has siblings → │ ] [parent c has no siblings → "  "] then ╰─
         let prefix = state.tree_prefix(d);
-        assert_eq!(prefix, "\x1b[90m│ \x1b[0m  \x1b[90m╰─\x1b[0m");
+        assert_eq!(
+            prefix,
+            format!(
+                "{}│ {}  {}╰─{}",
+                ansi::DIM,
+                ansi::RESET,
+                ansi::DIM,
+                ansi::RESET
+            )
+        );
     }
 
     #[test]
@@ -1023,9 +1059,9 @@ mod tests {
         let task = state.tasks.iter().find(|t| t.name == "my-task").unwrap();
         let rendered = state.render_task(task);
 
-        assert!(rendered.contains("\x1b[9m"));
+        assert!(rendered.contains(ansi::STRIKETHROUGH));
         assert!(rendered.contains("my-task"));
-        assert!(rendered.contains("\x1b[0m"));
+        assert!(rendered.contains(ansi::RESET));
         assert!(rendered.contains("✓"), "rendered: {:?}", rendered);
     }
 
@@ -1045,7 +1081,7 @@ mod tests {
         let rendered = state.render_task(task);
 
         assert!(rendered.contains("○"));
-        assert!(rendered.contains("\x1b[37m"));
+        assert!(rendered.contains(ansi::WHITE));
     }
 
     #[test]
@@ -1295,17 +1331,17 @@ mod tests {
         let state = State::default();
         let result = state.highlight_line("hello", "   ");
         assert!(
-            result.starts_with("\x1b[48;5;237m"),
+            result.starts_with(ansi::BG_SELECTED),
             "should start with explicit bg: {:?}",
             result
         );
         assert!(
-            !result.contains("\x1b[7m"),
+            !result.contains(ansi::REVERSE),
             "should not use reverse video: {:?}",
             result
         );
         assert!(
-            result.ends_with("\x1b[0m"),
+            result.ends_with(ansi::RESET),
             "should end with reset: {:?}",
             result
         );
@@ -1315,11 +1351,11 @@ mod tests {
     fn highlight_line_reestablishes_bg_after_reset() {
         let state = State::default();
         // A line that contains a reset mid-way (e.g. from colored text)
-        let line = "\x1b[32mfoo\x1b[0mbar";
+        let line = &format!("{}foo{}bar", ansi::GREEN, ansi::RESET);
         let result = state.highlight_line(line, "");
-        // After each \x1b[0m the bg color should be re-established
+        // After each RESET the bg color should be re-established
         assert!(
-            result.contains("\x1b[0m\x1b[48;5;237m"),
+            result.contains(&format!("{}{}", ansi::RESET, ansi::BG_SELECTED)),
             "bg not re-established after reset: {:?}",
             result
         );
@@ -1331,7 +1367,10 @@ mod tests {
         // "📋 foo" = 📋(2) + ' '(1) + 'f'(1) + 'o'(1) + 'o'(1) = 6 display cols
         assert_eq!(line_display_width("📋 foo"), 6);
         // with ANSI: stripped "📋 worklogs" = 📋(2) + ' '(1) + "worklogs"(8) = 11
-        assert_eq!(line_display_width("\x1b[33m📋 worklogs\x1b[0m"), 11);
+        assert_eq!(
+            line_display_width(&format!("{}📋 worklogs{}", ansi::YELLOW, ansi::RESET)),
+            11
+        );
         // plain ASCII still works
         assert_eq!(line_display_width("hello"), 5);
     }
@@ -1341,12 +1380,11 @@ mod tests {
         let state = State::default();
         let result = state.highlight_line("hi", "     ");
         // The bg is set at start before both the text and the padding
-        let bg = "\x1b[48;5;237m";
-        assert!(result.starts_with(bg));
+        assert!(result.starts_with(ansi::BG_SELECTED));
         // padding is inside the bg scope (before the final reset)
-        let reset_pos = result.rfind("\x1b[0m").unwrap();
+        let reset_pos = result.rfind(ansi::RESET).unwrap();
         assert!(
-            reset_pos == result.len() - "\x1b[0m".len(),
+            reset_pos == result.len() - ansi::RESET.len(),
             "final reset should be at end: {:?}",
             result
         );
