@@ -1,1 +1,1 @@
-wip: inventoried ANSI codes, implementing constants
+done: extracted 11 ANSI constants into ansi module, zero raw codes outside constants block, all checks pass
