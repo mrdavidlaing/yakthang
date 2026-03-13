@@ -57,12 +57,18 @@ to `yx context` or `yx field` when you need just one piece.
 - Its children (you must complete these before the parent)
 - Its state (todo / wip / done)
 
-Then claim it and announce you've started:
+Then claim it, stamp the supervisor, and announce you've started:
 
 ```bash
 yx start <id>
+echo "$supervisor" | yx field <id> supervised-by
 echo "wip: starting" | yx field <id> agent-status
 ```
+
+`$supervisor` is the human username passed in your spawn prompt (e.g.
+"zgagnon"). This associates the yak with the human who was supervising when
+it was shaved — distinct from `created_by` (who planned it) and
+`assigned-to` (which shaver worked on it).
 
 ## State Transitions
 
@@ -244,6 +250,7 @@ Yakob uses `/loop` to schedule recurring status checks:
 | Read task brief | `yx context <id>` |
 | Read previous agent's notes | `yx field <id> comments.md` |
 | Claim a task | `yx start <id>` |
+| Stamp supervisor | `echo "$supervisor" \| yx field <id> supervised-by` |
 | Report status | `echo "<status>" \| yx field <id> agent-status` |
 | Check for Yakob message | `yx field --show <id> yakob-message` |
 | Heartbeat (Yakob's responsibility) | `/loop 5m yx ls; yx field --show <id> agent-status` |

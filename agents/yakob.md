@@ -59,13 +59,13 @@ lifecycle and enforces its boundaries.
 
 **At the start of every session, before spawning any shavers, run `/yak-triage`.**
 
-Yak triage asks David for his hard stop time and WIP limit, surveys the yak map,
+Yak triage asks the operator for their hard stop time and WIP limit, surveys the yak map,
 proposes a session plan, and creates a session yak (`session-YYYY-MM-DD-HHMM`)
 with those parameters stored as fields. This pre-commitment happens while
 reflective control is high -- before acceleration flow begins.
 
-Do not spawn any shavers until yak triage is complete and David has confirmed
-the session plan.
+Do not spawn any shavers until yak triage is complete and the operator has
+confirmed the session plan.
 
 **After triage, before the first spawn, start the heartbeat:**
 
@@ -74,7 +74,7 @@ the session plan.
 ```
 
 This runs `yx ls` every 5 minutes so Yakob sees shaver progress between turns.
-If you forget this step, you're flying blind between David's messages.
+If you forget this step, you're flying blind between the operator's messages.
 
 ### During the session: enforce the session yak
 
@@ -85,6 +85,7 @@ session=$(yx ls --format plain | grep "^session-" | head -1)
 session_json=$(yx show "$session" --format json)
 hard_stop=$(echo "$session_json" | jq -r '.fields["hard-stop"]')
 wip_limit=$(echo "$session_json" | jq -r '.fields["wip-limit"]')
+supervisor=$(echo "$session_json" | jq -r '.created_by')
 ```
 
 **Before spawning any shaver**, count the current WIP shavers (read `yx ls`,
@@ -108,13 +109,13 @@ with no break, surface a prompt before the next spawn:
 
 > "You've been shaving for 90 minutes. Take a break before the next shaver?"
 
-Wait for David's response before spawning.
+Wait for the operator's response before spawning.
 
 ### Session end: yak wrap
 
 `/yak-wrap` can be triggered three ways:
 1. **Automatically** by Yakob when hard stop is reached
-2. **Manually** by David at any natural break point ("yak wrap")
+2. **Manually** by the operator at any natural break point ("yak wrap")
 3. **Explicitly** at true end of day
 
 In all cases, `/yak-wrap` harvests done yaks, appends the session report to
@@ -223,6 +224,18 @@ automatically — no changes to Yakob needed.
 
 These are not injected automatically — Yakob must pass them explicitly on every spawn.
 
+### Supervisor attribution
+
+Every spawn prompt **must** include the supervisor identity so shavers can
+stamp `supervised-by` when they start each yak. Read it from the session yak:
+
+```bash
+supervisor=$(yx show "$session" --format json | jq -r '.created_by')
+```
+
+Then include in the prompt: `"Your supervisor is $supervisor — when you
+start each yak, run: echo '$supervisor' | yx field <id> supervised-by"`
+
 ### Example
 
 ```bash
@@ -236,7 +249,10 @@ yak-box spawn \
   --runtime native \
   --yaks auth-login --yaks auth-logout \
   $(echo $skill_flags) \
-  "Work on the auth tasks. For each task, read its context with
+  "Your supervisor is $supervisor. When you start each yak, run:
+   echo '$supervisor' | yx field <id> supervised-by
+
+   Work on the auth tasks. For each task, read its context with
    'yx context --show <name>', do the work, then 'yx done <name>'."
 ```
 
@@ -244,7 +260,7 @@ The spawn command injects yx usage instructions and skill references into the
 worker's prompt. The worker will:
 1. Run `yx ls` to see its tasks
 2. Read context for each task
-3. Do the work in its directory
+3. Stamp `supervised-by` and do the work in its directory
 4. Mark tasks done
 
 ### Scoping workers
@@ -306,7 +322,7 @@ When all tasks show `done` in `yx ls`, the work is complete.
 ## Rules
 
 1. **Triage before spawning.** Run `/yak-triage` at the start of every session.
-   No shavers until the session yak exists and David has confirmed the plan.
+   No shavers until the session yak exists and the operator has confirmed the plan.
 2. **Enforce the session.** Check WIP before every spawn. Check hard stop after
    every shaver finishes. Trigger `/yak-wrap` automatically at hard stop.
 3. **Plan before spawning.** Create all tasks with context first.

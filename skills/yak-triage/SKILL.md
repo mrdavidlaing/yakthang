@@ -1,6 +1,6 @@
 ---
 name: yak-triage
-description: Sorting the herd at the gate. Session start ritual for Yakob. Establishes the time window and WIP limit, surveys the yak map, and helps David decide what to tackle this session — before acceleration flow begins.
+description: Sorting the herd at the gate. Session start ritual for Yakob. Establishes the time window and WIP limit, surveys the yak map, and helps the operator decide what to tackle this session — before acceleration flow begins.
 ---
 
 # Yak Triage 🔍
@@ -35,7 +35,7 @@ first — then assess what fits within them.
 Accept any format: "12:30", "in 2 hours", "after lunch". Convert to a
 concrete time and confirm it back.
 
-If David says he doesn't know or "as long as it takes" — push back once:
+If the operator doesn't know or says "as long as it takes" — push back once:
 > "A rough estimate is fine. Having no hard stop is what we're trying to fix."
 
 Record as: **hard stop = HH:MM**
@@ -44,7 +44,7 @@ Record as: **hard stop = HH:MM**
 
 > "How many shavers do you want running in parallel? (Default: 3)"
 
-If David accepts the default, proceed. If he says "as many as needed" — note
+If the operator accepts the default, proceed. If they say "as many as needed" — note
 the default of 3 and move on. Don't debate it.
 
 Record as: **WIP limit = N**
@@ -117,13 +117,13 @@ Holding back:
   - [yak-name] — [why skipping: blocked / too big / lower priority]
 ```
 
-If David has must-dos from Phase 1, list those first.
+If the operator has must-dos from Phase 1, list those first.
 
 ### Confirm
 
 > "Does this look right, or do you want to swap anything?"
 
-Wait for David's response. Adjust if needed. Once confirmed, proceed.
+Wait for the operator's response. Adjust if needed. Once confirmed, proceed.
 
 ---
 
@@ -213,7 +213,7 @@ the wip state indicators directly. If the count meets the limit:
 
 | Phase | What | Command |
 |-------|------|---------|
-| Pre-commit | Get hard stop + WIP limit | (ask David) |
+| Pre-commit | Get hard stop + WIP limit | (ask the operator) |
 | Survey | Read the map | `yx ls` |
 | Plan | Propose session focus | (present + confirm) |
 | Commit | Create session yak | `yx add session-YYYY-MM-DD-HHMM` + field sets |
@@ -222,5 +222,5 @@ the wip state indicators directly. If the count meets the limit:
 
 - **Skipping pre-commitment** — surveying the map before setting constraints lets the map set the agenda. Constraints first, always.
 - **Over-filling the plan** — more yaks than the window can hold creates the problem we're solving. Size conservatively.
-- **No hard stop** — if David won't name one, default to 2 hours from now and state it explicitly.
+- **No hard stop** — if the operator won't name one, default to 2 hours from now and state it explicitly.
 - **Ignoring the WIP count of in-flight yaks** — yaks already running count against the limit from the start.

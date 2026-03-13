@@ -51,6 +51,7 @@ yx ls
 yx context --show <name>                    # The brief (Yakob → agent)
 yx field --show <name> agent-status         # The outcome summary
 yx field --show <name> comments.md          # Findings, decisions, surprises
+yx field --show <name> supervised-by        # Who was supervising when it was shaved
 ```
 
 **Collect from every done yak:**
@@ -60,6 +61,7 @@ yx field --show <name> comments.md          # Findings, decisions, surprises
 | `context.md` | What was asked for |
 | `agent-status` | What was delivered (one-line) |
 | `comments.md` | The interesting bits — decisions, surprises, loose ends |
+| `supervised-by` | Which human was supervising when it was shaved |
 
 **Also check `yx log`** for timestamps — this tells you what was shaved
 *today* vs previously. Focus the worklog on today's work.
@@ -119,7 +121,7 @@ Each yak wrap appends a new timestamped section — the session yak's
 Append the following to `{YYYY-MM-DD}-worklog.md` (and print to stdout):
 
 ```markdown
-# Yak Wrap — YYYY-MM-DD HH:MM
+# Yak Wrap — YYYY-MM-DD HH:MM (supervised by @username)
 
 ## Highlights
 
