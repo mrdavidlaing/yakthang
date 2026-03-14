@@ -1,1 +1,0 @@
-pass: Two-pronged fix — stored TaskDirs at spawn + .name fallback in resolveYakValue. New test covers the mismatch case. go test ./... clean.
