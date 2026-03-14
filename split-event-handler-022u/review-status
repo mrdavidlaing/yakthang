@@ -1,1 +1,1 @@
-in-progress
+fail: update() is 36 lines (target <20), handler naming inconsistent (mix of handle_* and direct calls)
