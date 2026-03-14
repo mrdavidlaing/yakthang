@@ -1,1 +1,1 @@
-wip: implementing FromStr and replacing inline parsing
+done: Added FromStr impl to TaskState enum and replaced inline magic string matching in get_task() with .parse().ok().unwrap_or(TaskState::Todo)
