@@ -1,1 +1,1 @@
-wip: implementing fix
+done: fixed with .name search in resolveYakValue + stored TaskDirs in session
