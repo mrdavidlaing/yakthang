@@ -1,1 +1,0 @@
-pass: update() now 10 lines, dropped off top-5 complexity entirely (was #1 at cognitive=28). handle_key(), handle_show, handle_refresh naming consistent. 51 tests pass, bin/dev clean.
