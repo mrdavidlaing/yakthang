@@ -1,1 +1,0 @@
-done: TaskSource trait extracted, TaskRepository implements it, InMemoryTaskSource created for tests, contract tests verify both implementations, State parameterized on TaskSource, tree::build accepts &dyn TaskSource, tests migrated to InMemoryTaskSource with filesystem smoke tests retained. 51 tests pass, bin/dev check green.
