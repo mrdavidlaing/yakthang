@@ -1,1 +1,1 @@
-wip: implementing AgentStatusKind enum
+done: created AgentStatusKind enum with Blocked/Done/Wip/Unknown variants and from_status_string() constructor; refactored task_color() and status_symbol() to use exhaustive match
