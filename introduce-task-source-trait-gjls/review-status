@@ -1,1 +1,1 @@
-in-progress
+pass: TaskSource trait, TaskRepository + InMemoryTaskSource impls, contract tests, State parameterized, tree::build takes &dyn TaskSource. 51 tests, bin/dev clean.
