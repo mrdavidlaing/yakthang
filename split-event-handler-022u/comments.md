@@ -1,0 +1,1 @@
+Straightforward extraction. update() was already reasonably structured with a clear match-on-event pattern — the inline logic in each arm just needed lifting into named methods. No surprises, no deviations from the brief.
