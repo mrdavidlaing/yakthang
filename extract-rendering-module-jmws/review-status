@@ -1,1 +1,0 @@
-pass: 6 functions + 22 tests in render.rs. Enum-based matching throughout, ANSI constants used, no string comparisons. bin/dev clean.
