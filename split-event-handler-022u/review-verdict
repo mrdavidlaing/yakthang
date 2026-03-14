@@ -1,1 +1,0 @@
-fail: 1) Extract Event::Key branch into handle_key() to get update() under 20 lines. 2) Rename open_selected_task_context to handle_show, use handle_refresh wrapper for refresh_tasks. 3) Verify complexity dropped with bin/dev cx.
