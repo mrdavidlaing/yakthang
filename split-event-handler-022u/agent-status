@@ -1,1 +1,1 @@
-wip: extracting handler methods from update()
+done: split update() into 5 handler methods (handle_timer, handle_navigate_up/down, handle_edit_context, handle_yank); update() is now a 15-line pure dispatcher; cognitive complexity dropped from 28 to below threshold; all 51 tests pass, bin/dev check green
