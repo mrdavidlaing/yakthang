@@ -1,1 +1,0 @@
-pass: 6-file module split complete. main.rs 276L (justified — all controller/plugin logic). Clean dependency DAG, no circular deps, no magic strings. 51 tests, bin/dev green.

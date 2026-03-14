@@ -1,1 +1,0 @@
-Extracted model.rs (domain types, ansi constants) and repository.rs (TaskSource trait, TaskRepository, InMemoryTaskSource, get_task). Tests moved to their owning modules. main.rs non-test code is 245 lines — handlers and ZellijPlugin impl are tightly coupled and resist further extraction without introducing a lib.rs or clipboard.rs, which weren't in the prerequisite chain.
