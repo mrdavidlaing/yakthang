@@ -1,1 +1,0 @@
-pass: 5 functions moved to util.rs, tests moved, main.rs ~138 lines shorter. 46 tests pass, bin/dev clean.
