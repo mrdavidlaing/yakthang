@@ -1,1 +1,1 @@
-in-progress
+pass: FromStr impl on TaskState, .parse() in get_task(), no leaked magic strings. bin/dev clean.
