@@ -1,1 +1,0 @@
-done: extracted tree-building logic into src/tree.rs; refresh_tasks() now delegates to tree::build()
