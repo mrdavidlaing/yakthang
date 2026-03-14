@@ -1,0 +1,1 @@
+pass: AgentStatusKind enum with 4 variants, from_status_string(), exhaustive matches in task_color/status_symbol. 46 tests pass, bin/dev clean.
