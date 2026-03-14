@@ -1,1 +1,1 @@
-wip: extracting handle_key and renaming handlers
+done: extracted handle_key(), renamed open_selected_task_context→handle_show, added handle_refresh wrapper; update() now 10 lines, no longer appears in top-5 complexity
