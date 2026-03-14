@@ -1,1 +1,0 @@
-done: created .claude/skills/yak-map-architecture/SKILL.md covering module structure, parse-at-boundary enums, named constants, ports & adapters, contract test macro, pure functions, dispatcher pattern, quality gate, testing patterns, WASM constraints, and anti-patterns

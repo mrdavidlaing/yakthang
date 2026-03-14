@@ -1,1 +1,0 @@
-Created SKILL.md with 11 convention sections, each with Convention/Rationale/When-to-deviate structure. Grounded every pattern in real source file locations (line numbers). Included anti-patterns table and a decision tree for where to put new code. All bin/dev checks pass (51 tests, WASM build, lint, complexity).
