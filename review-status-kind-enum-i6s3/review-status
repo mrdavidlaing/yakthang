@@ -1,1 +1,0 @@
-pass: ReviewStatusKind enum with 4 variants, from_status_string() with normalization, exhaustive match in review_status_emoji(). No leaked starts_with calls. bin/dev clean.
