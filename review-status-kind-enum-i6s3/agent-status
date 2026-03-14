@@ -1,1 +1,1 @@
-wip: creating ReviewStatusKind enum and refactoring review_status_emoji
+done: Created ReviewStatusKind enum (Pass, Fail, InProgress, Unknown) with from_status_string() constructor. Refactored review_status_emoji() to use exhaustive match. All tests pass, bin/dev check passes.
