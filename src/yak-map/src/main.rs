@@ -24,6 +24,28 @@ pub enum TaskState {
     Done,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum AgentStatusKind {
+    Blocked,
+    Done,
+    Wip,
+    Unknown,
+}
+
+impl AgentStatusKind {
+    fn from_status_string(s: &str) -> Self {
+        if s.starts_with("blocked:") {
+            AgentStatusKind::Blocked
+        } else if s.starts_with("done:") {
+            AgentStatusKind::Done
+        } else if s.starts_with("wip:") {
+            AgentStatusKind::Wip
+        } else {
+            AgentStatusKind::Unknown
+        }
+    }
+}
+
 pub struct TaskRepository {
     yaks_dir: PathBuf,
 }
@@ -374,14 +396,11 @@ impl State {
 
     fn task_color(&self, task: &TaskLine) -> &'static str {
         if let Some(status) = &task.agent_status {
-            if status.starts_with("blocked:") {
-                return ansi::RED;
-            }
-            if status.starts_with("done:") {
-                return ansi::GREEN;
-            }
-            if status.starts_with("wip:") {
-                return ansi::YELLOW;
+            match AgentStatusKind::from_status_string(status) {
+                AgentStatusKind::Blocked => return ansi::RED,
+                AgentStatusKind::Done => return ansi::GREEN,
+                AgentStatusKind::Wip => return ansi::YELLOW,
+                AgentStatusKind::Unknown => {}
             }
         }
         match task.state {
@@ -393,11 +412,10 @@ impl State {
 
     fn status_symbol(&self, task: &TaskLine) -> char {
         if let Some(status) = &task.agent_status {
-            if status.starts_with("done:") {
-                return '✓';
-            }
-            if status.starts_with("wip:") || status.starts_with("blocked:") {
-                return '●';
+            match AgentStatusKind::from_status_string(status) {
+                AgentStatusKind::Done => return '✓',
+                AgentStatusKind::Wip | AgentStatusKind::Blocked => return '●',
+                AgentStatusKind::Unknown => {}
             }
         }
         match task.state {
