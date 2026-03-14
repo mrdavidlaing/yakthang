@@ -1,1 +1,1 @@
-wip: creating util.rs and moving functions
+done: moved 5 utility functions (escape_single_quoted, copy_via_zellij_tty, base64_encode, strip_ansi, line_display_width) to util.rs with tests. All 46 tests pass, lint clean, complexity within thresholds.
