@@ -138,6 +138,77 @@ func TestSanitizeTaskPath(t *testing.T) {
 	}
 }
 
+func TestSanitizeBranchName(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "simple name",
+			input: "my-branch",
+			want:  "my-branch",
+		},
+		{
+			name:  "spaces to hyphens",
+			input: "SC-102103 add UnixODBC manager to imogen-workstation",
+			want:  "sc-102103-add-unixodbc-manager-to-imogen-workstation",
+		},
+		{
+			name:  "uppercase to lowercase",
+			input: "Feature/Auth",
+			want:  "feature/auth",
+		},
+		{
+			name:  "colons replaced",
+			input: "auth:api:login",
+			want:  "auth-api-login",
+		},
+		{
+			name:  "consecutive hyphens collapsed",
+			input: "auth -- api",
+			want:  "auth-api",
+		},
+		{
+			name:  "leading/trailing hyphens trimmed",
+			input: " -my branch- ",
+			want:  "my-branch",
+		},
+		{
+			name:  "dots preserved internally",
+			input: "v1.2.3-release",
+			want:  "v1.2.3-release",
+		},
+		{
+			name:  "leading dots trimmed",
+			input: ".hidden-branch",
+			want:  "hidden-branch",
+		},
+		{
+			name:  "slashes preserved",
+			input: "feature/my task",
+			want:  "feature/my-task",
+		},
+		{
+			name:  "empty string fallback",
+			input: "   ",
+			want:  "worktree",
+		},
+		{
+			name:  "special chars stripped",
+			input: "fix: handle ~tilde & ampersand [brackets]",
+			want:  "fix-handle-tilde-ampersand-brackets",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := SanitizeBranchName(tt.input)
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) &&
 		(s == substr || len(s) > len(substr) &&

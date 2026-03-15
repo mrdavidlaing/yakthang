@@ -594,7 +594,7 @@ func resolveInheritedWorktrees(absYakPath, yakValue string) ([]string, string, e
 		return nil, "", err
 	}
 	rel, _ := filepath.Rel(absYakPath, taskDir)
-	branchName := strings.Split(filepath.ToSlash(rel), "/")[0]
+	branchName := worktree.SanitizeBranchName(strings.Split(filepath.ToSlash(rel), "/")[0])
 
 	workspaceRoot := filepath.Dir(absYakPath)
 	searchDir := taskDir

@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 )
 
@@ -44,6 +45,24 @@ func sanitizeTaskPath(taskPath string) string {
 	// Remove other problematic characters
 	name = strings.ReplaceAll(name, ":", "-")
 	name = strings.ReplaceAll(name, " ", "-")
+	return name
+}
+
+var invalidBranchChars = regexp.MustCompile(`[^a-zA-Z0-9._/-]`)
+var consecutiveHyphens = regexp.MustCompile(`-{2,}`)
+
+// SanitizeBranchName converts an arbitrary string into a valid git branch name.
+// Lowercases, replaces spaces and invalid characters with hyphens, collapses
+// consecutive hyphens, and trims leading/trailing hyphens and dots.
+func SanitizeBranchName(name string) string {
+	name = strings.ToLower(name)
+	name = strings.ReplaceAll(name, " ", "-")
+	name = invalidBranchChars.ReplaceAllString(name, "-")
+	name = consecutiveHyphens.ReplaceAllString(name, "-")
+	name = strings.Trim(name, "-.")
+	if name == "" {
+		name = "worktree"
+	}
 	return name
 }
 
@@ -153,8 +172,8 @@ func EnsureWorktree(projectPath, taskPath string, verbose bool) (string, error) 
 		return "", fmt.Errorf("not a git repository: %s", projectPath)
 	}
 
-	// Convert task path to branch name (replace / with -)
-	branchName := strings.ReplaceAll(taskPath, "/", "-")
+	// Convert task path to a valid git branch name
+	branchName := SanitizeBranchName(taskPath)
 
 	// Check if worktree already exists
 	exists, err := WorktreeExists(projectPath, branchName)
