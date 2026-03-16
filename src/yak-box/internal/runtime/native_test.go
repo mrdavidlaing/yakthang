@@ -53,6 +53,39 @@ func TestGenerateNativeWrapperScript_Opencode(t *testing.T) {
 	if !strings.Contains(content, "/worker.pid") {
 		t.Errorf("opencode wrapper must write PID to pidFile, got:\n%s", content)
 	}
+	if !strings.Contains(content, "zellij action close-tab") {
+		t.Errorf("opencode wrapper must close zellij tab on exit, got:\n%s", content)
+	}
+	if strings.Contains(content, "exec opencode") {
+		t.Errorf("opencode wrapper must not use exec (would prevent cleanup), got:\n%s", content)
+	}
+}
+
+func TestGenerateNativeWrapperScript_Claude_ClosesTab(t *testing.T) {
+	worker := &types.Worker{
+		Tool:    "claude",
+		YakPath: "/test/yaks",
+		CWD:     "/test/cwd",
+	}
+	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "test-key")
+	if !strings.Contains(content, "zellij action close-tab") {
+		t.Errorf("claude wrapper must close zellij tab on exit, got:\n%s", content)
+	}
+}
+
+func TestGenerateNativeWrapperScript_Cursor_ClosesTab(t *testing.T) {
+	worker := &types.Worker{
+		Tool:    "cursor",
+		YakPath: "/test/yaks",
+		CWD:     "/test/cwd",
+	}
+	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
+	if !strings.Contains(content, "zellij action close-tab") {
+		t.Errorf("cursor wrapper must close zellij tab on exit, got:\n%s", content)
+	}
+	if strings.Contains(content, "exec agent") {
+		t.Errorf("cursor wrapper must not use exec (would prevent cleanup), got:\n%s", content)
+	}
 }
 
 func TestGenerateNativeWrapperScript_UnknownToolDefaultsToOpencode(t *testing.T) {

@@ -502,7 +502,7 @@ func TestGenerateNativeWrapperScript_CursorNoHomeOverride(t *testing.T) {
 	}
 }
 
-func TestGenerateNativeWrapperScript_ClaudeKeychainSetup(t *testing.T) {
+func TestGenerateNativeWrapperScript_ClaudeLibrarySymlink(t *testing.T) {
 	worker := &types.Worker{
 		Tool:    "claude",
 		YakPath: "/test/yaks",
@@ -511,31 +511,27 @@ func TestGenerateNativeWrapperScript_ClaudeKeychainSetup(t *testing.T) {
 	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
 
 	for _, expected := range []string{
-		"worker.keychain-db",
-		"security create-keychain",
-		"security unlock-keychain",
-		"security set-default-keychain",
-		"_restore_keychain",
-		"trap _restore_keychain EXIT",
+		"_HOST_HOME=",
+		`ln -sf "$_HOST_HOME/Library" "$HOME/Library"`,
 	} {
 		if !strings.Contains(content, expected) {
-			t.Errorf("native claude wrapper missing keychain setup %q, got:\n%s", expected, content)
+			t.Errorf("native claude wrapper missing Library symlink setup %q, got:\n%s", expected, content)
 		}
 	}
 
-	// Keychain setup must appear BEFORE the claude invocation.
-	keychainIdx := strings.Index(content, "security create-keychain")
+	// Library symlink setup must appear BEFORE the claude invocation.
+	symlinkIdx := strings.Index(content, "ln -sf")
 	claudeIdx := strings.Index(content, "\nclaude ")
-	if keychainIdx == -1 || claudeIdx == -1 || keychainIdx > claudeIdx {
-		t.Errorf("keychain setup must appear before claude invocation (keychain at %d, claude at %d)", keychainIdx, claudeIdx)
+	if symlinkIdx == -1 || claudeIdx == -1 || symlinkIdx > claudeIdx {
+		t.Errorf("Library symlink setup must appear before claude invocation (symlink at %d, claude at %d)", symlinkIdx, claudeIdx)
 	}
 
-	// cursor and opencode wrappers must NOT contain keychain setup.
+	// cursor and opencode wrappers must NOT contain Library symlink setup.
 	for _, tool := range []string{"cursor", "opencode"} {
 		worker.Tool = tool
 		content, _ = generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
-		if strings.Contains(content, "keychain") {
-			t.Errorf("%s wrapper must not contain keychain setup, got:\n%s", tool, content)
+		if strings.Contains(content, "_HOST_HOME") {
+			t.Errorf("%s wrapper must not contain Library symlink setup, got:\n%s", tool, content)
 		}
 	}
 }

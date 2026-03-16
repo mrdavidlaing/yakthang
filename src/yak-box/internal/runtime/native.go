@@ -257,24 +257,22 @@ CLAUDE_ARGS=(--dangerously-skip-permissions)
 if [[ -n "$MODEL" ]]; then
   CLAUDE_ARGS+=(--model "$MODEL")
 fi
-# Suppress macOS keychain dialogs: Claude Code (or its Node.js/keytar dependency)
-# tries to persist credentials to the default keychain. With HOME set to the
-# worker directory the default keychain may be inaccessible, causing a macOS
-# dialog. Create a worker-local keychain, make it the default, and restore the
-# original on exit so the host user's keychain configuration is not permanently
-# altered. All security(1) calls are silenced so non-macOS hosts are unaffected.
-_ORIG_DEFAULT_KEYCHAIN=$(security default-keychain 2>/dev/null | tr -d '"' | xargs)
-_WORKER_KEYCHAIN="$HOME/Library/Keychains/worker.keychain-db"
-mkdir -p "$HOME/Library/Keychains"
-security create-keychain -p "" "$_WORKER_KEYCHAIN" 2>/dev/null || true
-security unlock-keychain -p "" "$_WORKER_KEYCHAIN" 2>/dev/null || true
-security set-default-keychain "$_WORKER_KEYCHAIN" 2>/dev/null || true
-_restore_keychain() { [[ -n "$_ORIG_DEFAULT_KEYCHAIN" ]] && security set-default-keychain "$_ORIG_DEFAULT_KEYCHAIN" 2>/dev/null; true; }
-trap _restore_keychain EXIT
+# Suppress macOS keychain dialogs: instead of creating a worker keychain
+# (which mutates global per-user keychain state and causes races), symlink
+# the worker's ~/Library to the host user's real Library directory. This way
+# keychain access, preferences, and other Library-dependent lookups resolve
+# transparently to the real user's files.
+_HOST_HOME=%q
+if [[ -d "$_HOST_HOME/Library" ]]; then
+  rm -rf "$HOME/Library" 2>/dev/null
+  ln -sf "$_HOST_HOME/Library" "$HOME/Library"
+fi
 # Write PID before running Claude so yak-box stop can find and kill the process tree.
 echo $$ > "%s"
 claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"
-`, filepath.Join(hostHomeDir, ".local", "bin"), homeDir, gitConfigGlobalLine, ghConfigDirLine, gitIdentityLines, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
+# Self-cleanup: close this Zellij tab when the worker finishes
+zellij action close-tab
+`, filepath.Join(hostHomeDir, ".local", "bin"), homeDir, gitConfigGlobalLine, ghConfigDirLine, gitIdentityLines, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, hostHomeDir, pidFile)
 	case "cursor":
 		paneName = "cursor (build) [native]"
 		content = fmt.Sprintf(`#!/usr/bin/env bash
@@ -284,10 +282,12 @@ MODEL=%q
 # Write PID before exec so yak-box stop can find and kill the process tree.
 echo $$ > "%s"
 if [[ -n "$MODEL" ]]; then
-  exec agent --force --model "$MODEL" --workspace "%s" "$PROMPT"
+  agent --force --model "$MODEL" --workspace "%s" "$PROMPT"
 else
-  exec agent --force --workspace "%s" "$PROMPT"
+  agent --force --workspace "%s" "$PROMPT"
 fi
+# Self-cleanup: close this Zellij tab when the worker finishes
+zellij action close-tab
 `, shaverNameLine, worker.YakPath, promptFile, worker.Model, pidFile, worker.CWD, worker.CWD)
 	default:
 		paneName = "opencode (build) [native]"
@@ -297,7 +297,9 @@ PROMPT="$(cat "%s")"
 # Write PID before exec so yak-box stop can find and kill the process tree.
 # exec replaces this process, so $$ will be the PID of opencode.
 echo $$ > "%s"
-exec opencode --prompt "$PROMPT" --agent build
+opencode --prompt "$PROMPT" --agent build
+# Self-cleanup: close this Zellij tab when the worker finishes
+zellij action close-tab
 `, shaverNameLine, worker.YakPath, promptFile, pidFile)
 	}
 	return content, paneName
