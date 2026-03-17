@@ -1,1 +1,1 @@
-wip: investigating CLAUDE_CONFIG_DIR env var support
+wip: CLAUDE_CONFIG_DIR confirmed — implementing fix in native.go and helpers.go
