@@ -1,1 +1,1 @@
-wip: found yakob.md at agents/yakob.md — updating shaver name pool section
+done: updated agents/yakob.md with check-then-randomise name selection — canonical pool documented, in-use names excluded via yx ls, remaining picked with shuf; example updated too
