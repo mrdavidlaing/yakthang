@@ -1,1 +1,1 @@
-wip: writing research findings
+done: wrote research/openshell-vs-yak-box.md — OpenShell is a secure agent runtime (K3s+Docker, L7 egress policies, inference routing); yak-box is a task-orchestration launcher (different problem). Recommendation: park; revisit if egress control or multi-tenant needs arise. One idea worth borrowing: lightweight egress filtering on yak-shavers bridge.
