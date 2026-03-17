@@ -200,11 +200,34 @@ Use `yak-box spawn` to launch a Claude Code instance in a new Zellij tab.
 
 ### Shaver name pool
 
-Every shaver gets a yak-themed name. Pick one per spawn. **Do not reuse a name
-while another shaver with that name is still running.**
+Every shaver gets a yak-themed name. **Always use the check-then-randomise
+procedure below** — do not just pick from the top of the list.
 
-Available names: **Yakira, Yakoff, Yakriel, Yakueline, Yaklyn, Yakon,
-Yakitty, Bob**
+**Canonical name pool:** Yakira, Yakoff, Yakriel, Yakueline, Yaklyn, Yakon,
+Yakitty, Bob
+
+#### Check-then-randomise procedure
+
+Before every spawn, discover which names are already in use and pick randomly
+from the remainder:
+
+```bash
+# Step 1: find names currently assigned to running workers
+in_use=$(yx ls --format json 2>/dev/null \
+  | jq -r '.. | objects | select(.fields) | .fields | to_entries[]
+           | select(.key == "Assigned-to") | .value' 2>/dev/null \
+  | sort -u)
+
+# Step 2: pick randomly from the names NOT currently in use
+shaver_name=$(printf '%s\n' Yakira Yakoff Yakriel Yakueline Yaklyn Yakon Yakitty Bob \
+  | grep -vxF "$in_use" \
+  | shuf | head -1)
+
+echo "Picking: $shaver_name"
+```
+
+Then pass `$shaver_name` to `--shaver-name`. If all names are in use (unlikely),
+wait for a worker to finish before spawning another.
 
 The `--shaver-name` flag sets the shaver identity in the Zellij tab title
 (left side of `Yakoff 🪒🐃 worker-name`) and in the yak's `assigned-to` field.
@@ -241,10 +264,17 @@ start each yak, run: echo '$supervisor' | yx field <id> supervised-by"`
 ```bash
 skill_flags=$(ls -d .claude/skills/*/ 2>/dev/null | sed 's|/$||' | xargs -I{} echo "--skill {}" | tr '\n' ' ')
 
+# Pick an available shaver name (check-then-randomise)
+in_use=$(yx ls --format json 2>/dev/null \
+  | jq -r '.. | objects | select(.fields) | .fields | to_entries[]
+           | select(.key == "Assigned-to") | .value' 2>/dev/null | sort -u)
+shaver_name=$(printf '%s\n' Yakira Yakoff Yakriel Yakueline Yaklyn Yakon Yakitty Bob \
+  | grep -vxF "$in_use" | shuf | head -1)
+
 yak-box spawn \
   --cwd ./api \
   --yak-name "api-auth" \
-  --shaver-name "Yakriel" \
+  --shaver-name "$shaver_name" \
   --tool claude \
   --runtime native \
   --yaks auth-login --yaks auth-logout \
