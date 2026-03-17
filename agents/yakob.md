@@ -227,7 +227,7 @@ echo "Picking: $shaver_name"
 ```
 
 Then pass `$shaver_name` to `--shaver-name`. If all names are in use (unlikely),
-wait for a worker to finish before spawning another.
+make up a new yak-themed name on the spot (e.g. Yakenzo, Yakimoto, Yakasha).
 
 The `--shaver-name` flag sets the shaver identity in the Zellij tab title
 (left side of `Yakoff 🪒🐃 worker-name`) and in the yak's `assigned-to` field.
