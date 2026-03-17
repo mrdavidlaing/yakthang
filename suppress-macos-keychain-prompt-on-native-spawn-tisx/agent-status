@@ -1,1 +1,1 @@
-wip: CLAUDE_CONFIG_DIR confirmed — implementing fix in native.go and helpers.go
+done: CLAUDE_CONFIG_DIR confirmed and implemented — HOME unchanged, keychain workaround dropped, PATH pinning removed, all tests pass
