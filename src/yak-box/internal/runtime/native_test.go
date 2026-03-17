@@ -40,7 +40,7 @@ func TestGenerateNativeWrapperScript_Opencode(t *testing.T) {
 		YakPath: "/test/yaks",
 		CWD:     "/test/cwd",
 	}
-	content, paneName := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
+	content, paneName := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if paneName != "opencode (build) [native]" {
 		t.Errorf("unexpected paneName: %q", paneName)
 	}
@@ -61,7 +61,7 @@ func TestGenerateNativeWrapperScript_UnknownToolDefaultsToOpencode(t *testing.T)
 		YakPath: "/test/yaks",
 		CWD:     "/test/cwd",
 	}
-	content, paneName := generateNativeWrapperScript(worker, "/home/worker", "", "/p.txt", "/pid", "")
+	content, paneName := generateNativeWrapperScript(worker, "/home/worker", "/p.txt", "/pid", "")
 	if paneName != "opencode (build) [native]" {
 		t.Errorf("unknown tool should default to opencode pane name, got %q", paneName)
 	}

@@ -41,8 +41,7 @@ func SpawnNativeWorker(worker *types.Worker, prompt string, homeDir string) (pid
 		}
 	}
 
-	hostHomeDir := os.Getenv("HOME")
-	wrapperContent, _ := generateNativeWrapperScript(worker, homeDir, hostHomeDir, promptFile, pidFile, apiKey)
+	wrapperContent, _ := generateNativeWrapperScript(worker, homeDir, promptFile, pidFile, apiKey)
 
 	wrapperScript := filepath.Join(workerDir, "run.sh")
 	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
@@ -204,51 +203,34 @@ func KillNativeProcessTree(pidFile string, timeout time.Duration) error {
 }
 
 // generateNativeWrapperScript builds the run.sh wrapper content and pane name
-// for a native worker. For Claude, HOME is set to homeDir so that Claude Code
-// resolves ~/.claude/skills/ to the worker's own skill directory rather than
-// the invoking user's home. To preserve host git/gh auth, it also exports
-// GIT_CONFIG_GLOBAL and GH_CONFIG_DIR pointing at hostHomeDir.
+// for a native worker. For Claude, CLAUDE_CONFIG_DIR is set to homeDir/.claude
+// so each worker gets an isolated Claude config without overriding HOME. This
+// keeps all macOS/system tooling (Keychain, git, etc.) pointing at the real
+// user home — no keychain workaround needed.
 // apiKey is embedded directly when non-empty.
-func generateNativeWrapperScript(worker *types.Worker, homeDir, hostHomeDir, promptFile, pidFile, apiKey string) (content, paneName string) {
+func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidFile, apiKey string) (content, paneName string) {
 	shaverNameLine := ""
 	if worker.ShaverName != "" {
 		shaverNameLine = fmt.Sprintf("export YAK_SHAVER_NAME=%q\n", worker.ShaverName)
 	}
 
-	// Resolve the host's git identity now (while HOME still points at the real
-	// home directory) so we can export it explicitly in the wrapper script.
-	// This is necessary because GIT_CONFIG_GLOBAL points at the host's
-	// .gitconfig, but that file may use include paths with ~ which git resolves
-	// via HOME — and HOME gets overridden to the worker's home dir.
-	gitIdentityLines := resolveGitIdentityExports()
-
 	switch worker.Tool {
 	case "claude":
 		paneName = "claude (build) [native]"
-		// Set HOME to the worker's home directory so Claude Code finds skills,
-		// settings, and other config at <homeDir>/.claude/ instead of the
-		// invoking user's real home directory.
+		// Point CLAUDE_CONFIG_DIR at the worker's .claude/ dir so each worker
+		// has isolated Claude settings and skills without redirecting HOME.
+		// With HOME unchanged, macOS Keychain, git, and other host tooling
+		// continue to work normally — no keychain workaround required.
 		apiKeyLine := ""
 		if apiKey != "" {
 			apiKeyLine = fmt.Sprintf("export _ANTHROPIC_API_KEY=%q", apiKey)
 		}
-		gitConfigGlobalLine := ""
-		ghConfigDirLine := ""
-		if hostHomeDir != "" {
-			gitConfigGlobalLine = fmt.Sprintf("export GIT_CONFIG_GLOBAL=%q", filepath.Join(hostHomeDir, ".gitconfig"))
-			ghConfigDirLine = fmt.Sprintf("export GH_CONFIG_DIR=%q", filepath.Join(hostHomeDir, ".config", "gh"))
-		}
+		claudeConfigDir := filepath.Join(homeDir, ".claude")
 		// Clean CLAUDECODE env var to avoid nested session conflicts.
-		// Pin the host's ~/.local/bin in PATH before overriding HOME, so tools
-		// installed there (claude, yx, yak-box) remain accessible.
 		content = fmt.Sprintf(`#!/usr/bin/env bash
-# Preserve host ~/.local/bin in PATH before HOME changes
-export PATH="%s:$PATH"
-export HOME=%q
-%s
-%s
+export CLAUDE_CONFIG_DIR=%q
 %sexport IS_DEMO=true
-%sexport YAK_PATH="%s"
+export YAK_PATH="%s"
 %s
 unset CLAUDECODE
 MODEL=%q
@@ -257,24 +239,10 @@ CLAUDE_ARGS=(--dangerously-skip-permissions)
 if [[ -n "$MODEL" ]]; then
   CLAUDE_ARGS+=(--model "$MODEL")
 fi
-# Suppress macOS keychain dialogs: Claude Code (or its Node.js/keytar dependency)
-# tries to persist credentials to the default keychain. With HOME set to the
-# worker directory the default keychain may be inaccessible, causing a macOS
-# dialog. Create a worker-local keychain, make it the default, and restore the
-# original on exit so the host user's keychain configuration is not permanently
-# altered. All security(1) calls are silenced so non-macOS hosts are unaffected.
-_ORIG_DEFAULT_KEYCHAIN=$(security default-keychain 2>/dev/null | tr -d '"' | xargs)
-_WORKER_KEYCHAIN="$HOME/Library/Keychains/worker.keychain-db"
-mkdir -p "$HOME/Library/Keychains"
-security create-keychain -p "" "$_WORKER_KEYCHAIN" 2>/dev/null || true
-security unlock-keychain -p "" "$_WORKER_KEYCHAIN" 2>/dev/null || true
-security set-default-keychain "$_WORKER_KEYCHAIN" 2>/dev/null || true
-_restore_keychain() { [[ -n "$_ORIG_DEFAULT_KEYCHAIN" ]] && security set-default-keychain "$_ORIG_DEFAULT_KEYCHAIN" 2>/dev/null; true; }
-trap _restore_keychain EXIT
 # Write PID before running Claude so yak-box stop can find and kill the process tree.
 echo $$ > "%s"
 claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"
-`, filepath.Join(hostHomeDir, ".local", "bin"), homeDir, gitConfigGlobalLine, ghConfigDirLine, gitIdentityLines, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
+`, claudeConfigDir, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
 	case "cursor":
 		paneName = "cursor (build) [native]"
 		content = fmt.Sprintf(`#!/usr/bin/env bash
@@ -333,13 +301,21 @@ func setupClaudeSettings(homeDir, apiKey string) error {
 
 	// Pre-seed .claude.json so Claude Code starts without blocking on
 	// onboarding or permissions prompts, and pre-approves the key suffix.
-	claudeJSONPath := filepath.Join(homeDir, ".claude.json")
+	// Write to both locations:
+	//   homeDir/.claude.json        — used by sandboxed workers (HOME=homeDir, no CLAUDE_CONFIG_DIR)
+	//   claudeDir/.claude.json      — used by native workers (CLAUDE_CONFIG_DIR=claudeDir)
 	suffix := apiKey
 	if len(apiKey) > 20 {
 		suffix = apiKey[len(apiKey)-20:]
 	}
-	if err := os.WriteFile(claudeJSONPath, []byte(buildClaudeJSONContent(suffix)), 0644); err != nil {
-		fmt.Fprintf(os.Stderr, "Warning: failed to write .claude.json: %v\n", err)
+	claudeJSONContent := buildClaudeJSONContent(suffix)
+	for _, p := range []string{
+		filepath.Join(homeDir, ".claude.json"),
+		filepath.Join(claudeDir, ".claude.json"),
+	} {
+		if err := os.WriteFile(p, []byte(claudeJSONContent), 0644); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to write .claude.json to %s: %v\n", p, err)
+		}
 	}
 	remoteSettingsPath := filepath.Join(claudeDir, "remote-settings.json")
 	if _, statErr := os.Stat(remoteSettingsPath); os.IsNotExist(statErr) {

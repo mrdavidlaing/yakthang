@@ -425,7 +425,7 @@ func TestCreateZellijLayout(t *testing.T) {
 	}
 }
 
-func TestGenerateNativeWrapperScript_ClaudeHomeSetsWorkerHome(t *testing.T) {
+func TestGenerateNativeWrapperScript_ClaudeUsesCLAUDE_CONFIG_DIR(t *testing.T) {
 	worker := &types.Worker{
 		Tool:    "claude",
 		YakPath: "/test/yaks",
@@ -433,20 +433,25 @@ func TestGenerateNativeWrapperScript_ClaudeHomeSetsWorkerHome(t *testing.T) {
 		CWD:     "/test/cwd",
 	}
 	homeDir := "/test/worker-home"
-	content, paneName := generateNativeWrapperScript(worker, homeDir, "/host/home", "/test/prompt.txt", "/test/worker.pid", "")
+	content, paneName := generateNativeWrapperScript(worker, homeDir, "/test/prompt.txt", "/test/worker.pid", "")
 
 	if paneName != "claude (build) [native]" {
 		t.Errorf("unexpected paneName: %q", paneName)
 	}
-	// HOME must be the worker's homeDir, not a hardcoded path
-	if !strings.Contains(content, `export HOME="/test/worker-home"`) {
-		t.Errorf("native claude wrapper must set HOME to homeDir, got:\n%s", content)
+	// CLAUDE_CONFIG_DIR must point to the worker's .claude/ dir for config isolation.
+	if !strings.Contains(content, `export CLAUDE_CONFIG_DIR="/test/worker-home/.claude"`) {
+		t.Errorf("native claude wrapper must set CLAUDE_CONFIG_DIR, got:\n%s", content)
 	}
-	if !strings.Contains(content, `export GIT_CONFIG_GLOBAL="/host/home/.gitconfig"`) {
-		t.Errorf("native claude wrapper must preserve host git config path, got:\n%s", content)
+	// HOME must NOT be overridden — keeps macOS Keychain, git, and other host tooling intact.
+	if strings.Contains(content, `export HOME=`) {
+		t.Errorf("native claude wrapper must not override HOME, got:\n%s", content)
 	}
-	if !strings.Contains(content, `export GH_CONFIG_DIR="/host/home/.config/gh"`) {
-		t.Errorf("native claude wrapper must preserve host gh config path, got:\n%s", content)
+	// GIT_CONFIG_GLOBAL and GH_CONFIG_DIR workarounds are no longer needed.
+	if strings.Contains(content, `GIT_CONFIG_GLOBAL`) {
+		t.Errorf("native claude wrapper must not set GIT_CONFIG_GLOBAL (HOME is unchanged), got:\n%s", content)
+	}
+	if strings.Contains(content, `GH_CONFIG_DIR`) {
+		t.Errorf("native claude wrapper must not set GH_CONFIG_DIR (HOME is unchanged), got:\n%s", content)
 	}
 	if !strings.Contains(content, `export YAK_PATH="/test/yaks"`) {
 		t.Errorf("native claude wrapper missing YAK_PATH, got:\n%s", content)
@@ -463,7 +468,7 @@ func TestGenerateNativeWrapperScript_ClaudeAnthropicKeyIncluded(t *testing.T) {
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "test-key-abc")
+	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "test-key-abc")
 	if !strings.Contains(content, `export _ANTHROPIC_API_KEY="test-key-abc"`) {
 		t.Errorf("native claude wrapper must include _ANTHROPIC_API_KEY, got:\n%s", content)
 	}
@@ -479,7 +484,7 @@ func TestGenerateNativeWrapperScript_ClaudeNoAnthropicKeyWhenEmpty(t *testing.T)
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
+	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if strings.Contains(content, `ANTHROPIC_API_KEY`) {
 		t.Errorf("native claude wrapper must not include ANTHROPIC_API_KEY when empty, got:\n%s", content)
 	}
@@ -492,7 +497,7 @@ func TestGenerateNativeWrapperScript_CursorNoHomeOverride(t *testing.T) {
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content, paneName := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
+	content, paneName := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if paneName != "cursor (build) [native]" {
 		t.Errorf("unexpected paneName: %q", paneName)
 	}
@@ -502,38 +507,16 @@ func TestGenerateNativeWrapperScript_CursorNoHomeOverride(t *testing.T) {
 	}
 }
 
-func TestGenerateNativeWrapperScript_ClaudeKeychainSetup(t *testing.T) {
-	worker := &types.Worker{
-		Tool:    "claude",
-		YakPath: "/test/yaks",
-		CWD:     "/test/cwd",
-	}
-	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
-
-	for _, expected := range []string{
-		"worker.keychain-db",
-		"security create-keychain",
-		"security unlock-keychain",
-		"security set-default-keychain",
-		"_restore_keychain",
-		"trap _restore_keychain EXIT",
-	} {
-		if !strings.Contains(content, expected) {
-			t.Errorf("native claude wrapper missing keychain setup %q, got:\n%s", expected, content)
+func TestGenerateNativeWrapperScript_ClaudeNoKeychainSetup(t *testing.T) {
+	// Now that HOME is not overridden, the macOS keychain workaround is
+	// unnecessary. No wrapper should contain keychain setup code.
+	for _, tool := range []string{"claude", "cursor", "opencode"} {
+		worker := &types.Worker{
+			Tool:    tool,
+			YakPath: "/test/yaks",
+			CWD:     "/test/cwd",
 		}
-	}
-
-	// Keychain setup must appear BEFORE the claude invocation.
-	keychainIdx := strings.Index(content, "security create-keychain")
-	claudeIdx := strings.Index(content, "\nclaude ")
-	if keychainIdx == -1 || claudeIdx == -1 || keychainIdx > claudeIdx {
-		t.Errorf("keychain setup must appear before claude invocation (keychain at %d, claude at %d)", keychainIdx, claudeIdx)
-	}
-
-	// cursor and opencode wrappers must NOT contain keychain setup.
-	for _, tool := range []string{"cursor", "opencode"} {
-		worker.Tool = tool
-		content, _ = generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
+		content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 		if strings.Contains(content, "keychain") {
 			t.Errorf("%s wrapper must not contain keychain setup, got:\n%s", tool, content)
 		}
@@ -547,13 +530,13 @@ func TestGenerateNativeWrapperScript_ShaverNameEnvVar(t *testing.T) {
 		CWD:        "/test/cwd",
 		ShaverName: "Yakoff",
 	}
-	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
+	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if !strings.Contains(content, `export YAK_SHAVER_NAME="Yakoff"`) {
 		t.Errorf("native wrapper must set YAK_SHAVER_NAME when worker.ShaverName is set, got:\n%s", content)
 	}
 
 	worker.ShaverName = ""
-	content, _ = generateNativeWrapperScript(worker, "/home/worker", "/host/home", "/prompt.txt", "/worker.pid", "")
+	content, _ = generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if strings.Contains(content, "YAK_SHAVER_NAME") {
 		t.Errorf("native wrapper must not set YAK_SHAVER_NAME when worker.ShaverName is empty, got:\n%s", content)
 	}
@@ -567,9 +550,12 @@ func TestSetupClaudeSettings_PreseededClaudeJSON(t *testing.T) {
 		t.Fatalf("setupClaudeSettings returned error: %v", err)
 	}
 
+	// .claude.json must exist at both locations:
+	//   homeDir/.claude.json      — for sandboxed workers (HOME=homeDir, no CLAUDE_CONFIG_DIR)
+	//   homeDir/.claude/.claude.json — for native workers (CLAUDE_CONFIG_DIR=homeDir/.claude)
 	data, err := os.ReadFile(filepath.Join(homeDir, ".claude.json"))
 	if err != nil {
-		t.Fatalf(".claude.json not created: %v", err)
+		t.Fatalf(".claude.json not created at homeDir root: %v", err)
 	}
 	content := string(data)
 	if !strings.Contains(content, `"hasCompletedOnboarding":true`) {
@@ -580,6 +566,15 @@ func TestSetupClaudeSettings_PreseededClaudeJSON(t *testing.T) {
 	}
 	if !strings.Contains(content, `"customApiKeyResponses"`) {
 		t.Errorf(".claude.json missing customApiKeyResponses, got:\n%s", content)
+	}
+
+	// Also verify .claude.json was written inside the config dir for native workers.
+	configDirJSON, err := os.ReadFile(filepath.Join(homeDir, ".claude", ".claude.json"))
+	if err != nil {
+		t.Fatalf(".claude.json not created inside .claude/ dir (for CLAUDE_CONFIG_DIR): %v", err)
+	}
+	if !strings.Contains(string(configDirJSON), `"hasCompletedOnboarding":true`) {
+		t.Errorf(".claude/.claude.json missing hasCompletedOnboarding:true, got:\n%s", string(configDirJSON))
 	}
 
 	remoteSettingsPath := filepath.Join(homeDir, ".claude", "remote-settings.json")
