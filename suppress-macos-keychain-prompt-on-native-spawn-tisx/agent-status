@@ -1,1 +1,1 @@
-wip: starting — reading context and investigating CLAUDE_CONFIG_DIR
+wip: investigating CLAUDE_CONFIG_DIR env var support
