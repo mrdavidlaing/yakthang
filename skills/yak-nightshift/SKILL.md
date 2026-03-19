@@ -87,22 +87,25 @@ Create the nightshift session yak.
 
 ```bash
 # Calculate hard stop (8 hours from now, or operator-specified)
+# Store both epoch (for comparison) and HH:MM (for display)
+hard_stop_epoch=$(date -d "+8 hours" +%s 2>/dev/null || date -v+8H +%s)
 hard_stop=$(date -d "+8 hours" +"%H:%M" 2>/dev/null || date -v+8H +"%H:%M")
 
-yx add nightshift-YYYY-MM-DD-HHMM \
+yx add session-nightshift-YYYY-MM-DD-HHMM \
   --under "📋 worklogs" \
   --field hard-stop="$hard_stop" \
+  --field hard-stop-epoch="$hard_stop_epoch" \
   --field wip-limit=1 \
   --field type=nightshift \
   --field started="$(date '+%Y-%m-%d %H:%M')" \
   --field queue="yak-1, yak-2, yak-3"
 
-yx start nightshift-YYYY-MM-DD-HHMM
+yx start session-nightshift-YYYY-MM-DD-HHMM
 ```
 
 Store the confirmed queue in context:
 ```bash
-cat <<EOF | yx context nightshift-YYYY-MM-DD-HHMM
+cat <<EOF | yx context session-nightshift-YYYY-MM-DD-HHMM
 Nightshift queue (confirmed):
 1. yak-1
 2. yak-2
@@ -136,9 +139,12 @@ hard stop before starting a new yak.**
 ### Pre-flight check
 
 ```bash
-# Check hard stop before each yak
-current=$(date +"%H:%M")
-# If current time >= hard_stop, skip to Phase 4 (Wrap)
+# Check hard stop before each yak (epoch comparison handles midnight crossover)
+current_epoch=$(date +%s)
+hard_stop_epoch=$(yx field --show "$session" hard-stop-epoch)
+if [ "$current_epoch" -ge "$hard_stop_epoch" ]; then
+  # Hard stop reached — skip to Phase 4 (Wrap)
+fi
 ```
 
 If hard stop is reached, do NOT start the next yak. Proceed to Phase 4.
@@ -158,7 +164,10 @@ shaver_name=$(printf '%s\n' Yakira Yakoff Yakriel Yakueline Yaklyn Yakon Yakitty
   | grep -vxF "$in_use" | shuf | head -1)
 ```
 
-Spawn a sandboxed shaver with a worktree:
+Spawn a shaver with a worktree. Use `--runtime native` — overnight work
+requires git push access, and sandboxed containers may not have credentials
+mounted. If your environment mounts SSH keys or git credentials into the
+sandbox, you can use `--runtime sandboxed` instead.
 
 ```bash
 yak-box spawn \
@@ -166,7 +175,7 @@ yak-box spawn \
   --yak-name "<yak-name>" \
   --shaver-name "$shaver_name" \
   --tool claude \
-  --runtime sandboxed \
+  --runtime native \
   --auto-worktree \
   --yaks <yak-name> \
   $(echo $skill_flags) \
@@ -182,12 +191,39 @@ yak-box spawn \
 
 ### Step 2: Wait for completion
 
-Poll until the shaver finishes:
+Poll until the shaver finishes. Check every 2 minutes with a 30-minute
+staleness timeout (15 consecutive polls with no status change):
 
 ```bash
-# The /loop heartbeat shows yx ls every 5 minutes.
-# Additionally, check agent-status for completion signals:
-yx field --show <yak-name> agent-status
+# Read worktree path created by --auto-worktree
+worktree_path=$(yx field --show <yak-name> worktree-path 2>/dev/null)
+
+# Poll every 2 minutes, timeout after 30 minutes of no status change
+last_status=""
+stale_count=0
+while true; do
+  status=$(yx field --show <yak-name> agent-status 2>/dev/null)
+  state=$(yx show <yak-name> --format json 2>/dev/null | jq -r '.state')
+
+  # Check for completion
+  if [[ "$status" == done:* ]] || [[ "$state" == "done" ]]; then break; fi
+  if [[ "$status" == blocked:* ]]; then break; fi
+
+  # Check for stale (no change in 30 min = 15 polls)
+  if [ "$status" = "$last_status" ]; then
+    stale_count=$((stale_count + 1))
+    if [ "$stale_count" -ge 15 ]; then
+      # Timeout — park the yak
+      echo "blocked: shaver timed out (no status change in 30 min)" | yx field <yak-name> agent-status
+      break
+    fi
+  else
+    stale_count=0
+    last_status="$status"
+  fi
+
+  sleep 120
+done
 ```
 
 A shaver is done when:
@@ -195,24 +231,73 @@ A shaver is done when:
 - `agent-status` starts with `blocked:` — shaver got stuck
 - The yak state shows `done` in `yx ls`
 
-**If the shaver is blocked or crashed:**
+**If the shaver is blocked or timed out:**
 - Park the yak: set `agent-status` to `blocked: shaver failed overnight`
 - Append a note to the session yak's `comments.md`
 - Skip to the next yak in the queue
 
 ### Step 3: SNIFF
 
-Invoke yak-sniff-test on the completed work. Follow the yak-sniff-test skill
-exactly — spawn a read-only subagent reviewer, run tests, record the verdict.
+Run an adversarial review on the completed work. The reviewer is a read-only
+subagent (Agent tool, not yak-box spawn) — it inherits Yakob's auth, leaves
+no stale sessions, and doesn't count against WIP.
+
+First, collect the done yak's data:
 
 ```bash
-# Read the done yak data for the reviewer
-yx context --show <yak-name>
-yx field --show <yak-name> agent-status
-yx field --show <yak-name> comments.md
+context=$(yx context --show <yak-name>)
+agent_status=$(yx field --show <yak-name> agent-status)
+comments=$(yx field --show <yak-name> comments.md 2>/dev/null)
 ```
 
-Then launch the adversarial reviewer as described in `/yak-sniff-test`.
+Mark under review:
+```bash
+echo "in-progress" | yx field <yak-name> review-status
+```
+
+Then launch a general-purpose subagent in the background with the adversarial
+review prompt (see yak-sniff-test for the full template):
+
+```
+Agent tool call:
+  subagent_type: "general-purpose"
+  description: "Review <yak-name>"
+  run_in_background: true
+  prompt: |
+    You are an adversarial reviewer for "<yak-name>".
+
+    ## Original Brief
+    $context
+
+    ## Shaver's Done Summary
+    $agent_status
+
+    ## Shaver's Notes
+    ${comments:-"No comments were left."}
+
+    ## Your Task
+    1. Check git log in the worktree for recent commits
+    2. Verify each acceptance criterion against actual code
+    3. Note which test commands should be run — do NOT run them yourself
+    4. Report verdict: pass, fail, or needs-info with file/line evidence
+```
+
+When the subagent returns, **run the tests yourself** in the worktree:
+```bash
+cd "$worktree_path" && <test-command>  # e.g., go test ./..., cargo test, npm test
+```
+
+Record the verdict:
+```bash
+# On pass:
+echo "pass: <summary>" | yx field <yak-name> review-status
+echo "pass: <summary>" | yx field <yak-name> review-verdict
+
+# On fail:
+echo "fail: <summary>" | yx field <yak-name> review-status
+echo "fail: <summary>" | yx field <yak-name> review-verdict
+echo "<detailed findings>" | yx field <yak-name> review-notes
+```
 
 **On pass:** proceed to Step 4 (PR).
 
@@ -224,13 +309,12 @@ Create a pull request from the worktree branch.
 
 ```bash
 # Find the worktree branch
-worktree_branch=$(cd <worktree-path> && git branch --show-current)
+worktree_branch=$(cd "$worktree_path" && git branch --show-current)
 
-# Create PR
+# Create PR (add --label "nightshift" if you've created that label in the repo)
 gh pr create \
   --head "$worktree_branch" \
   --title "<yak-name>" \
-  --label "nightshift" \
   --body "$(cat <<'EOF'
 ## Summary
 
@@ -289,11 +373,11 @@ review_notes=$(yx field --show <yak-name> review-notes)
 
 # Spawn a remediation shaver in the SAME worktree
 yak-box spawn \
-  --cwd <worktree-path> \
+  --cwd "$worktree_path" \
   --yak-name "<yak-name>-fix" \
   --shaver-name "$shaver_name" \
   --tool claude \
-  --runtime sandboxed \
+  --runtime native \
   --yaks <yak-name> \
   $(echo $skill_flags) \
   "Your supervisor is $supervisor.
@@ -370,6 +454,16 @@ Invoke `/yak-wrap` to harvest done yaks and generate the worklog.
 The session yak's `comments.md` already has the running log from Phase 3 —
 yak-wrap appends the formal summary.
 
+### Worktree cleanup
+
+Worktrees created by `--auto-worktree` persist after the session. For yaks
+whose PRs have been merged, clean up with:
+```bash
+git worktree remove <worktree-path>
+```
+
+Worktrees for parked or unmerged yaks should be kept until the human reviews.
+
 ### Sync
 
 ```bash
@@ -398,7 +492,7 @@ yx sync
 | Queue | Survey map, confirm order | Operator invokes `/yak-nightshift` |
 | Commit | Create session yak, start heartbeat | Operator confirms queue |
 | Run | Serial: shave → sniff → (remediate?) → PR → next | Automatic |
-| Wrap | Worklog + sync | Queue empty or hard stop |
+| Wrap | Worklog + sync + worktree cleanup | Queue empty or hard stop |
 
 ## Red Flags
 
