@@ -1,1 +1,1 @@
-wip: designing ResolvedVisualState enum to unify priority resolution
+done: introduced ResolvedVisualState enum; priority resolution now happens once in resolve(), task_color() and status_symbol() are simple match arms
