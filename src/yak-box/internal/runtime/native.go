@@ -32,16 +32,16 @@ func SpawnNativeWorker(worker *types.Worker, prompt string, homeDir string) (pid
 
 	pidFile = filepath.Join(workerDir, "worker.pid")
 
+	hostHomeDir := os.Getenv("HOME")
+
 	// Resolve API key once; shared by setupClaudeSettings and generateNativeWrapperScript.
 	apiKey := ""
 	if worker.Tool == "claude" {
 		apiKey = resolveAnthropicKey()
-		if err := setupClaudeSettings(homeDir, apiKey); err != nil {
+		if err := setupClaudeSettings(homeDir, hostHomeDir, apiKey); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to setup Claude settings: %v\n", err)
 		}
 	}
-
-	hostHomeDir := os.Getenv("HOME")
 	wrapperContent, _ := generateNativeWrapperScript(worker, homeDir, hostHomeDir, promptFile, pidFile, apiKey)
 
 	wrapperScript := filepath.Join(workerDir, "run.sh")
@@ -308,7 +308,9 @@ exec opencode --prompt "$PROMPT" --agent build
 // auth non-interactively. When no API key is present (OAuth mode), the helper
 // is omitted so Claude Code falls through to its OAuth credentials.
 // It also preserves statusline config when goccc exists.
-func setupClaudeSettings(homeDir, apiKey string) error {
+// When hostHomeDir is non-empty, hooks from <hostHomeDir>/.claude/settings.json
+// are merged in, with leading ~/ in command strings rewritten to absolute paths.
+func setupClaudeSettings(homeDir, hostHomeDir, apiKey string) error {
 	claudeDir := filepath.Join(homeDir, ".claude")
 	if err := os.MkdirAll(claudeDir, 0755); err != nil {
 		return fmt.Errorf("failed to create .claude directory: %w", err)
@@ -359,6 +361,11 @@ func setupClaudeSettings(homeDir, apiKey string) error {
 			"command": "goccc -statusline",
 		}
 	}
+	if hostHomeDir != "" {
+		if hooks := readHostHooks(hostHomeDir); hooks != nil {
+			settings["hooks"] = rewriteHookPaths(hooks, hostHomeDir)
+		}
+	}
 	settingsData, err := json.MarshalIndent(settings, "", "  ")
 	if err != nil {
 		return fmt.Errorf("failed to marshal Claude settings: %w", err)
@@ -369,4 +376,47 @@ func setupClaudeSettings(homeDir, apiKey string) error {
 	}
 
 	return nil
+}
+
+// readHostHooks reads the "hooks" value from <hostHomeDir>/.claude/settings.json.
+// Returns nil if the file is missing, unreadable, or contains no "hooks" key.
+func readHostHooks(hostHomeDir string) any {
+	data, err := os.ReadFile(filepath.Join(hostHomeDir, ".claude", "settings.json"))
+	if err != nil {
+		return nil
+	}
+	var hostSettings map[string]any
+	if err := json.Unmarshal(data, &hostSettings); err != nil {
+		return nil
+	}
+	return hostSettings["hooks"]
+}
+
+// rewriteHookPaths walks the hooks structure and replaces a leading "~/" in
+// every "command" string with hostHomeDir+"/". Workers run with HOME set to the
+// worker directory, so ~ would otherwise resolve to the wrong path.
+func rewriteHookPaths(v any, hostHomeDir string) any {
+	switch val := v.(type) {
+	case map[string]any:
+		result := make(map[string]any, len(val))
+		for k, child := range val {
+			if k == "command" {
+				if s, ok := child.(string); ok {
+					child = strings.ReplaceAll(s, "~/", hostHomeDir+"/")
+				}
+			} else {
+				child = rewriteHookPaths(child, hostHomeDir)
+			}
+			result[k] = child
+		}
+		return result
+	case []any:
+		result := make([]any, len(val))
+		for i, item := range val {
+			result[i] = rewriteHookPaths(item, hostHomeDir)
+		}
+		return result
+	default:
+		return v
+	}
 }

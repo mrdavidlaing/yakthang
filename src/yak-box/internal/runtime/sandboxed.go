@@ -132,7 +132,9 @@ func SpawnSandboxedWorker(ctx context.Context, opts ...SpawnOption) error {
 	// Prepare Claude settings using the shared native+sandbox setup path.
 	// This keeps Claude bootstrap behavior consistent across runtimes; sandbox
 	// differs only in execution inside a container.
-	if err := setupClaudeSettings(cfg.homeDir, resolveAnthropicKey()); err != nil {
+	// Pass empty hostHomeDir: sandboxed workers run in isolated containers and
+	// must not inherit host hooks by design.
+	if err := setupClaudeSettings(cfg.homeDir, "", resolveAnthropicKey()); err != nil {
 		return fmt.Errorf("failed to setup Claude settings: %w. Suggestion: Ensure the .yak-boxes directory is writable", err)
 	}
 

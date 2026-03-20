@@ -117,7 +117,115 @@ func TestSetupClaudeSettings_NoGocccSkipsStatusline(t *testing.T) {
 	// When goccc is not in PATH, setupClaudeSettings should still create .claude dirs and remote-settings
 	// but may skip settings.json with statusline. We already have TestSetupClaudeSettings_PreseededClaudeJSON
 	// in helpers_test. This test just ensures setupClaudeSettings with empty apiKey doesn't panic.
-	if err := setupClaudeSettings(homeDir, ""); err != nil {
+	if err := setupClaudeSettings(homeDir, "", ""); err != nil {
 		t.Fatalf("setupClaudeSettings with empty key: %v", err)
+	}
+}
+
+func TestSetupClaudeSettings_MergesHostHooks(t *testing.T) {
+	workerHome := t.TempDir()
+	hostHome := t.TempDir()
+
+	hostClaudeDir := filepath.Join(hostHome, ".claude")
+	if err := os.MkdirAll(hostClaudeDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	hostSettings := `{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/block-git.sh",
+            "statusMessage": "Checking for bare git commands..."
+          }
+        ]
+      }
+    ]
+  }
+}`
+	if err := os.WriteFile(filepath.Join(hostClaudeDir, "settings.json"), []byte(hostSettings), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := setupClaudeSettings(workerHome, hostHome, ""); err != nil {
+		t.Fatalf("setupClaudeSettings: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(workerHome, ".claude", "settings.json"))
+	if err != nil {
+		t.Fatalf("reading worker settings.json: %v", err)
+	}
+	content := string(data)
+
+	if !strings.Contains(content, "PreToolUse") {
+		t.Error("worker settings.json should contain PreToolUse hook")
+	}
+	// ~ should be rewritten to the absolute host home path
+	if strings.Contains(content, "~/.claude") {
+		t.Error("worker settings.json should not contain ~/  — tilde should be rewritten")
+	}
+	expectedCmd := "bash " + hostHome + "/.claude/hooks/block-git.sh"
+	if !strings.Contains(content, expectedCmd) {
+		t.Errorf("worker settings.json should contain rewritten path %q, got:\n%s", expectedCmd, content)
+	}
+}
+
+func TestSetupClaudeSettings_NoHostHooksWhenHostSettingsMissing(t *testing.T) {
+	workerHome := t.TempDir()
+	hostHome := t.TempDir() // no .claude/settings.json written
+
+	if err := setupClaudeSettings(workerHome, hostHome, ""); err != nil {
+		t.Fatalf("setupClaudeSettings: %v", err)
+	}
+
+	data, err := os.ReadFile(filepath.Join(workerHome, ".claude", "settings.json"))
+	if err != nil {
+		t.Fatalf("reading worker settings.json: %v", err)
+	}
+	if strings.Contains(string(data), "hooks") {
+		t.Errorf("worker settings.json should not contain hooks when host settings.json is absent, got:\n%s", data)
+	}
+}
+
+func TestRewriteHookPaths_ReplacesLeadingTilde(t *testing.T) {
+	hooks := map[string]any{
+		"PreToolUse": []any{
+			map[string]any{
+				"matcher": "Bash",
+				"hooks": []any{
+					map[string]any{
+						"type":    "command",
+						"command": "bash ~/.claude/hooks/block-git.sh",
+					},
+				},
+			},
+		},
+	}
+	result := rewriteHookPaths(hooks, "/Users/testuser")
+	outer, ok := result.(map[string]any)
+	if !ok {
+		t.Fatal("expected map result")
+	}
+	items := outer["PreToolUse"].([]any)
+	inner := items[0].(map[string]any)
+	hookList := inner["hooks"].([]any)
+	hookEntry := hookList[0].(map[string]any)
+	cmd := hookEntry["command"].(string)
+	if cmd != "bash /Users/testuser/.claude/hooks/block-git.sh" {
+		t.Errorf("expected rewritten path, got %q", cmd)
+	}
+}
+
+func TestRewriteHookPaths_LeavesAbsolutePathsAlone(t *testing.T) {
+	hooks := map[string]any{
+		"command": "/absolute/path/hook.sh",
+	}
+	result := rewriteHookPaths(hooks, "/Users/testuser")
+	m := result.(map[string]any)
+	if m["command"] != "/absolute/path/hook.sh" {
+		t.Errorf("absolute path should not be modified, got %q", m["command"])
 	}
 }

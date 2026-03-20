@@ -563,7 +563,7 @@ func TestSetupClaudeSettings_PreseededClaudeJSON(t *testing.T) {
 	homeDir := t.TempDir()
 	apiKey := "sk-ant-test-xxxxxxxxxxxxxxxxxxxx"
 
-	if err := setupClaudeSettings(homeDir, apiKey); err != nil {
+	if err := setupClaudeSettings(homeDir, "", apiKey); err != nil {
 		t.Fatalf("setupClaudeSettings returned error: %v", err)
 	}
 
