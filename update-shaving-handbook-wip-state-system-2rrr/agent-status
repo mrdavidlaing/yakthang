@@ -1,1 +1,1 @@
-wip: starting
+done: replaced agent-status with shaver-message, removed prefix convention, shavers no longer control state
