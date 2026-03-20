@@ -32,11 +32,6 @@ pub fn symbol_for(resolved: ResolvedVisualState) -> char {
     }
 }
 
-pub fn task_color(task: &TaskLine) -> &'static str {
-    color_for(task.resolved_visual_state())
-}
-
-
 pub fn tree_prefix(task: &TaskLine) -> String {
     if task.depth == 0 {
         return String::new();
@@ -146,7 +141,7 @@ mod tests {
             agent_status: Some("blocked: waiting".to_string()),
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::RED);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::RED);
     }
 
     #[test]
@@ -155,7 +150,7 @@ mod tests {
             agent_status: Some("done: finished".to_string()),
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::GREEN);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::GREEN);
     }
 
     #[test]
@@ -164,7 +159,7 @@ mod tests {
             agent_status: Some("wip: working".to_string()),
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::YELLOW);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::YELLOW);
     }
 
     #[test]
@@ -174,7 +169,7 @@ mod tests {
             agent_status: None,
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::YELLOW);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::YELLOW);
     }
 
     #[test]
@@ -184,7 +179,7 @@ mod tests {
             agent_status: None,
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::WHITE);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::WHITE);
     }
 
     #[test]
@@ -434,7 +429,7 @@ mod tests {
             wip_state: Some(crate::model::WipState::Blocked),
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::RED);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::RED);
         let rendered = render_task(&task);
         assert!(rendered.contains("🚫"), "rendered: {:?}", rendered);
     }
@@ -446,7 +441,7 @@ mod tests {
             wip_state: Some(crate::model::WipState::Sleeping),
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::DIM);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::DIM);
         let rendered = render_task(&task);
         assert!(rendered.contains("💤"), "rendered: {:?}", rendered);
     }
@@ -516,7 +511,7 @@ mod tests {
             ..TaskLine::default()
         };
         // wip-state blocked → RED, even though agent-status says wip
-        assert_eq!(task_color(&task), ansi::RED);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::RED);
     }
 
     #[test]
@@ -527,7 +522,7 @@ mod tests {
             agent_status: Some("blocked: waiting".to_string()),
             ..TaskLine::default()
         };
-        assert_eq!(task_color(&task), ansi::RED);
+        assert_eq!(color_for(task.resolved_visual_state()), ansi::RED);
     }
 
     #[test]
