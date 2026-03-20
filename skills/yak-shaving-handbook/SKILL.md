@@ -157,8 +157,9 @@ echo "Replaced the entire start.md rather than patching individual td commands â
 ```
 
 Write it once, near the end of your work. It doesn't need to be long â€” a
-few sentences is enough if there's genuinely something to say. If the work
-was straightforward and matched the brief exactly, skip it.
+few sentences is enough. Even for straightforward work, write at least one
+line noting what was changed and where. Reviewers use this to know where to
+look.
 
 ## Handling Blockers
 
