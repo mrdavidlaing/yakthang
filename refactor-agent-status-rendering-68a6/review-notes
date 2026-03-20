@@ -1,0 +1,10 @@
+The structural refactor was executed correctly: ResolvedVisualState::resolve() in model.rs is the single priority resolution point. Old duplicated logic in task_color()/status_symbol() is gone. Tests migrated correctly.
+
+SCOPE VIOLATIONS:
+- New WipState enum with 7 states (Shaving, Blocked, Sleeping, ReadyForSniffTest, UnderReview, FailedSniffTest, ReadyForHuman), each with distinct emoji rendered as prefix in task lines — new visual output
+- New shaver-message field replaces agent-status prefix convention throughout
+- agents/yakob.md substantially rewritten (93 lines) — monitoring section replaced with wip-state state machine
+- src/yak-box/internal/prompt/prompt.go rewritten (29 lines) — shaver instructions changed
+- 3 skill files updated outside src/yak-map/ (handbook, sniff-test, wrap)
+
+Two commits: c88863b (main changes), 2b6b372 (skills updates).
