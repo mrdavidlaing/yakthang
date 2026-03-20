@@ -451,6 +451,9 @@ func TestGenerateNativeWrapperScript_ClaudeHomeSetsWorkerHome(t *testing.T) {
 	if !strings.Contains(content, `export YAK_PATH="/test/yaks"`) {
 		t.Errorf("native claude wrapper missing YAK_PATH, got:\n%s", content)
 	}
+	if !strings.Contains(content, `export YX_ROOT="/test"`) {
+		t.Errorf("native claude wrapper missing YX_ROOT (workspace root), got:\n%s", content)
+	}
 	if !strings.Contains(content, "--dangerously-skip-permissions") {
 		t.Errorf("native claude wrapper missing --dangerously-skip-permissions, got:\n%s", content)
 	}

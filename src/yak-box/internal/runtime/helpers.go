@@ -187,6 +187,7 @@ func generateRunScript(cfg *spawnConfig, workspaceRoot, promptFile, innerScript,
 
 	sb.WriteString(fmt.Sprintf("\t-e WORKER_NAME=\"%s\" \\\n", cfg.worker.WorkerName))
 	sb.WriteString(fmt.Sprintf("\t-e YAK_PATH=\"%s\" \\\n", cfg.worker.YakPath))
+	sb.WriteString(fmt.Sprintf("\t-e YX_ROOT=\"%s\" \\\n", filepath.Dir(cfg.worker.YakPath)))
 	sb.WriteString(fmt.Sprintf("\t-e YAK_TOOL=\"%s\" \\\n", cfg.worker.Tool))
 	sb.WriteString(fmt.Sprintf("\t-e YAK_WORKSPACE=\"%s\" \\\n", cfg.worker.CWD))
 

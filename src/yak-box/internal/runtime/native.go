@@ -249,6 +249,7 @@ export HOME=%q
 %s
 %sexport IS_DEMO=true
 %sexport YAK_PATH="%s"
+export YX_ROOT="%s"
 %s
 unset CLAUDECODE
 MODEL=%q
@@ -274,11 +275,12 @@ trap _restore_keychain EXIT
 # Write PID before running Claude so yak-box stop can find and kill the process tree.
 echo $$ > "%s"
 claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"
-`, filepath.Join(hostHomeDir, ".local", "bin"), homeDir, gitConfigGlobalLine, ghConfigDirLine, gitIdentityLines, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
+`, filepath.Join(hostHomeDir, ".local", "bin"), homeDir, gitConfigGlobalLine, ghConfigDirLine, gitIdentityLines, shaverNameLine, worker.YakPath, filepath.Dir(worker.YakPath), apiKeyLine, worker.Model, promptFile, pidFile)
 	case "cursor":
 		paneName = "cursor (build) [native]"
 		content = fmt.Sprintf(`#!/usr/bin/env bash
 %sexport YAK_PATH="%s"
+export YX_ROOT="%s"
 PROMPT="$(cat "%s")"
 MODEL=%q
 # Write PID before exec so yak-box stop can find and kill the process tree.
@@ -288,17 +290,18 @@ if [[ -n "$MODEL" ]]; then
 else
   exec agent --force --workspace "%s" "$PROMPT"
 fi
-`, shaverNameLine, worker.YakPath, promptFile, worker.Model, pidFile, worker.CWD, worker.CWD)
+`, shaverNameLine, worker.YakPath, filepath.Dir(worker.YakPath), promptFile, worker.Model, pidFile, worker.CWD, worker.CWD)
 	default:
 		paneName = "opencode (build) [native]"
 		content = fmt.Sprintf(`#!/usr/bin/env bash
 %sexport YAK_PATH="%s"
+export YX_ROOT="%s"
 PROMPT="$(cat "%s")"
 # Write PID before exec so yak-box stop can find and kill the process tree.
 # exec replaces this process, so $$ will be the PID of opencode.
 echo $$ > "%s"
 exec opencode --prompt "$PROMPT" --agent build
-`, shaverNameLine, worker.YakPath, promptFile, pidFile)
+`, shaverNameLine, worker.YakPath, filepath.Dir(worker.YakPath), promptFile, pidFile)
 	}
 	return content, paneName
 }
