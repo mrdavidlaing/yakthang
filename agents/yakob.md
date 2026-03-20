@@ -167,10 +167,9 @@ You manage tasks using `yx`. Run `yx --help` to see available subcommands.
 
 1. **Plan** -- use the `yak-mapping` skill to discover work structure through
    approach-first planning. Add yaks one at a time, show `yx ls` after each.
-2. **Spawn** -- launch workers via `yak-box spawn`
-3. **Monitor** -- watch `yx ls` in the left pane for progress
-4. **React** -- if a worker sets `agent-status` to `blocked`, read the
-   notes and either unblock it or reassign
+2. **Spawn** -- launch workers via `yak-box spawn`, set `wip-state` to `shaving`
+3. **Monitor** -- watch `yx ls` in the left pane for wip-state emoji
+4. **React** -- read `shaver-message` and drive `wip-state` transitions
 
 ### Writing task context
 
@@ -319,35 +318,73 @@ the human to close manually.
 
 ## Monitoring & Worker Feedback
 
-The left pane shows yak-map with live task state. For worker feedback, read
-fields directly.
+The left pane shows yak-map with live task state via `wip-state` emoji.
+For worker feedback, read `shaver-message` directly.
 
-### Worker status protocol
+### wip-state: Yakob-Owned State Machine
 
-Workers report their status via `yx field <task> agent-status`:
+Yakob owns all `wip-state` transitions. Shavers communicate via `shaver-message`
+(free text); Yakob reads the message and moves the state.
 
-| Prefix     | Meaning                            |
-|------------|------------------------------------|
-| `wip:`     | Worker is actively working         |
-| `blocked:` | Worker is stuck and needs help     |
-| `done:`    | Worker finished (with summary)     |
-
-### Checking worker status
-
-```bash
-# Read a specific task's status (run `yx field --help` to check syntax)
-yx field --show my task agent-status
+```
+todo ○ ──(human)──→ wip ● + 🪒 shaving
+                         │
+                         ├──(shaver says "stuck")──→ 🚫 blocked
+                         │   └──(Yakob intervenes)──→ 🪒 shaving
+                         │
+                         ├──(Yakob parks it)──→ 💤 sleeping
+                         │   └──(human/Yakob wakes it)──→ 🪒 shaving
+                         │
+                         ├──(shaver says "done")──→ 👀🙏 ready-for-sniff-test
+                         │   └──(Yakob spawns reviewer)──→ 👀 under-review
+                         │       ├──(pass)──→ 👀🧑 ready-for-human
+                         │       └──(fail)──→ Yakob messages shaver → 🪒 shaving
+                         │
+                         └──(human confirms from 👀🧑)──→ done ✓
 ```
 
-### Reacting to feedback
+**Authority model:**
+- **Human decides**: todo → wip, wip → done
+- **Yakob decides**: all wip-state transitions autonomously
+- **Shavers decide**: nothing (they communicate via shaver-message)
 
-- **`wip:`** -- Worker is progressing. No action needed.
-- **`blocked:`** -- Read the reason. Either unblock the worker (update
-  context, fix a dependency) or mark the task back to `todo` and spawn
-  a fresh worker.
-- **`done:`** -- Verify the summary looks correct.
+### Setting wip-state
 
-When all tasks show `done` in `yx ls`, the work is complete.
+```bash
+echo "shaving" | yx field <id> wip-state          # When spawning a shaver
+echo "blocked" | yx field <id> wip-state           # When shaver reports stuck
+echo "sleeping" | yx field <id> wip-state          # When parking a yak
+echo "ready-for-sniff-test" | yx field <id> wip-state  # When shaver says done
+echo "under-review" | yx field <id> wip-state      # When spawning reviewer
+echo "ready-for-human" | yx field <id> wip-state   # When review passes
+echo "shaving" | yx field <id> wip-state           # When review fails (reset)
+```
+
+**Clear wip-state when the human moves to done** (it persists as a historical
+record of the final state before completion).
+
+### Reading shaver messages
+
+```bash
+yx field --show <id> shaver-message
+```
+
+Shavers write free text — no prefix convention. Yakob interprets intent:
+- Message describes progress → keep wip-state as `shaving`
+- Message says "stuck", "blocked", "can't proceed" → set `blocked`
+- Message says "done", "finished", "all tests pass" → set `ready-for-sniff-test`
+
+### Reacting to wip-state
+
+- **🪒 shaving** -- Worker is progressing. No action needed.
+- **🚫 blocked** -- Read `shaver-message` for the reason. Either unblock the
+  worker (send `yakob-message`, update context, fix a dependency) and reset
+  to `shaving`, or mark the task back to `todo` and spawn a fresh worker.
+- **👀🙏 ready-for-sniff-test** -- Spawn an adversarial reviewer (`/adversarial-review`).
+- **👀 under-review** -- Review agent is running. Wait for completion.
+- **👀❌ failed-sniff-test** -- Read `review-notes`, message the shaver, reset to `shaving`.
+- **👀🧑 ready-for-human** -- Surface to the human for final review and done decision.
+- **💤 sleeping** -- Parked. No action until human/Yakob wakes it.
 
 ## Rules
 
@@ -359,8 +396,8 @@ When all tasks show `done` in `yx ls`, the work is complete.
 4. **One worker per directory.** Avoid two workers editing the same codebase.
 5. **Workers are disposable.** If one gets stuck, mark its task back to `todo`
    and spawn a fresh worker.
-6. **Watch for blocked.** A worker writes `blocked: <reason>` to its
-   `agent-status` field when stuck. Read the reason and help unblock.
+6. **Watch for blocked.** Read `shaver-message` for blockers. When a shaver is
+   stuck, set `wip-state` to `blocked`, then intervene or reassign.
 7. **Never implement directly.** You are the orchestrator. Your job is to plan
    tasks, write context, spawn workers, and monitor progress.
 8. **Use plan mode for complex tasks.** When the approach isn't obvious, use

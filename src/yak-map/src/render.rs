@@ -1,5 +1,5 @@
 use crate::model::ansi;
-use crate::model::{AgentStatusKind, ReviewStatusKind, TaskLine, TaskState};
+use crate::model::{ResolvedVisualState, ReviewStatusKind, TaskLine, TaskState};
 
 /// Map review-status field value to display emoji: 🔍 in-progress, ✅ pass, ❌ fail.
 /// Uses prefix matching (e.g. "pass: summary", "fail: missing tests") like agent-status.
@@ -12,36 +12,30 @@ pub fn review_status_emoji(value: &str) -> Option<&'static str> {
     }
 }
 
-pub fn task_color(task: &TaskLine) -> &'static str {
-    if let Some(status) = &task.agent_status {
-        match AgentStatusKind::from_status_string(status) {
-            AgentStatusKind::Blocked => return ansi::RED,
-            AgentStatusKind::Done => return ansi::GREEN,
-            AgentStatusKind::Wip => return ansi::YELLOW,
-            AgentStatusKind::Unknown => {}
-        }
-    }
-    match task.state {
-        TaskState::Wip => ansi::YELLOW,
-        TaskState::Done => ansi::DIM,
-        TaskState::Todo => ansi::WHITE,
+pub fn color_for(resolved: ResolvedVisualState) -> &'static str {
+    match resolved {
+        ResolvedVisualState::Blocked => ansi::RED,
+        ResolvedVisualState::AgentDone => ansi::GREEN,
+        ResolvedVisualState::Wip => ansi::YELLOW,
+        ResolvedVisualState::TaskDone | ResolvedVisualState::Sleeping => ansi::DIM,
+        ResolvedVisualState::Todo => ansi::WHITE,
     }
 }
 
-pub fn status_symbol(task: &TaskLine) -> char {
-    if let Some(status) = &task.agent_status {
-        match AgentStatusKind::from_status_string(status) {
-            AgentStatusKind::Done => return '✓',
-            AgentStatusKind::Wip | AgentStatusKind::Blocked => return '●',
-            AgentStatusKind::Unknown => {}
+pub fn symbol_for(resolved: ResolvedVisualState) -> char {
+    match resolved {
+        ResolvedVisualState::AgentDone | ResolvedVisualState::TaskDone => '✓',
+        ResolvedVisualState::Wip | ResolvedVisualState::Blocked | ResolvedVisualState::Sleeping => {
+            '●'
         }
-    }
-    match task.state {
-        TaskState::Wip => '●',
-        TaskState::Done => '✓',
-        TaskState::Todo => '○',
+        ResolvedVisualState::Todo => '○',
     }
 }
+
+pub fn task_color(task: &TaskLine) -> &'static str {
+    color_for(task.resolved_visual_state())
+}
+
 
 pub fn tree_prefix(task: &TaskLine) -> String {
     if task.depth == 0 {
@@ -83,14 +77,21 @@ pub fn highlight_line(line: &str, padding: &str) -> String {
 
 pub fn render_task(task: &TaskLine) -> String {
     let prefix = tree_prefix(task);
-    let status = status_symbol(task);
-
-    let color = task_color(task);
+    let resolved = task.resolved_visual_state();
+    let status = symbol_for(resolved);
+    let color = color_for(resolved);
 
     let name = if matches!(task.state, TaskState::Done) {
         format!("{}{}{}", ansi::STRIKETHROUGH, task.name, ansi::RESET)
     } else {
         task.name.clone()
+    };
+
+    let wip_emoji = task.wip_state.map_or("", |ws| ws.emoji());
+    let wip_prefix = if wip_emoji.is_empty() {
+        String::new()
+    } else {
+        format!("{} ", wip_emoji)
     };
 
     let review_emoji = task
@@ -118,10 +119,11 @@ pub fn render_task(task: &TaskLine) -> String {
     };
 
     format!(
-        "{}{}{} {}{}{}{}",
+        "{}{}{} {}{}{}{}{}",
         prefix,
         status_color,
         status,
+        wip_prefix,
         name,
         review_suffix,
         assignment,
@@ -410,6 +412,167 @@ mod tests {
             "fail: missing tests should render ❌: {:?}",
             rendered
         );
+    }
+
+    // --- wip-state tests ---
+
+    #[test]
+    fn wip_state_shaving_shows_razor_emoji() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::Shaving),
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        assert!(rendered.contains("🪒"), "rendered: {:?}", rendered);
+    }
+
+    #[test]
+    fn wip_state_blocked_shows_red_and_prohibited_emoji() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::Blocked),
+            ..TaskLine::default()
+        };
+        assert_eq!(task_color(&task), ansi::RED);
+        let rendered = render_task(&task);
+        assert!(rendered.contains("🚫"), "rendered: {:?}", rendered);
+    }
+
+    #[test]
+    fn wip_state_sleeping_shows_dim() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::Sleeping),
+            ..TaskLine::default()
+        };
+        assert_eq!(task_color(&task), ansi::DIM);
+        let rendered = render_task(&task);
+        assert!(rendered.contains("💤"), "rendered: {:?}", rendered);
+    }
+
+    #[test]
+    fn wip_state_ready_for_sniff_test_shows_emoji() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::ReadyForSniffTest),
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        assert!(
+            rendered.contains("👀🙏"),
+            "rendered: {:?}",
+            rendered
+        );
+    }
+
+    #[test]
+    fn wip_state_under_review_shows_eyes_emoji() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::UnderReview),
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        assert!(rendered.contains("👀"), "rendered: {:?}", rendered);
+    }
+
+    #[test]
+    fn wip_state_failed_sniff_test_shows_emoji() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::FailedSniffTest),
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        assert!(
+            rendered.contains("👀❌"),
+            "rendered: {:?}",
+            rendered
+        );
+    }
+
+    #[test]
+    fn wip_state_ready_for_human_shows_emoji() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::ReadyForHuman),
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        assert!(
+            rendered.contains("👀🧑"),
+            "rendered: {:?}",
+            rendered
+        );
+    }
+
+    #[test]
+    fn wip_state_takes_priority_over_agent_status() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: Some(crate::model::WipState::Blocked),
+            agent_status: Some("wip: working".to_string()),
+            ..TaskLine::default()
+        };
+        // wip-state blocked → RED, even though agent-status says wip
+        assert_eq!(task_color(&task), ansi::RED);
+    }
+
+    #[test]
+    fn no_wip_state_falls_back_to_agent_status() {
+        let task = TaskLine {
+            state: TaskState::Wip,
+            wip_state: None,
+            agent_status: Some("blocked: waiting".to_string()),
+            ..TaskLine::default()
+        };
+        assert_eq!(task_color(&task), ansi::RED);
+    }
+
+    #[test]
+    fn no_wip_emoji_when_no_wip_state() {
+        let task = TaskLine {
+            state: TaskState::Todo,
+            wip_state: None,
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        // Should not have any wip-state emoji between symbol and name
+        assert!(
+            rendered.contains("○ "),
+            "should have symbol followed by space then name: {:?}",
+            rendered
+        );
+    }
+
+    #[test]
+    fn wip_state_read_from_source() {
+        let mut src = InMemoryTaskSource::new();
+        src.add_task("my-task", 0);
+        src.set_field("my-task", ".state", "wip");
+        src.set_field("my-task", "wip-state", "shaving");
+
+        let tasks = build_tasks_from(&src);
+        let task = tasks.iter().find(|t| t.name == "my-task").unwrap();
+        assert_eq!(
+            task.wip_state,
+            Some(crate::model::WipState::Shaving)
+        );
+        let rendered = render_task(task);
+        assert!(rendered.contains("🪒"), "rendered: {:?}", rendered);
+    }
+
+    #[test]
+    fn wip_state_unknown_value_ignored() {
+        let mut src = InMemoryTaskSource::new();
+        src.add_task("my-task", 0);
+        src.set_field("my-task", ".state", "wip");
+        src.set_field("my-task", "wip-state", "nonsense");
+
+        let tasks = build_tasks_from(&src);
+        let task = tasks.iter().find(|t| t.name == "my-task").unwrap();
+        assert_eq!(task.wip_state, None);
     }
 
     #[test]

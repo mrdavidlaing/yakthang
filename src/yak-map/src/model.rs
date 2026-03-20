@@ -80,6 +80,111 @@ impl ReviewStatusKind {
     }
 }
 
+/// Yakob-owned wip sub-state. When a task is in `wip`, this field tracks
+/// where it sits in the shaving workflow. Yakob drives all transitions;
+/// shavers communicate intent via `shaver-message`.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum WipState {
+    /// 🪒 Shaver is actively working
+    Shaving,
+    /// 🚫 Shaver reported stuck, Yakob intervening
+    Blocked,
+    /// 💤 Parked intentionally
+    Sleeping,
+    /// 👀🙏 Shaver thinks it's done, awaiting sniff test
+    ReadyForSniffTest,
+    /// 👀 Sniff-test reviewer agent is running
+    UnderReview,
+    /// 👀❌ Review found gaps, needs rework
+    FailedSniffTest,
+    /// 👀🧑 Passed sniff test, human should verify
+    ReadyForHuman,
+}
+
+impl WipState {
+    pub fn from_field(s: &str) -> Option<Self> {
+        match s.trim() {
+            "shaving" => Some(WipState::Shaving),
+            "blocked" => Some(WipState::Blocked),
+            "sleeping" => Some(WipState::Sleeping),
+            "ready-for-sniff-test" => Some(WipState::ReadyForSniffTest),
+            "under-review" => Some(WipState::UnderReview),
+            "failed-sniff-test" => Some(WipState::FailedSniffTest),
+            "ready-for-human" => Some(WipState::ReadyForHuman),
+            _ => None,
+        }
+    }
+
+    pub fn emoji(self) -> &'static str {
+        match self {
+            WipState::Shaving => "🪒",
+            WipState::Blocked => "🚫",
+            WipState::Sleeping => "💤",
+            WipState::ReadyForSniffTest => "👀🙏",
+            WipState::UnderReview => "👀",
+            WipState::FailedSniffTest => "👀❌",
+            WipState::ReadyForHuman => "👀🧑",
+        }
+    }
+}
+
+/// The resolved visual state for a task, determined by priority:
+/// 1. wip-state (Yakob-owned) takes precedence for wip tasks
+/// 2. Legacy agent-status (if present) provides backward compatibility
+/// 3. TaskState (.state) is the base fallback
+///
+/// Key distinction: `AgentDone` (agent reported done, shown green) vs
+/// `TaskDone` (yx state is done but no agent confirmation, shown dim).
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum ResolvedVisualState {
+    /// wip-state: blocked OR agent-status: "blocked:..." → red ●
+    Blocked,
+    /// agent-status: "done:..." → green ✓
+    AgentDone,
+    /// wip-state: shaving/under-review/etc OR agent-status: "wip:..." → yellow ●
+    Wip,
+    /// TaskState::Done (no overrides) → dim ✓
+    TaskDone,
+    /// TaskState::Todo → white ○
+    Todo,
+    /// wip-state: sleeping → dim ●
+    Sleeping,
+}
+
+impl ResolvedVisualState {
+    /// Resolve the visual state from wip-state, legacy agent-status, and task state.
+    /// Priority: wip-state > agent-status > .state
+    pub fn resolve(
+        wip_state: Option<WipState>,
+        agent_status: Option<&str>,
+        state: TaskState,
+    ) -> Self {
+        // Layer 1: wip-state (Yakob-owned) takes precedence
+        if let Some(ws) = wip_state {
+            return match ws {
+                WipState::Blocked => ResolvedVisualState::Blocked,
+                WipState::Sleeping => ResolvedVisualState::Sleeping,
+                _ => ResolvedVisualState::Wip,
+            };
+        }
+        // Layer 2: legacy agent-status for backward compatibility
+        if let Some(status) = agent_status {
+            match AgentStatusKind::from_status_string(status) {
+                AgentStatusKind::Blocked => return ResolvedVisualState::Blocked,
+                AgentStatusKind::Done => return ResolvedVisualState::AgentDone,
+                AgentStatusKind::Wip => return ResolvedVisualState::Wip,
+                AgentStatusKind::Unknown => {}
+            }
+        }
+        // Layer 3: base task state
+        match state {
+            TaskState::Wip => ResolvedVisualState::Wip,
+            TaskState::Done => ResolvedVisualState::TaskDone,
+            TaskState::Todo => ResolvedVisualState::Todo,
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TaskLine {
     pub path: String,
@@ -88,11 +193,18 @@ pub struct TaskLine {
     pub depth: usize,
     pub state: TaskState,
     pub assigned_to: Option<String>,
+    pub wip_state: Option<WipState>,
     pub agent_status: Option<String>,
     pub review_status: Option<String>,
     pub has_children: bool,
     pub is_last_sibling: bool,
     pub ancestor_continuations: Vec<bool>,
+}
+
+impl TaskLine {
+    pub fn resolved_visual_state(&self) -> ResolvedVisualState {
+        ResolvedVisualState::resolve(self.wip_state, self.agent_status.as_deref(), self.state)
+    }
 }
 
 impl Default for TaskLine {
@@ -104,6 +216,7 @@ impl Default for TaskLine {
             depth: 0,
             state: TaskState::Todo,
             assigned_to: None,
+            wip_state: None,
             agent_status: None,
             review_status: None,
             has_children: false,

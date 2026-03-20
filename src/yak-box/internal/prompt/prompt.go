@@ -25,10 +25,10 @@ func BuildPrompt(mode string, yakPath string, userPrompt string, tasks []string,
 1. Run 'yx ls' to see available tasks
 2. Pick a task, read its context with 'yx context --show <name>'
 3. Set it to wip: 'yx state <name> wip'
-4. Report status: echo "wip: starting plan" | yx field <name> agent-status
+4. Report: echo "starting plan" | yx field <name> shaver-message
 5. Analyze the codebase, understand the problem, and write a detailed plan
 6. Save the plan where it makes sense (e.g. a markdown file, or in yx context)
-7. Report: echo "blocked: plan ready for review" | yx field <name> agent-status
+7. Report: echo "plan ready for review" | yx field <name> shaver-message
 8. STOP and wait — do NOT implement. Your job is to plan, not build.
 
 Focus on the tasks assigned to you. Do not modify tasks outside your scope.`
@@ -37,11 +37,12 @@ Focus on the tasks assigned to you. Do not modify tasks outside your scope.`
 1. Run 'yx ls' to see available tasks
 2. Pick a task, read its context with 'yx context --show <name>'
 3. Set it to wip: 'yx state <name> wip'
-4. Report status: echo "wip: starting" | yx field <name> agent-status
-5. Do the work (update agent-status as you make progress)
-6. When done: 'yx done <name>' then echo "done: <summary>" | yx field <name> agent-status
-7. If blocked: echo "blocked: <reason>" | yx field <name> agent-status
+4. Report: echo "starting work" | yx field <name> shaver-message
+5. Do the work (update shaver-message as you make progress)
+6. When done: echo "done — <summary>" | yx field <name> shaver-message
+7. If blocked: echo "stuck: <reason>" | yx field <name> shaver-message
 
+You do NOT control task state transitions — Yakob handles wip-state and done.
 Focus on the tasks assigned to you. Do not modify tasks outside your scope.`
 	}
 
@@ -108,14 +109,16 @@ Commands:
   yx done <name>            Mark a task as complete
   yx state <name> wip       Mark a task as in-progress
 
-Reporting status (IMPORTANT -- the orchestrator monitors these fields):
-  echo "<status>" | yx field <name> agent-status
+Reporting progress (IMPORTANT -- the orchestrator monitors this field):
+  echo "<message>" | yx field <name> shaver-message
 
-  Write agent-status at each transition:
-  - When starting:  echo "wip: starting" | yx field <name> agent-status
-  - Progress:       echo "wip: <what you're doing>" | yx field <name> agent-status
-  - When blocked:   echo "blocked: <reason>" | yx field <name> agent-status
-  - When done:      echo "done: <summary>" | yx field <name> agent-status
+  Write shaver-message at each milestone (free text, no prefix convention):
+  - When starting:  echo "starting work" | yx field <name> shaver-message
+  - Progress:       echo "<what you're doing>" | yx field <name> shaver-message
+  - When blocked:   echo "stuck: <reason>" | yx field <name> shaver-message
+  - When done:      echo "done — <summary>" | yx field <name> shaver-message
+
+  You do NOT set wip-state — Yakob reads your messages and handles state.
 
 Shortcut convention:
   Move stories to Dev Finished (500001680) only.

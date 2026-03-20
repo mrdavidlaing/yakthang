@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use crate::model::{TaskLine, TaskState};
+use crate::model::{TaskLine, TaskState, WipState};
 
 pub trait TaskSource {
     fn list_tasks(&self) -> Vec<(String, usize)>;
@@ -29,6 +29,10 @@ pub fn get_task(source: &dyn TaskSource, path: &str, depth: usize) -> TaskLine {
         depth,
         state,
         assigned_to: source.get_field(path, "assigned-to"),
+        wip_state: source
+            .get_field(path, "wip-state")
+            .as_deref()
+            .and_then(WipState::from_field),
         agent_status: source.get_field(path, "agent-status"),
         review_status: source.get_field(path, "review-status"),
         has_children: false,
