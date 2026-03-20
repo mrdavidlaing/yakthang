@@ -7,14 +7,15 @@ description: Does this yak smell right? Use when a shaver reports done and Yakob
 
 ## Overview
 
-The implementer is never the reviewer. When a shaver reports `done:`, spawn a
-fresh agent with no knowledge of the shaver's reasoning — only the brief, the
-done summary, the notes, and the git evidence. The reviewer either confirms
-delivery or surfaces the gap.
+The implementer is never the reviewer. When a shaver's `shaver-message` says
+they're done, spawn a fresh agent with no knowledge of the shaver's reasoning
+— only the brief, the done summary, the notes, and the git evidence. The
+reviewer either confirms delivery or surfaces the gap.
 
 ## When to Use
 
-Invoke after a shaver signals `done:` on a yak. Use `/adversarial-review <done-yak-id>`.
+Invoke after a shaver messages that they're finished and Yakob sets `wip-state`
+to `ready-for-sniff-test`. Use `/adversarial-review <yak-id>`.
 
 **Don't skip because:**
 - "It's a small change" — small changes are exactly the ones that slip through
@@ -23,28 +24,28 @@ Invoke after a shaver signals `done:` on a yak. Use `/adversarial-review <done-y
 
 ## Yakob's Steps
 
-### 1. Read the done yak
+### 1. Read the yak
 
 ```bash
-yx show <done-yak-id> --format json
+yx show <yak-id> --format json
 ```
 
 Collect:
 - `context.md` — the original brief (what was asked)
-- `agent-status` — the shaver's done summary
+- `shaver-message` — the shaver's done summary
 - `comments.md` — the shaver's notes (what changed and where)
 
-### 2. Mark the yak as under review
+### 2. Set wip-state to under-review
 
 ```bash
-echo "in-progress" | yx field <done-yak-id> review-status
+echo "under-review" | yx field <yak-id> wip-state
 ```
 
-This shows 🔍 in the yak-map. Then build the reviewer's prompt using the
+This shows 👀 in the yak-map. Then build the reviewer's prompt using the
 template below, substituting the data collected in step 1:
 
 ```bash
-cat <<'EOF' | yx context "review <done-yak-name>"
+cat <<'EOF' | yx context "review <yak-name>"
 # Adversarial Review
 
 You are an independent reviewer. You did not do this work. You have no knowledge
@@ -55,9 +56,9 @@ actual state of the codebase matches what was asked for.
 
 <paste context.md here>
 
-## Shaver's Done Summary (agent-status)
+## Shaver's Done Summary (shaver-message)
 
-<paste agent-status here>
+<paste shaver-message here>
 
 ## Shaver's Notes (comments.md)
 
@@ -80,23 +81,11 @@ actual state of the codebase matches what was asked for.
    - `fail: <one-line summary of the gap>`
    - `needs-info: <what's missing that prevents verification>`
 
-5. Write your verdict:
-
-```bash
-echo "pass: <summary>" | yx field <done-yak-id> review-verdict
-# OR
-echo "fail: <summary>" | yx field <done-yak-id> review-verdict
-echo "<detailed findings with file/line evidence>" | yx field <done-yak-id> review-notes
-# OR
-echo "needs-info: <what's missing>" | yx field <done-yak-id> review-verdict
-```
-
-Write `review-notes` only on `fail` or `needs-info`. On `pass`, the one-line
-verdict is enough.
+5. Report your verdict in your response (Yakob will handle the state transition).
 
 ## Anti-Patterns
 
-- Do NOT ask the shaver to clarify — verify independently or write `needs-info`
+- Do NOT ask the shaver to clarify — verify independently or report `needs-info`
 - Do NOT use the shaver's reasoning to justify findings — find your own evidence
 - Do NOT accept "it should work" — verify it does work
 EOF
@@ -111,16 +100,16 @@ keychain/auth issues, stale sessions, and Zellij tab clutter.
 ```
 Agent tool call:
   subagent_type: "general-purpose"
-  description: "Review <done-yak-name>"
+  description: "Review <yak-name>"
   run_in_background: true
   prompt: |
-    You are an adversarial reviewer for the "<done-yak-name>" feature.
+    You are an adversarial reviewer for the "<yak-name>" feature.
 
     ## Original Brief
     <paste context.md>
 
     ## Shaver's Done Summary
-    <paste agent-status>
+    <paste shaver-message>
 
     ## Shaver's Notes
     <paste comments.md or "No comments were left.">
@@ -143,50 +132,47 @@ must independently verify that tests pass before recording the verdict:
 cd <relevant-dir> && go test ./...    # or cargo test, npm test, etc.
 ```
 
-Then parse the verdict from the subagent's response and write it to the yak.
+Then parse the verdict from the subagent's response and drive the wip-state transition.
 
-**Always set both `review-status` (for yak-map emoji) and `review-verdict` (detailed findings):**
+**Yakob sets wip-state based on the verdict:**
 
 ```bash
 # On pass:
-echo "pass: <summary>" | yx field <done-yak-id> review-status
-echo "pass: <summary>" | yx field <done-yak-id> review-verdict
+echo "ready-for-human" | yx field <yak-id> wip-state
 
 # On fail:
-echo "fail: <summary>" | yx field <done-yak-id> review-status
-echo "fail: <summary>" | yx field <done-yak-id> review-verdict
-echo "<detailed findings>" | yx field <done-yak-id> review-notes
+echo "shaving" | yx field <yak-id> wip-state
+echo "<detailed findings with file/line evidence>" | yx field <yak-id> review-notes
+echo "Review failed: <summary>. Check review-notes for details." | yx field <yak-id> yakob-message
 
 # On needs-info:
-echo "in-progress" | yx field <done-yak-id> review-status
-echo "needs-info: <what's missing>" | yx field <done-yak-id> review-verdict
+echo "shaving" | yx field <yak-id> wip-state
+echo "<what's missing>" | yx field <yak-id> review-notes
+echo "Review needs more info: <summary>. Check review-notes." | yx field <yak-id> yakob-message
 ```
 
-`review-status` drives the yak-map emoji (🔍 ✅ ❌). `review-verdict` holds the full text.
+On **pass**: wip-state moves to `ready-for-human` (👀🧑) — the human reviews and decides done.
+
+On **fail**: wip-state resets to `shaving` (🪒) and Yakob messages the shaver
+via `yakob-message` with what needs fixing. The shaver picks up from there —
+no sub-yak needed.
+
+On **needs-info**: same as fail — reset to shaving and message the shaver
+with what's missing.
 
 ## Reading Results
 
-The yak-map shows the emoji (🔍 ✅ ❌). For details:
+The yak-map shows wip-state emoji. For failure details:
 
 ```bash
-yx field --show <done-yak-id> review-verdict
+yx field --show <yak-id> review-notes
 ```
 
-| Verdict | Emoji | What to do |
-|---------|-------|-----------|
-| `pass:` | ✅ | Proceed — prune or accept as usual |
-| `fail:` | ❌ | Read `review-notes`, create a follow-up sub-yak |
-| `needs-info:` | 🔍 | Read the notes, clarify the brief, re-review |
-
-On `fail`, create a follow-up sub-yak with the reviewer's findings as context:
-
-```bash
-yx add "fix <done-yak-name>" --under <done-yak-id>
-# Pipe the review-notes as context for the fix
-yx field --show <done-yak-id> review-notes | yx context "fix <done-yak-name>"
-```
-
-Sub-yaks are **only** created on fail — not for every review.
+| Verdict | wip-state | Emoji | What happens |
+|---------|-----------|-------|-------------|
+| pass | ready-for-human | 👀🧑 | Human reviews and decides done |
+| fail | shaving | 🪒 | Yakob messages shaver, work continues |
+| needs-info | shaving | 🪒 | Yakob messages shaver with what's missing |
 
 ## Anti-Patterns
 
@@ -214,9 +200,9 @@ work, use `--skill .claude/skills/yak-shaving-handbook` (see yakob.md).
 
 | Step | Command |
 |------|---------|
-| Read done yak | `yx show <id> --format json` |
-| Mark under review | `echo "in-progress" \| yx field <id> review-status` |
+| Read yak | `yx show <id> --format json` |
+| Mark under review | `echo "under-review" \| yx field <id> wip-state` |
 | Launch reviewer | Agent tool: `general-purpose`, `run_in_background: true` |
-| Record verdict | `echo "pass: ..." \| yx field <id> review-status` + `review-verdict` |
-| On fail: sub-yak | `yx add "fix <name>" --under <id>` |
+| On pass | `echo "ready-for-human" \| yx field <id> wip-state` |
+| On fail | `echo "shaving" \| yx field <id> wip-state` + `yakob-message` to shaver |
 | Read failure detail | `yx field --show <id> review-notes` |

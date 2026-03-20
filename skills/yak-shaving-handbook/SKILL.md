@@ -1,6 +1,6 @@
 ---
 name: yak-shaving-handbook
-description: The shaver's field guide. The complete operating guide for shavers in the yakthang environment. Covers task lifecycle (yx show, start, agent-status, done), message checking (yakob-message), heartbeat (via /loop), and notes for Yakob.
+description: The shaver's field guide. The complete operating guide for shavers in the yakthang environment. Covers task lifecycle (yx show, start, shaver-message, done), message checking (yakob-message), heartbeat (via /loop), and notes for Yakob.
 ---
 
 # Yak Shaving Handbook
@@ -17,10 +17,11 @@ The complete operating guide for shavers. Covers task lifecycle, message checkin
 **parents are blocked by children** — you work deepest-first, and a parent
 cannot be marked done until all its children are.
 
-Two fields carry the conversation between Yakob and agents:
+Three fields carry the conversation between Yakob and agents:
 
 - `context.md` — **Yakob → agent**: the brief. What to do, definition of done, known constraints.
 - `comments.md` — **agent → Yakob**: the response. What was done, decisions made, surprises found.
+- `shaver-message` — **agent → Yakob**: live progress signal. What you're doing right now.
 
 ## Yak IDs
 
@@ -62,7 +63,7 @@ Then claim it, stamp the supervisor, and announce you've started:
 ```bash
 yx start <id>
 echo "$supervisor" | yx field <id> supervised-by
-echo "wip: starting" | yx field <id> agent-status
+echo "starting work" | yx field <id> shaver-message
 ```
 
 `$supervisor` is the human username passed in your spawn prompt (e.g.
@@ -72,69 +73,76 @@ it was shaved — distinct from `created_by` (who planned it) and
 
 ## State Transitions
 
+Shavers **do not control state**. Yakob owns all `wip-state` transitions.
+
 ```
-todo → wip → done
-         |
-     blocked (via agent-status — yx has no blocked state)
+todo ──(human)──→ wip ──(human)──→ done
+                   │
+          Yakob manages wip-state:
+          🪒 shaving → 🚫 blocked → 💤 sleeping
+          → 👀🙏 ready-for-sniff-test → 👀 under-review
+          → 👀❌ failed-sniff-test → 👀🧑 ready-for-human
 ```
 
-- **todo**: Not started (default)
-- **wip**: In progress — claimed by an agent
-- **done**: Complete — marked with `yx done <id>`
+- **todo → wip**: Human decides (via Yakob)
+- **wip-state transitions**: Yakob decides based on your `shaver-message`
+- **wip → done**: Human decides after reviewing
 
-Use `yx start <id>` to claim work (sets state to wip). Use `yx done <id>` to finish it.
+Use `yx start <id>` to claim work (sets state to wip). Do **not** use
+`yx done <id>` — tell Yakob you're finished via `shaver-message` and Yakob
+will handle the review and done transition.
 
-## agent-status: Live Signal
+## shaver-message: Live Signal
 
-`agent-status` is a live, machine-readable signal for Yakob. Keep it lean —
-one line, prefix-colon-message:
-
-| Prefix | When to use |
-|--------|-------------|
-| `wip: <what>` | Starting, and at meaningful progress milestones |
-| `blocked: <reason>` | Stuck — cannot proceed without help |
-| `done: <summary>` | Finished |
+`shaver-message` is your communication channel to Yakob. Write free-text
+messages describing what you're doing, what you've found, or what's blocking
+you. No prefix convention — just say what you mean.
 
 ```bash
 # Starting
-echo "wip: starting" | yx field <id> agent-status
+echo "starting work, reading the codebase" | yx field <id> shaver-message
 
 # Progress milestone
-echo "wip: updated flake.nix, removing gitignore entry next" | yx field <id> agent-status
+echo "updated flake.nix, removing gitignore entry next" | yx field <id> shaver-message
 
 # Blocked
-echo "blocked: flake.nix has merge conflict, cannot proceed without resolution" | yx field <id> agent-status
+echo "stuck: flake.nix has merge conflict, cannot proceed without resolution" | yx field <id> shaver-message
 
-# Done
-echo "done: removed td from flake.nix, .gitignore, AGENTS.md, and skills dir" | yx field <id> agent-status
+# Finished
+echo "done — removed td from flake.nix, .gitignore, AGENTS.md, and skills dir" | yx field <id> shaver-message
 ```
 
-`agent-status` is not the place for reasoning or detail — that goes in `comments.md`.
+Yakob reads your messages and decides state transitions:
+- You say "stuck" or describe a blocker → Yakob sets wip-state to `blocked`
+- You say "done" or "finished" → Yakob sets wip-state to `ready-for-sniff-test`
+- You describe progress → Yakob keeps wip-state as `shaving`
+
+`shaver-message` is not the place for reasoning or detail — that goes in `comments.md`.
 
 ## spend: Cost Tracking
 
-If you're running in a Claude Code worker with `goccc` available, track your session cost alongside status updates:
+If you're running in a Claude Code worker with `goccc` available, track your session cost alongside messages:
 
 ```bash
 # Update spend field with current session cost
 goccc -days 0 -json 2>/dev/null | jq -r '.summary.total_cost // "0"' | yx field <id> spend
 
-# Combined with status update
-echo "wip: implementing feature" | yx field <id> agent-status
+# Combined with message
+echo "implementing feature X" | yx field <id> shaver-message
 goccc -days 0 -json 2>/dev/null | jq -r '.summary.total_cost // "0"' | yx field <id> spend
 ```
 
 The `spend` field accumulates session cost. Update it at meaningful milestones (not every tiny change):
 - When starting work
-- At progress checkpoints (when updating agent-status)
-- When blocked or done
+- At progress checkpoints (when updating shaver-message)
+- When blocked or finished
 
 If `goccc` or `jq` aren't available, skip the spend update silently (the `2>/dev/null` suppresses errors).
 
 ## comments.md: Notes for Yakob
 
 Write `comments.md` when you have something Yakob needs to know beyond the
-bare status signal. It's the agent's response to `context.md` — written for
+bare message. It's the agent's response to `context.md` — written for
 Yakob to read when reviewing completed work.
 
 Good candidates:
@@ -157,29 +165,34 @@ was straightforward and matched the brief exactly, skip it.
 If you're blocked, don't spin — report and yield:
 
 ```bash
-echo "blocked: <clear reason>" | yx field <id> agent-status
+echo "stuck: <clear reason>" | yx field <id> shaver-message
 ```
 
 Be specific about what's needed to unblock:
 
 ```bash
 # Too vague
-echo "blocked: something's wrong with the build" | yx field <id> agent-status
+echo "stuck: something's wrong with the build" | yx field <id> shaver-message
 
 # Good
-echo "blocked: nix flake check fails with 'attribute yx missing' — yx buildRustPackage may need cargoHash update" | yx field <id> agent-status
+echo "stuck: nix flake check fails with 'attribute yx missing' — yx buildRustPackage may need cargoHash update" | yx field <id> shaver-message
 ```
 
-Then stop. Don't retry the same failing approach. Yakob will intervene or reassign.
+Then stop. Don't retry the same failing approach. Yakob will read your message,
+set wip-state to `blocked`, and intervene or reassign.
 
 ## Completing Work
 
+When you believe the work is done:
+
 ```bash
-yx done <id>
-echo "done: <one sentence summary>" | yx field <id> agent-status
+echo "done — <one sentence summary>" | yx field <id> shaver-message
 ```
 
-If there's anything worth telling Yakob, write `comments.md` before marking done.
+If there's anything worth telling Yakob, write `comments.md` before reporting done.
+
+**Do not run `yx done`** — Yakob will move your yak through the review gate
+(sniff test → human review) and the human decides when to mark it done.
 
 ## Working with the DAG
 
@@ -231,12 +244,12 @@ Heartbeat is **Yakob's responsibility**, not the shaver's. Shavers don't need to
 Yakob uses `/loop` to schedule recurring status checks:
 
 ```
-/loop 5m yx ls; yx field --show <id> agent-status
+/loop 5m yx ls; yx field --show <id> shaver-message
 ```
 
 - `/loop` uses `CronCreate` under the hood — session-only, auto-expires after 3 days.
 - No external scripts, no fswatch dependency, no manual relaunching required.
-- Yakob relaunches the loop as needed; shavers just keep their `agent-status` updated.
+- Yakob relaunches the loop as needed; shavers just keep their `shaver-message` updated.
 
 ---
 
@@ -251,22 +264,23 @@ Yakob uses `/loop` to schedule recurring status checks:
 | Read previous agent's notes | `yx field <id> comments.md` |
 | Claim a task | `yx start <id>` |
 | Stamp supervisor | `echo "$supervisor" \| yx field <id> supervised-by` |
-| Report status | `echo "<status>" \| yx field <id> agent-status` |
+| Report progress | `echo "..." \| yx field <id> shaver-message` |
 | Check for Yakob message | `yx field --show <id> yakob-message` |
-| Heartbeat (Yakob's responsibility) | `/loop 5m yx ls; yx field --show <id> agent-status` |
+| Heartbeat (Yakob's responsibility) | `/loop 5m yx ls; yx field --show <id> shaver-message` |
 | Update cost (if goccc available) | `goccc -days 0 -json 2>/dev/null \| jq -r '.summary.total_cost // "0"' \| yx field <id> spend` |
 | Leave notes for Yakob | `echo "..." \| yx field <id> comments.md` |
 | Add sub-task | `yx add child --under parent` |
 | Remove task tree | `yx remove --recursive <id>` |
-| Mark done | `yx done <id>` |
+| Report finished | `echo "done — <summary>" \| yx field <id> shaver-message` |
 
 ## Red Flags
 
 - **Starting without reading context** — always `yx show` or `yx context` first
 - **Starting without checking comments.md** — a previous agent may have left important notes
-- **No agent-status updates** — Yakob is flying blind
-- **Vague agent-status** — "wip: doing stuff" tells nobody anything
-- **Decisions buried in agent-status** — put reasoning in `comments.md`, not the live signal
+- **No shaver-message updates** — Yakob is flying blind
+- **Vague messages** — "doing stuff" tells nobody anything
+- **Decisions buried in shaver-message** — put reasoning in `comments.md`, not the live signal
 - **Marking parent done before children** — yx will reject this anyway
 - **Retrying a blocked operation** — report it and stop
-- **Missing the `done:` report** — the final status message is what Yakob reads to confirm completion
+- **Running `yx done` yourself** — Yakob handles the done transition after review
+- **Trying to set wip-state** — Yakob owns all state transitions; you just communicate via shaver-message

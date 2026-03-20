@@ -30,13 +30,17 @@ Walk the done yaks and collect their stories.
 
 ### Reconcile stale states first
 
-Before harvesting, scan for yaks where `agent-status` says `done:` but
-`yx ls` still shows them as todo/wip. These are yaks that were shaved but
-never got their `yx done` — the worker finished but didn't mark the state.
+Before harvesting, scan for yaks where `wip-state` is `ready-for-human` but
+`yx ls` still shows them as wip. These are yaks that passed review but the
+human hasn't moved them to done yet. Surface these to the human for decision.
+
+Also check for yaks where `shaver-message` says "done" but `wip-state` hasn't
+been updated — Yakob may have missed the transition. Fix these by setting
+`wip-state` to `ready-for-sniff-test` (or `ready-for-human` if review passed).
 
 ```bash
-# For every todo/wip yak, check if agent-status says done:
-# If agent-status starts with "done:" but state is not done, mark it:
+# For every wip yak with ready-for-human, ask the human if it should be done:
+# Present the list and let the human decide
 yx done <name>
 ```
 
@@ -49,7 +53,7 @@ yx ls
 
 # For each done yak, read its story:
 yx context --show <name>                    # The brief (Yakob → agent)
-yx field --show <name> agent-status         # The outcome summary
+yx field --show <name> shaver-message       # The outcome summary
 yx field --show <name> comments.md          # Findings, decisions, surprises
 yx field --show <name> supervised-by        # Who was supervising when it was shaved
 ```
@@ -59,7 +63,7 @@ yx field --show <name> supervised-by        # Who was supervising when it was sh
 | Field | What it tells you |
 |-------|-------------------|
 | `context.md` | What was asked for |
-| `agent-status` | What was delivered (one-line) |
+| `shaver-message` | What was delivered (the shaver's last message) |
 | `comments.md` | The interesting bits — decisions, surprises, loose ends |
 | `supervised-by` | Which human was supervising when it was shaved |
 
@@ -278,5 +282,5 @@ yx sync
 - **Reorganizing without asking** — the human may have reasons for the current structure
 - **Forgetting to sync** — tomorrow's session won't have today's state
 - **Writing highlights in jargon** — highlights are for stakeholders, not shavers
-- **Skipping reconciliation** — yaks with `done:` in agent-status but todo/wip state will be missed by harvest and survive pruning
+- **Skipping reconciliation** — yaks with `ready-for-human` wip-state but still in wip will be missed by harvest and survive pruning
 - **Using `yx show --format json`** — this flag doesn't exist. Use `yx field --show` to read fields, and always verify writes landed with `yx field --show` after piping
