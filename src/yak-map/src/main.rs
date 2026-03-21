@@ -65,7 +65,13 @@ impl State {
             args: vec!["-c".to_string(), script],
             cwd: None,
         };
-        let coords = FloatingPaneCoordinates::new(None, None, Some("102".to_string()), None, None);
+        let coords = FloatingPaneCoordinates::new(
+            Some("3".to_string()),
+            Some("2".to_string()),
+            Some("96%".to_string()),
+            Some("94%".to_string()),
+            None,
+        );
         open_command_pane_floating(command, coords, BTreeMap::new());
     }
 
