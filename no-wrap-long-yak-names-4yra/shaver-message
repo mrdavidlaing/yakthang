@@ -1,1 +1,1 @@
-starting work, reading context and codebase
+done — added clip_line to util.rs; render loop now clips each line to pane cols before printing; 5 new tests; all 70 tests pass
