@@ -193,13 +193,21 @@ mod tests {
         let result = clip_line(&colored, 5);
         // visible text clipped to 5, ANSI sequences pass through
         assert_eq!(line_display_width(&result), 5);
-        assert!(result.contains("\x1b[33m"), "ansi color should be preserved: {:?}", result);
+        assert!(
+            result.contains("\x1b[33m"),
+            "ansi color should be preserved: {:?}",
+            result
+        );
     }
 
     #[test]
     fn clip_line_appends_reset() {
         let result = clip_line("hello", 3);
-        assert!(result.ends_with("\x1b[0m"), "should end with reset: {:?}", result);
+        assert!(
+            result.ends_with("\x1b[0m"),
+            "should end with reset: {:?}",
+            result
+        );
     }
 
     #[test]

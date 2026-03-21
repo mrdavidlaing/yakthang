@@ -458,11 +458,7 @@ mod tests {
             ..TaskLine::default()
         };
         let rendered = render_task(&task);
-        assert!(
-            rendered.contains("👀🙏"),
-            "rendered: {:?}",
-            rendered
-        );
+        assert!(rendered.contains("👀🙏"), "rendered: {:?}", rendered);
     }
 
     #[test]
@@ -484,11 +480,7 @@ mod tests {
             ..TaskLine::default()
         };
         let rendered = render_task(&task);
-        assert!(
-            rendered.contains("👀❌"),
-            "rendered: {:?}",
-            rendered
-        );
+        assert!(rendered.contains("👀❌"), "rendered: {:?}", rendered);
     }
 
     #[test]
@@ -499,11 +491,7 @@ mod tests {
             ..TaskLine::default()
         };
         let rendered = render_task(&task);
-        assert!(
-            rendered.contains("👀🧑"),
-            "rendered: {:?}",
-            rendered
-        );
+        assert!(rendered.contains("👀🧑"), "rendered: {:?}", rendered);
     }
 
     #[test]
@@ -553,8 +541,16 @@ mod tests {
             ..TaskLine::default()
         };
         let rendered = render_task(&task);
-        assert!(!rendered.contains("🪒"), "done yak should not show wip emoji: {:?}", rendered);
-        assert!(rendered.contains("✓"), "done yak should show ✓: {:?}", rendered);
+        assert!(
+            !rendered.contains("🪒"),
+            "done yak should not show wip emoji: {:?}",
+            rendered
+        );
+        assert!(
+            rendered.contains("✓"),
+            "done yak should show ✓: {:?}",
+            rendered
+        );
     }
 
     #[test]
@@ -565,8 +561,16 @@ mod tests {
             ..TaskLine::default()
         };
         let rendered = render_task(&task);
-        assert!(!rendered.contains("🪒"), "todo yak should not show wip emoji: {:?}", rendered);
-        assert!(rendered.contains("○"), "todo yak should show ○: {:?}", rendered);
+        assert!(
+            !rendered.contains("🪒"),
+            "todo yak should not show wip emoji: {:?}",
+            rendered
+        );
+        assert!(
+            rendered.contains("○"),
+            "todo yak should show ○: {:?}",
+            rendered
+        );
     }
 
     #[test]
@@ -578,10 +582,7 @@ mod tests {
 
         let tasks = build_tasks_from(&src);
         let task = tasks.iter().find(|t| t.name == "my-task").unwrap();
-        assert_eq!(
-            task.wip_state,
-            Some(crate::model::WipState::Shaving)
-        );
+        assert_eq!(task.wip_state, Some(crate::model::WipState::Shaving));
         let rendered = render_task(task);
         assert!(rendered.contains("🪒"), "rendered: {:?}", rendered);
     }
