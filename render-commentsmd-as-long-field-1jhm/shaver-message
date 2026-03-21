@@ -1,1 +1,1 @@
-starting work — reading show_yak.rs classification logic
+done — .md fields now always classified as long fields in show_yak.rs; single-line comments.md renders in ruled section, not header box. Test added. All 565 tests pass.
