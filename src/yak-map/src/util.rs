@@ -112,6 +112,37 @@ pub fn strip_ansi(s: &str) -> String {
     result
 }
 
+/// Clip a string (possibly containing ANSI escapes) to at most `max_cols` display columns.
+/// ANSI escape sequences are passed through verbatim (not counted toward column width).
+/// A reset sequence is appended to avoid color bleed from clipped sequences.
+pub fn clip_line(s: &str, max_cols: usize) -> String {
+    use unicode_width::UnicodeWidthChar;
+    let mut out = String::new();
+    let mut visible_width = 0usize;
+    let mut chars = s.chars().peekable();
+    while let Some(c) = chars.next() {
+        if c == '\x1b' && chars.peek() == Some(&'[') {
+            out.push(c);
+            out.push(chars.next().unwrap()); // '['
+            for inner in chars.by_ref() {
+                out.push(inner);
+                if inner.is_ascii_alphabetic() {
+                    break;
+                }
+            }
+        } else {
+            let w = c.width().unwrap_or(0);
+            if visible_width + w > max_cols {
+                break;
+            }
+            out.push(c);
+            visible_width += w;
+        }
+    }
+    out.push_str("\x1b[0m");
+    out
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -139,5 +170,44 @@ mod tests {
             11
         );
         assert_eq!(line_display_width("hello"), 5);
+    }
+
+    #[test]
+    fn clip_line_short_string_unchanged() {
+        let result = clip_line("hi", 10);
+        assert!(result.starts_with("hi"), "result: {:?}", result);
+        assert_eq!(line_display_width(&result), 2);
+    }
+
+    #[test]
+    fn clip_line_clips_at_col_boundary() {
+        let long = "abcdefghij"; // 10 chars
+        let result = clip_line(long, 5);
+        assert_eq!(line_display_width(&result), 5);
+        assert!(result.starts_with("abcde"), "result: {:?}", result);
+    }
+
+    #[test]
+    fn clip_line_preserves_ansi_sequences() {
+        let colored = format!("\x1b[33mhello world\x1b[0m");
+        let result = clip_line(&colored, 5);
+        // visible text clipped to 5, ANSI sequences pass through
+        assert_eq!(line_display_width(&result), 5);
+        assert!(result.contains("\x1b[33m"), "ansi color should be preserved: {:?}", result);
+    }
+
+    #[test]
+    fn clip_line_appends_reset() {
+        let result = clip_line("hello", 3);
+        assert!(result.ends_with("\x1b[0m"), "should end with reset: {:?}", result);
+    }
+
+    #[test]
+    fn clip_line_handles_wide_emoji() {
+        // Each emoji is 2 columns wide
+        let s = "🪒🐃"; // 4 cols
+        let result = clip_line(s, 3);
+        // Only first emoji fits (2 cols <= 3); second would bring total to 4 > 3
+        assert_eq!(line_display_width(&result), 2);
     }
 }

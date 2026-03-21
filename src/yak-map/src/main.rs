@@ -223,13 +223,14 @@ impl ZellijPlugin for State {
             .enumerate()
         {
             let line = render::render_task(task);
+            let clipped = util::clip_line(&line, cols);
 
             if self.scroll_offset + i == self.selected_index {
-                let visible_len = util::line_display_width(&line);
+                let visible_len = util::line_display_width(&clipped);
                 let padding = " ".repeat(cols.saturating_sub(visible_len));
-                println!("{}", render::highlight_line(&line, &padding));
+                println!("{}", render::highlight_line(&clipped, &padding));
             } else {
-                println!("{}", line);
+                println!("{}", clipped);
             }
         }
 
