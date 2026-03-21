@@ -1,1 +1,0 @@
-pass: SanitizeBranchName verified — function exists, both call sites wired, 11 tests pass. Minor edge cases (.lock suffix, .., trailing /) not handled but low severity.
