@@ -1,0 +1,1 @@
+Extracted rule 12 and checklist item #4 from agents/yakob.md on PR #6. Removed from triage-hardening branch and force-pushed to zgagnon fork. Created new PR #9 (repo-boundary-rule) for separate discussion. Note: checklist items 1-3 and 'If ANY check fails' text remain in PR #6.
