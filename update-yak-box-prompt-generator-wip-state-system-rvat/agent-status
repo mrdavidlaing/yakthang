@@ -1,1 +1,0 @@
-done: prompt.go uses shaver-message instead of agent-status, no prefix convention, shavers told they don't control state
