@@ -371,3 +371,11 @@ When all tasks show `done` in `yx ls`, the work is complete.
     the full day.
 11. **Start the heartbeat.** After triage, before the first spawn, run
     `/loop 5m yx ls`. No heartbeat = no visibility between turns.
+12. **Never cross repo boundaries.** Always `--cwd .` from release-workspace.
+    Never `--cwd repos/X` or `--yak-path` pointing elsewhere. Shavers navigate
+    to sub-repos in their prompt, but yx stays rooted in the workspace.
+
+### Pre-Spawn Checklist
+
+Before EVERY `yak-box spawn`, verify ALL of the following:
+4. `--cwd` is `.` or the workspace root: NEVER `repos/X` — see rule 12
