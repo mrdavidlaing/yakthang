@@ -53,9 +53,9 @@ func TestGenerateLayout_Native(t *testing.T) {
 	if !strings.Contains(out, "opencode (build) [native]") {
 		t.Error("layout should have build pane name with runtime")
 	}
-	// Shell pane should have size=5
-	if !strings.Contains(out, `pane size=5 name="shell:`) {
-		t.Error("shell pane should have size=5")
+	// Native layout should NOT have a secondary shell pane
+	if strings.Contains(out, `pane size=5 name="shell:`) {
+		t.Error("native layout should not have a secondary shell pane")
 	}
 	// Main build pane should flex-fill (no size= attribute)
 	if !strings.Contains(out, `pane name="opencode (build) [native]" focus=true`) {

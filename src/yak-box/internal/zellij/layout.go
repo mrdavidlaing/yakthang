@@ -37,7 +37,7 @@ func GenerateLayout(worker *types.Worker, runtimeKind, tool string) string {
 }
 `, worker.DisplayName, paneName)
 	}
-	// Native: tab has cwd; single main pane with wrapper; shell pane is passive.
+	// Native: tab has cwd; single main pane with wrapper; tab closes when wrapper exits.
 	return fmt.Sprintf(`layout {
     tab name="%s" cwd="%s" {
         pane size=1 borderless=true {
@@ -47,11 +47,10 @@ func GenerateLayout(worker *types.Worker, runtimeKind, tool string) string {
             command "bash"
             args "%%WRAPPER%%"
         }
-        pane size=5 name="shell: %s"
         pane size=2 borderless=true {
             plugin location="status-bar"
         }
     }
 }
-`, worker.DisplayName, worker.CWD, paneName, worker.CWD)
+`, worker.DisplayName, worker.CWD, paneName)
 }
