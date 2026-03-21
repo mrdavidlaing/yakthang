@@ -82,7 +82,11 @@ pub fn render_task(task: &TaskLine) -> String {
         task.name.clone()
     };
 
-    let wip_emoji = task.wip_state.map_or("", |ws| ws.emoji());
+    let wip_emoji = if matches!(task.state, TaskState::Wip) {
+        task.wip_state.map_or("", |ws| ws.emoji())
+    } else {
+        ""
+    };
     let wip_prefix = if wip_emoji.is_empty() {
         String::new()
     } else {
@@ -539,6 +543,30 @@ mod tests {
             "should have symbol followed by space then name: {:?}",
             rendered
         );
+    }
+
+    #[test]
+    fn done_yak_with_wip_state_shows_no_emoji() {
+        let task = TaskLine {
+            state: TaskState::Done,
+            wip_state: Some(crate::model::WipState::Shaving),
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        assert!(!rendered.contains("🪒"), "done yak should not show wip emoji: {:?}", rendered);
+        assert!(rendered.contains("✓"), "done yak should show ✓: {:?}", rendered);
+    }
+
+    #[test]
+    fn todo_yak_with_wip_state_shows_no_emoji() {
+        let task = TaskLine {
+            state: TaskState::Todo,
+            wip_state: Some(crate::model::WipState::Shaving),
+            ..TaskLine::default()
+        };
+        let rendered = render_task(&task);
+        assert!(!rendered.contains("🪒"), "todo yak should not show wip emoji: {:?}", rendered);
+        assert!(rendered.contains("○"), "todo yak should show ○: {:?}", rendered);
     }
 
     #[test]

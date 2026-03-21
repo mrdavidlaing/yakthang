@@ -159,13 +159,15 @@ impl ResolvedVisualState {
         agent_status: Option<&str>,
         state: TaskState,
     ) -> Self {
-        // Layer 1: wip-state (Yakob-owned) takes precedence
-        if let Some(ws) = wip_state {
-            return match ws {
-                WipState::Blocked => ResolvedVisualState::Blocked,
-                WipState::Sleeping => ResolvedVisualState::Sleeping,
-                _ => ResolvedVisualState::Wip,
-            };
+        // Layer 1: wip-state (Yakob-owned) takes precedence — only when task is wip
+        if state == TaskState::Wip {
+            if let Some(ws) = wip_state {
+                return match ws {
+                    WipState::Blocked => ResolvedVisualState::Blocked,
+                    WipState::Sleeping => ResolvedVisualState::Sleeping,
+                    _ => ResolvedVisualState::Wip,
+                };
+            }
         }
         // Layer 2: legacy agent-status for backward compatibility
         if let Some(status) = agent_status {
