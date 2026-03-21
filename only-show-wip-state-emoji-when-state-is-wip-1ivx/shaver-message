@@ -1,1 +1,1 @@
-starting work
+done — fixed wip-state emoji to only show when task state is wip; also fixed resolved_visual_state() to ignore wip-state for done/todo tasks; added 2 tests; all 65 tests pass
