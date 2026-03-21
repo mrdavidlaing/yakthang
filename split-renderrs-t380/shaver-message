@@ -1,1 +1,1 @@
-starting work — reading render.rs structure
+done — split render.rs (645 LOC) into render/mod.rs (highlight_line + tests) and render/task.rs (task rendering + tests); all 70 tests pass
