@@ -3,6 +3,39 @@ use std::collections::{BTreeMap, HashMap};
 use crate::model::TaskLine;
 use crate::repository::{get_task, TaskSource};
 
+/// Check whether `ancestor` has more siblings after it in its parent's child list.
+fn ancestor_has_more_siblings(
+    ancestor: &str,
+    by_parent: &BTreeMap<String, Vec<usize>>,
+    path_to_index: &HashMap<String, usize>,
+) -> Option<bool> {
+    let parent_key = match ancestor.rfind('/') {
+        Some(pos) => ancestor[..pos].to_string(),
+        None => String::new(),
+    };
+    let siblings = by_parent.get(&parent_key)?;
+    let ancestor_idx = path_to_index.get(ancestor).copied()?;
+    let pos = siblings.iter().position(|&x| x == ancestor_idx)?;
+    Some(pos + 1 < siblings.len())
+}
+
+/// Walk from a task up through its ancestors, collecting continuation flags.
+fn ancestor_continuations(
+    path: &str,
+    by_parent: &BTreeMap<String, Vec<usize>>,
+    path_to_index: &HashMap<String, usize>,
+) -> Vec<bool> {
+    let mut continuations = Vec::new();
+    let mut current = path.rfind('/').map(|pos| path[..pos].to_string());
+    while let Some(ancestor) = current {
+        if let Some(has_more) = ancestor_has_more_siblings(&ancestor, by_parent, path_to_index) {
+            continuations.push(has_more);
+        }
+        current = ancestor.rfind('/').map(|pos| ancestor[..pos].to_string());
+    }
+    continuations
+}
+
 /// Build the annotated task tree from a task source.
 ///
 /// Collects tasks, then computes tree-display metadata:
@@ -48,38 +81,9 @@ pub fn build(source: &dyn TaskSource) -> Vec<TaskLine> {
     }
 
     // Compute ancestor continuation flags for tree-line drawing.
-    // For each task, walk up to each ancestor and check whether that
-    // ancestor has more siblings after it (requiring a vertical continuation line).
     let paths: Vec<String> = tasks.iter().map(|t| t.path.clone()).collect();
     for (i, path) in paths.iter().enumerate() {
-        let mut continuations = Vec::new();
-        let mut current = path.rfind('/').map(|pos| path[..pos].to_string());
-
-        while let Some(ancestor) = current {
-            let ancestors_parent = if let Some(pos) = ancestor.rfind('/') {
-                Some(ancestor[..pos].to_string())
-            } else {
-                Some(String::new()) // root level
-            };
-
-            if let Some(parent_of_ancestor) = ancestors_parent {
-                let ancestors_siblings = by_parent
-                    .get(&parent_of_ancestor)
-                    .map(|v| v.as_slice())
-                    .unwrap_or(&[]);
-                let pos_in_ancestors_siblings = ancestors_siblings.iter().position(|&x| {
-                    x == path_to_index.get(&ancestor).copied().unwrap_or(usize::MAX)
-                });
-
-                if let Some(pos) = pos_in_ancestors_siblings {
-                    let has_more_siblings = pos + 1 < ancestors_siblings.len();
-                    continuations.push(has_more_siblings);
-                }
-            }
-
-            current = ancestor.rfind('/').map(|pos| ancestor[..pos].to_string());
-        }
-        tasks[i].ancestor_continuations = continuations;
+        tasks[i].ancestor_continuations = ancestor_continuations(path, &by_parent, &path_to_index);
     }
 
     tasks
