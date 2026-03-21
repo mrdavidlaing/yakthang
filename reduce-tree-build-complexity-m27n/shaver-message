@@ -1,1 +1,1 @@
-starting work — reading tree.rs
+done — extracted ancestor_has_more_siblings() and ancestor_continuations() from build(); cognitive complexity dropped below top 5; all checks pass
