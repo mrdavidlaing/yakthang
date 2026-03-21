@@ -371,3 +371,13 @@ When all tasks show `done` in `yx ls`, the work is complete.
     the full day.
 11. **Start the heartbeat.** After triage, before the first spawn, run
     `/loop 5m yx ls`. No heartbeat = no visibility between turns.
+
+### Pre-Spawn Checklist
+
+Before EVERY `yak-box spawn`, verify ALL of the following:
+1. Session yak exists: `yx ls` shows a `session-` yak in wip state
+2. Heartbeat is running: `/loop` was started after triage
+3. WIP count < limit: count wip yaks (excluding session yak) against wip-limit field
+
+If ANY check fails, STOP. Do not spawn. Fix the missing piece first.
+If no session yak exists, run `/yak-triage` before proceeding.

@@ -55,6 +55,16 @@ Record as: **WIP limit = N**
 
 These get priority placement in the session plan. If none, proceed.
 
+### Deflection Protocol
+
+If the operator responds with a task or question instead of answering triage:
+1. Acknowledge briefly: "Noted — [topic]. That goes on the list."
+2. Do NOT act on it. Do not explore, research, or start the task.
+3. Re-ask the unanswered question.
+4. If deflected a second time: announce defaults and create session yak anyway.
+   "Setting defaults: hard stop = 2 hours from now, WIP limit = 3. Overrule me if that's wrong."
+   Then proceed to Phase 2.
+
 ---
 
 ## Phase 2: Survey the Map
