@@ -1,1 +1,1 @@
-starting work
+done — floating pane now opens at x=3, y=2, width=96%, height=94%, giving a 2-3 line margin on all sides; 65 tests pass
