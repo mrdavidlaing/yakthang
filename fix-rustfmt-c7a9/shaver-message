@@ -1,1 +1,1 @@
-starting work
+done — ran cargo fmt on render.rs and util.rs; bin/dev check passes, committed
