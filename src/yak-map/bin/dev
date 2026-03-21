@@ -8,14 +8,14 @@
 #   dev cx           Run complexity analysis (cognitive + cyclomatic thresholds)
 #   dev --help       Show this help
 #
-# Complexity baseline (2026-03-14, after quality journey refactor):
+# Complexity baseline (2026-03-21, after formatting cleanup):
 #   build:         cognitive=22, cyclomatic=21
+#   clip_line:     cognitive=15, cyclomatic=7
 #   walk_dir:      cognitive=15, cyclomatic=8
 #   base64_encode: cognitive=13, cyclomatic=6
 #   strip_ansi:    cognitive=12, cyclomatic=6
-#   render:        cognitive=12, cyclomatic=10
 #
-# Thresholds tightened after refactor: max cognitive dropped 28→22, cyclomatic 25→21.
+# Thresholds tightened: cognitive 25→23, cyclomatic 23→22.
 
 set -euo pipefail
 
@@ -49,9 +49,9 @@ test_cmd() {
 
 complexity() {
   # Thresholds — tighten these over time as code is refactored
-  # Baseline measured 2026-03-14: max cognitive=22 (build), max cyclomatic=21 (build)
-  local max_cognitive=25
-  local max_cyclomatic=23
+  # Baseline measured 2026-03-21: max cognitive=22 (build), max cyclomatic=21 (build)
+  local max_cognitive=23
+  local max_cyclomatic=22
 
   if ! command -v rust-code-analysis-cli >/dev/null 2>&1; then
     echo "❌ rust-code-analysis-cli not found"
