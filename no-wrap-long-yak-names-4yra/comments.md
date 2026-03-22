@@ -1,1 +1,0 @@
-Added clip_line util; render loop clips each line to pane cols. ANSI sequences are passed through verbatim; visible text stops at the column boundary. A RESET is appended to prevent color bleed from mid-sequence clips. No ellipsis — text just disappears at the edge, widening the pane reveals more.
