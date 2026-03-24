@@ -121,6 +121,10 @@ EOF
 /loop 5m yx ls
 ```
 
+**Capture the heartbeat job ID** so it can be cancelled when the queue is
+exhausted. After `/loop` creates the cron, run `CronList` and note the job ID
+(the most recently created cron entry). Store it for use in Phase 3 teardown.
+
 ### Announce
 
 ```
@@ -418,6 +422,23 @@ Move to the next yak in the queue.
 
 ---
 
+### Cancel the heartbeat
+
+When the run loop exits — whether because the queue is empty, hard stop was
+reached, or all remaining yaks are parked — cancel the heartbeat cron
+**before** entering Phase 4. The heartbeat is only useful while shavers are
+active; after the queue is exhausted it burns context window for no benefit.
+
+```
+CronDelete(id: <heartbeat_job_id>)
+```
+
+Use the job ID captured during Phase 2. If the ID is unavailable, call
+`CronList` to find it (look for the `/loop` entry running `yx ls`) and delete
+it. Do not proceed to Phase 4 without cancelling the heartbeat.
+
+---
+
 ## Phase 4: Wrap
 
 Triggered when:
@@ -484,6 +505,7 @@ yx sync
 | All yaks parked | Wrap early |
 | `gh pr create` fails | Log error, still mark done, note missing PR |
 | Worktree creation fails | Park yak, move to next |
+| Heartbeat job ID lost | `CronList` to find it, then `CronDelete` |
 
 ## Quick Reference
 
@@ -492,6 +514,7 @@ yx sync
 | Queue | Survey map, confirm order | Operator invokes `/yak-nightshift` |
 | Commit | Create session yak, start heartbeat | Operator confirms queue |
 | Run | Serial: shave → sniff → (remediate?) → PR → next | Automatic |
+| Cancel heartbeat | `CronDelete` the heartbeat cron | Run loop exits (before Wrap) |
 | Wrap | Worklog + sync + worktree cleanup | Queue empty or hard stop |
 
 ## Red Flags
@@ -501,4 +524,5 @@ yx sync
 - **Strategic work in the queue** — nightshift is for grind work, not architecture decisions.
 - **Skipping the sniff test** — "it's overnight, nobody's watching" is exactly when quality gates matter most.
 - **Not pushing branches** — shavers must push so PRs can be created. Include in prompt.
+- **Forgetting to cancel the heartbeat** — burns context window for hours after work is done. Always `CronDelete` before Phase 4.
 - **Forgetting to sync** — morning session won't see nightshift state changes.
