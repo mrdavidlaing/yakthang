@@ -18,8 +18,12 @@ build-yak-box:
 build-yak-map:
     cd src/yak-map && cargo build --target wasm32-wasip1 --release
 
+# Initialize git submodules
+init-submodules:
+    git submodule update --init --recursive
+
 # Build and install all tools
-install: install-yx install-yak-box install-yak-map
+install: init-submodules install-yx install-yak-box install-yak-map
 
 # Build and install yx
 install-yx: build-yx
