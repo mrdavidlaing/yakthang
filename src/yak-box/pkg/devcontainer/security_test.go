@@ -28,7 +28,7 @@ func TestValidateSecurityConfigPrivileged(t *testing.T) {
 		t.Fatalf("Expected 1 warning for privileged mode, got %d warnings", len(warnings))
 	}
 
-	if warnings[0].Severity != "critical" {
+	if warnings[0].Severity != SeverityCritical {
 		t.Errorf("Expected critical severity, got %s", warnings[0].Severity)
 	}
 
@@ -110,7 +110,7 @@ func TestValidateSecurityConfigDangerousCapability(t *testing.T) {
 				t.Errorf("Expected %d warning, got %d", tt.want, len(warnings))
 			}
 
-			if len(warnings) > 0 && warnings[0].Severity != "critical" {
+			if len(warnings) > 0 && warnings[0].Severity != SeverityCritical {
 				t.Errorf("Expected critical severity, got %s", warnings[0].Severity)
 			}
 		})
@@ -164,7 +164,7 @@ func TestValidateSecurityConfigDangerousSecurityOpt(t *testing.T) {
 				t.Errorf("Expected %d warning, got %d", tt.want, len(warnings))
 			}
 
-			if len(warnings) > 0 && warnings[0].Severity != "critical" {
+			if len(warnings) > 0 && warnings[0].Severity != SeverityCritical {
 				t.Errorf("Expected critical severity, got %s", warnings[0].Severity)
 			}
 		})
@@ -199,7 +199,7 @@ func TestValidateSecurityConfigMultipleWarnings(t *testing.T) {
 	}
 
 	for _, warning := range warnings {
-		if warning.Severity != "critical" {
+		if warning.Severity != SeverityCritical {
 			t.Errorf("Expected all warnings to be critical, got %s", warning.Severity)
 		}
 		if len(warning.Message) == 0 {

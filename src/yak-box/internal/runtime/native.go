@@ -34,7 +34,7 @@ func SpawnNativeWorker(worker *types.Worker, prompt string, homeDir string) (pid
 
 	// Resolve API key once; shared by setupClaudeSettings and generateNativeWrapperScript.
 	apiKey := ""
-	if worker.Tool == "claude" {
+	if types.Tool(worker.Tool) == types.ToolClaude {
 		apiKey = resolveAnthropicKey()
 		if err := setupClaudeSettings(homeDir, apiKey); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to setup Claude settings: %v\n", err)
@@ -49,7 +49,7 @@ func SpawnNativeWorker(worker *types.Worker, prompt string, homeDir string) (pid
 	}
 
 	layoutFile := filepath.Join(workerDir, "layout.kdl")
-	layoutContent := strings.ReplaceAll(zellij.GenerateLayout(worker, "native", worker.Tool), "%WRAPPER%", wrapperScript)
+	layoutContent := strings.ReplaceAll(zellij.GenerateLayout(worker, string(types.RuntimeNative), worker.Tool), "%WRAPPER%", wrapperScript)
 	if err := os.WriteFile(layoutFile, []byte(layoutContent), 0644); err != nil {
 		return "", fmt.Errorf("failed to write layout file: %w", err)
 	}
@@ -214,8 +214,8 @@ func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidF
 		shaverNameLine = fmt.Sprintf("export YAK_SHAVER_NAME=%q\n", worker.ShaverName)
 	}
 
-	switch worker.Tool {
-	case "claude":
+	switch types.Tool(worker.Tool) {
+	case types.ToolClaude:
 		// Point CLAUDE_CONFIG_DIR at the worker's .claude/ dir so each worker
 		// has isolated Claude settings and skills without redirecting HOME.
 		// With HOME unchanged, macOS Keychain, git, and other host tooling
@@ -242,7 +242,7 @@ fi
 echo $$ > "%s"
 claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"
 `, claudeConfigDir, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
-	case "cursor":
+	case types.ToolCursor:
 		return fmt.Sprintf(`#!/usr/bin/env bash
 %sexport YAK_PATH="%s"
 PROMPT="$(cat "%s")"

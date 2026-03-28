@@ -14,6 +14,7 @@ import (
 	"github.com/wellmaintained/yakthang/src/yak-box/internal/runtime"
 	"github.com/wellmaintained/yakthang/src/yak-box/internal/sessions"
 	"github.com/wellmaintained/yakthang/src/yak-box/internal/ui"
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 var (
@@ -98,7 +99,7 @@ func runStop() error {
 			for _, w := range workers {
 				if w == containerName {
 					session = &sessions.Session{
-						Runtime:     "devcontainer",
+						Runtime:     string(types.RuntimeDevcontainer),
 						Container:   containerName,
 						DisplayName: stopName,
 					}
@@ -155,7 +156,8 @@ func runStop() error {
 		}
 	}
 
-	if session.Runtime == "devcontainer" {
+	switch types.Runtime(session.Runtime) {
+	case types.RuntimeDevcontainer:
 		if stopDryRun {
 			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
 			fmt.Printf("[dry-run] Would stop container: %s\n", session.Container)
@@ -169,7 +171,7 @@ func runStop() error {
 				fmt.Printf("Warning: %v\n", err)
 			}
 		}
-	} else if session.Runtime == "sandbox" {
+	case types.RuntimeSandbox:
 		if stopDryRun {
 			fmt.Printf("[dry-run] Would stop sandbox worker: %s\n", stopName)
 		} else {
@@ -178,7 +180,7 @@ func runStop() error {
 				fmt.Printf("Warning: %v\n", err)
 			}
 		}
-	} else if session.Runtime == "native" {
+	case types.RuntimeNative:
 		if stopDryRun {
 			fmt.Printf("[dry-run] Would kill native process tree via PID file: %s\n", session.PidFile)
 			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
@@ -209,7 +211,8 @@ func runStop() error {
 }
 
 func extractWorkerCost(session *sessions.Session) string {
-	if session.Runtime == "devcontainer" {
+	switch types.Runtime(session.Runtime) {
+	case types.RuntimeDevcontainer:
 		cmd := exec.Command("docker", "exec", session.Container, "goccc", "-days", "0", "-json")
 		output, err := cmd.Output()
 		if err == nil {
@@ -222,7 +225,7 @@ func extractWorkerCost(session *sessions.Session) string {
 				}
 			}
 		}
-	} else if session.Runtime == "native" {
+	case types.RuntimeNative:
 		cmd := exec.Command("goccc", "-days", "0", "-json")
 		output, err := cmd.Output()
 		if err == nil {

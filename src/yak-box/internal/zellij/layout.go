@@ -10,12 +10,12 @@ import (
 )
 
 // GenerateLayout generates a KDL layout file for a worker.
-// runtimeKind is "devcontainer" or "native"; tool is the worker tool (e.g. "claude", "cursor", "opencode").
+// runtimeKind is the runtime type; tool is the worker tool (e.g. "claude", "cursor", "opencode").
 // The returned string contains %%WRAPPER%%; for devcontainer it also contains %%SHELL_EXEC_SCRIPT%% and %%CONTAINER_NAME%%.
 // Callers must replace these placeholders with actual paths before writing the layout file.
-func GenerateLayout(worker *types.Worker, runtimeKind, tool string) string {
+func GenerateLayout(worker *types.Worker, runtimeKind string, tool string) string {
 	paneName := fmt.Sprintf("%s (build) [%s]", tool, runtimeKind)
-	if runtimeKind == "devcontainer" {
+	if types.Runtime(runtimeKind) == types.RuntimeDevcontainer {
 		// Devcontainer: tab has no cwd; main pane runs wrapper; shell pane runs shell-exec script with container name.
 		return fmt.Sprintf(`layout {
     tab name="%s" {

@@ -7,9 +7,17 @@ import (
 	"github.com/wellmaintained/yakthang/src/yak-box/internal/pathutil"
 )
 
+// Severity represents the severity level of a security warning.
+type Severity string
+
+const (
+	SeverityWarning  Severity = "warning"
+	SeverityCritical Severity = "critical"
+)
+
 // SecurityWarning represents a security-related warning about devcontainer configuration
 type SecurityWarning struct {
-	Severity string // "warning" or "critical"
+	Severity Severity
 	Message  string
 }
 
@@ -43,7 +51,7 @@ func ValidateSecurityConfig(cfg *Config) []SecurityWarning {
 
 	if cfg.Privileged != nil && *cfg.Privileged {
 		warnings = append(warnings, SecurityWarning{
-			Severity: "critical",
+			Severity: SeverityCritical,
 			Message:  "Container is running in privileged mode, which disables most security isolation",
 		})
 	}
@@ -51,7 +59,7 @@ func ValidateSecurityConfig(cfg *Config) []SecurityWarning {
 	for _, cap := range cfg.CapAdd {
 		if dangerousCapabilities[cap] {
 			warnings = append(warnings, SecurityWarning{
-				Severity: "critical",
+				Severity: SeverityCritical,
 				Message:  "Dangerous capability requested: " + cap + " - this can bypass container isolation",
 			})
 		}
@@ -61,7 +69,7 @@ func ValidateSecurityConfig(cfg *Config) []SecurityWarning {
 		for _, dangerous := range dangerousSecurityOpts {
 			if opt == dangerous {
 				warnings = append(warnings, SecurityWarning{
-					Severity: "critical",
+					Severity: SeverityCritical,
 					Message:  "Dangerous security option: " + opt + " - this weakens container isolation",
 				})
 				break

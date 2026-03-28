@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 // OpenCodeSession represents a session returned by `opencode session list --format json`.
@@ -44,7 +46,7 @@ func DiscoverOpenCodeSessions(runner CommandRunner, session *Session) ([]OpenCod
 	var output []byte
 	var err error
 
-	if session.Runtime == "devcontainer" {
+	if types.Runtime(session.Runtime) == types.RuntimeDevcontainer {
 		output, err = runner.Run("docker", "exec", session.Container, "opencode", "session", "list", "--format", "json")
 	} else {
 		output, err = runner.Run("opencode", "session", "list", "--format", "json", "--dir", session.CWD)
@@ -98,13 +100,13 @@ func SendMessage(runner CommandRunner, session *Session, openCodeSessionID strin
 	baseCmd := "opencode"
 	var args []string
 
-	if session.Runtime == "devcontainer" {
+	if types.Runtime(session.Runtime) == types.RuntimeDevcontainer {
 		baseCmd = "docker"
 		args = append(args, "exec", session.Container, "opencode")
 	}
 
 	args = append(args, "run", "--session", openCodeSessionID)
-	if session.Runtime != "devcontainer" && session.CWD != "" {
+	if types.Runtime(session.Runtime) != types.RuntimeDevcontainer && session.CWD != "" {
 		args = append(args, "--dir", session.CWD)
 	}
 	if format != "" && format != "default" {

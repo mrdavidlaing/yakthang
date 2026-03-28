@@ -79,7 +79,7 @@ Tool selection:
 			errs = append(errs, fmt.Errorf("--yak-name is required (worker name used in logs and metadata)"))
 		}
 
-		if spawnMode != "plan" && spawnMode != "build" {
+		if types.Mode(spawnMode) != types.ModePlan && types.Mode(spawnMode) != types.ModeBuild {
 			errs = append(errs, fmt.Errorf("--mode must be 'plan' or 'build', got '%s'", spawnMode))
 		}
 
@@ -87,11 +87,11 @@ Tool selection:
 			errs = append(errs, fmt.Errorf("--resources must be 'light', 'default', 'heavy', or 'ram', got '%s'", spawnResources))
 		}
 
-		if spawnRuntime != "devcontainer" && spawnRuntime != "native" && spawnRuntime != "sandbox" {
+		if types.Runtime(spawnRuntime) != types.RuntimeDevcontainer && types.Runtime(spawnRuntime) != types.RuntimeNative && types.Runtime(spawnRuntime) != types.RuntimeSandbox {
 			errs = append(errs, fmt.Errorf("--runtime is required: must be 'native', 'sandbox', or 'devcontainer', got '%s'", spawnRuntime))
 		}
 
-		if spawnTool != "opencode" && spawnTool != "claude" && spawnTool != "cursor" {
+		if types.Tool(spawnTool) != types.ToolOpencode && types.Tool(spawnTool) != types.ToolClaude && types.Tool(spawnTool) != types.ToolCursor {
 			errs = append(errs, fmt.Errorf("--tool must be 'opencode', 'claude', or 'cursor', got '%s'", spawnTool))
 		}
 
@@ -152,10 +152,10 @@ func resolveSpawnModel(tool, model string) string {
 		return model
 	}
 
-	switch tool {
-	case "claude":
+	switch types.Tool(tool) {
+	case types.ToolClaude:
 		return defaultClaudeModel
-	case "cursor":
+	case types.ToolCursor:
 		return defaultCursorModel
 	default:
 		return ""
@@ -180,10 +180,10 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 	runtimeType := spawnRuntime
 
 	var preflightDeps []preflight.Dep
-	switch runtimeType {
-	case "devcontainer":
+	switch types.Runtime(runtimeType) {
+	case types.RuntimeDevcontainer:
 		preflightDeps = preflight.SpawnDevcontainerDeps()
-	case "sandbox":
+	case types.RuntimeSandbox:
 		preflightDeps = preflight.SpawnSandboxDeps()
 	default:
 		preflightDeps = preflight.SpawnNativeDeps(spawnTool)
@@ -350,7 +350,7 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		return -1
 	}, sanitizedName)
 
-	if spawnTool == "opencode" && spawnModel != "" {
+	if types.Tool(spawnTool) == types.ToolOpencode && spawnModel != "" {
 		ui.Warning("⚠️  --model is currently ignored for --tool opencode\n")
 	}
 	resolvedModel := resolveSpawnModel(spawnTool, spawnModel)
@@ -373,8 +373,8 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		ShaverName:    shaverName,
 	}
 
-	switch runtimeType {
-	case "devcontainer":
+	switch types.Runtime(runtimeType) {
+	case types.RuntimeDevcontainer:
 		ui.Info("⏳ Building container...\n")
 		if err := runtime.EnsureDevcontainer(); err != nil {
 			ui.Error("❌ Build failed: %v\n", err)
@@ -392,7 +392,7 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 			return fmt.Errorf("failed to spawn devcontainer worker: %w\n\nSuggestion: Check Docker is running and has enough resources.\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
 		}
 		ui.Success("✅ Container ready\n")
-	case "sandbox":
+	case types.RuntimeSandbox:
 		ui.Info("⏳ Starting sandbox worker...\n")
 		if err := runtime.SpawnSandboxWorker(ctx,
 			runtime.WithWorker(worker),
@@ -668,12 +668,12 @@ func copySkillsToHome(skillPaths []string, homeDir string, tool string) error {
 		return nil
 	}
 	var destBase string
-	switch tool {
-	case "claude":
+	switch types.Tool(tool) {
+	case types.ToolClaude:
 		destBase = filepath.Join(homeDir, ".claude", "skills")
-	case "cursor":
+	case types.ToolCursor:
 		destBase = filepath.Join(homeDir, ".claude", "skills")
-	case "opencode":
+	case types.ToolOpencode:
 		destBase = filepath.Join(homeDir, ".config", "opencode", "skills")
 	default:
 		return errors.NewValidationError(fmt.Sprintf("unsupported tool %q for skill copy", tool), nil)

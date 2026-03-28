@@ -57,7 +57,7 @@ func SpawnSandboxWorker(ctx context.Context, opts ...SpawnOption) error {
 
 	// Resolve API key; shared by setupClaudeSettings and the wrapper script.
 	apiKey := ""
-	if cfg.worker.Tool == "claude" {
+	if types.Tool(cfg.worker.Tool) == types.ToolClaude {
 		apiKey = resolveAnthropicKey()
 		if err := setupClaudeSettings(cfg.homeDir, apiKey); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to setup Claude settings: %v\n", err)
@@ -78,7 +78,7 @@ func SpawnSandboxWorker(ctx context.Context, opts ...SpawnOption) error {
 	}
 
 	layoutFile := filepath.Join(workerDir, "layout.kdl")
-	layoutContent := strings.ReplaceAll(zellij.GenerateLayout(cfg.worker, "sandbox", cfg.worker.Tool), "%WRAPPER%", wrapperScript)
+	layoutContent := strings.ReplaceAll(zellij.GenerateLayout(cfg.worker, string(types.RuntimeSandbox), cfg.worker.Tool), "%WRAPPER%", wrapperScript)
 	if err := os.WriteFile(layoutFile, []byte(layoutContent), 0644); err != nil {
 		return fmt.Errorf("failed to write layout file: %w", err)
 	}
@@ -244,8 +244,8 @@ func generateSandboxWrapperScript(worker *types.Worker, homeDir, promptFile, pid
 
 	// Build the inner tool command (same as native, but will be wrapped with srt)
 	var toolCmd string
-	switch worker.Tool {
-	case "claude":
+	switch types.Tool(worker.Tool) {
+	case types.ToolClaude:
 		apiKeyLine := ""
 		if apiKey != "" {
 			apiKeyLine = fmt.Sprintf("export _ANTHROPIC_API_KEY=%q\n", apiKey)
@@ -266,7 +266,7 @@ srt --settings %q -- claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"`,
 			claudeConfigDir, shaverNameLine, worker.YakPath, apiKeyLine,
 			worker.Model, promptFile, srtConfigPath)
 
-	case "cursor":
+	case types.ToolCursor:
 		toolCmd = fmt.Sprintf(`%sexport YAK_PATH="%s"
 PROMPT="$(cat "%s")"
 MODEL=%q

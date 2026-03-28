@@ -7,6 +7,32 @@ import (
 	"time"
 )
 
+// Runtime represents the worker runtime environment.
+type Runtime string
+
+const (
+	RuntimeNative       Runtime = "native"
+	RuntimeSandbox      Runtime = "sandbox"
+	RuntimeDevcontainer Runtime = "devcontainer"
+)
+
+// Tool represents the AI tool used by a worker.
+type Tool string
+
+const (
+	ToolClaude   Tool = "claude"
+	ToolCursor   Tool = "cursor"
+	ToolOpencode Tool = "opencode"
+)
+
+// Mode represents the agent operating mode.
+type Mode string
+
+const (
+	ModePlan  Mode = "plan"
+	ModeBuild Mode = "build"
+)
+
 type Worker struct {
 	Name          string
 	WorkerName    string // Worker identity used for prompts, logs, and home directory isolation

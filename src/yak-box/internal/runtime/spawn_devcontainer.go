@@ -165,7 +165,7 @@ func SpawnDevcontainerWorker(ctx context.Context, opts ...SpawnOption) error {
 
 	// Create Zellij layout file (single generator from internal/zellij)
 	layoutFile := filepath.Join(workerDir, "layout.kdl")
-	layoutContent := zellij.GenerateLayout(cfg.worker, "devcontainer", cfg.worker.Tool)
+	layoutContent := zellij.GenerateLayout(cfg.worker, string(types.RuntimeDevcontainer), cfg.worker.Tool)
 	layoutContent = strings.ReplaceAll(layoutContent, "%WRAPPER%", wrapperScript)
 	layoutContent = strings.ReplaceAll(layoutContent, "%SHELL_EXEC_SCRIPT%", shellExecScript)
 	layoutContent = strings.ReplaceAll(layoutContent, "%CONTAINER_NAME%", containerName)

@@ -7,6 +7,8 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+
+	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
 // Dep describes a host dependency to verify before a command runs.
@@ -128,12 +130,12 @@ var (
 // given tool.
 func SpawnNativeDeps(tool string) []Dep {
 	deps := []Dep{Zellij, Yx}
-	switch tool {
-	case "claude":
+	switch types.Tool(tool) {
+	case types.ToolClaude:
 		deps = append(deps, Claude, Goccc)
-	case "cursor":
+	case types.ToolCursor:
 		deps = append(deps, CursorAgent)
-	case "opencode":
+	case types.ToolOpencode:
 		deps = append(deps, Opencode)
 	}
 	return deps
@@ -173,12 +175,12 @@ func CheckDeps() []Dep {
 // credentials already present in shaverHomeDir/.claude/ are acceptable.
 // Pass shaverHomeDir="" to skip the OAuth credential check (e.g. before homeDir is created).
 func EnsureClaudeAuthEnv(tool, runtime, shaverHomeDir string, lookupEnv func(string) (string, bool)) error {
-	if tool != "claude" {
+	if types.Tool(tool) != types.ToolClaude {
 		return nil
 	}
 	// Native and sandbox runtimes always pass: both run on the host and inherit
 	// OAuth credentials from the host's ~/.claude/ directory.
-	if runtime == "native" || runtime == "sandbox" {
+	if types.Runtime(runtime) == types.RuntimeNative || types.Runtime(runtime) == types.RuntimeSandbox {
 		return nil
 	}
 	if lookupEnv == nil {
