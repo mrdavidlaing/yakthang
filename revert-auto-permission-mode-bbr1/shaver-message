@@ -1,1 +1,1 @@
-reverting files, running tests next
+Reverted --permission-mode auto to --dangerously-skip-permissions in native.go, spawn_sandbox.go, and helpers_test.go. yakob.md had no auto references. Tests pass.
