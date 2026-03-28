@@ -1,1 +1,0 @@
-Added AllowLocalBinding bool field (set true) to SrtNetworkConfig for OAuth callback localhost binding. Added anthropic.com and console.anthropic.com to allowedDomains for OAuth redirect flow. Updated tests — all pass.

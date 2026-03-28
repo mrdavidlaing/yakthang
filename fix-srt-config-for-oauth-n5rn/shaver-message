@@ -1,1 +1,0 @@
-done — added AllowLocalBinding: true to SrtNetworkConfig, added anthropic.com and console.anthropic.com to allowedDomains, updated tests, go test ./... passes
