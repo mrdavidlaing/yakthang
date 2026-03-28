@@ -41,13 +41,42 @@ func expandHome(path string) string {
 	return path
 }
 
+// toolchainCacheDirs returns common toolchain cache directories that sandbox
+// workers need write access to. Uses environment variables where available,
+// falling back to conventional paths under ~.
+func toolchainCacheDirs() []string {
+	dirs := []string{
+		envOrDefault("GOPATH", "~/go"),
+		envOrDefault("CARGO_HOME", "~/.cargo"),
+		"~/.cache",
+		"~/.local/share/mise",
+		envOrDefault("RUSTUP_HOME", "~/.rustup"),
+		"~/.bun",
+	}
+	expanded := make([]string, len(dirs))
+	for i, d := range dirs {
+		expanded[i] = expandHome(d)
+	}
+	return expanded
+}
+
+// envOrDefault returns the value of the named environment variable, or the
+// fallback if the variable is unset or empty.
+func envOrDefault(key, fallback string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return fallback
+}
+
 // GenerateSrtConfig builds a hardcoded JSON config for srt and writes it to a
 // temp file. The caller is responsible for removing the file when done.
 // Returns the path to the temp file.
 func GenerateSrtConfig(cwd string) (string, error) {
+	allowWrite := append([]string{cwd, "/tmp"}, toolchainCacheDirs()...)
 	cfg := SrtConfig{
 		Filesystem: SrtFilesystemConfig{
-			AllowWrite: []string{cwd, "/tmp"},
+			AllowWrite: allowWrite,
 			DenyWrite:  []string{},
 			DenyRead:   []string{expandHome("~/.ssh"), expandHome("~/.aws/credentials")},
 			AllowRead:  []string{},
