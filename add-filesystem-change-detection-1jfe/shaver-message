@@ -1,1 +1,1 @@
-done — reads .git/refs/notes/yaks hash to detect changes; catches all yx operations, 'r' forces rebuild, plugin compiles and 70 tests pass
+done — timer reads .git/refs/notes/yaks commit hash (~40 bytes) each tick; skips full tree rebuild when hash unchanged. Catches all yx operations (field writes, state transitions, adds, removes). 'r' key forces full rebuild. No dead code to remove — the walk_dir path is still needed for actual rebuilds. Plugin compiles (wasm32-wasip1) and all 70 tests pass.
