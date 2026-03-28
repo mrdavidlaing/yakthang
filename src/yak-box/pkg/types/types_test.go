@@ -13,7 +13,7 @@ func TestWorkerCreation(t *testing.T) {
 		Name:          "test-worker",
 		DisplayName:   "Test Worker",
 		ContainerName: "yakbox-test-worker",
-		Runtime:       "sandboxed",
+		Runtime:       "devcontainer",
 		CWD:           "/tmp/test",
 		YakPath:       ".yaks",
 		Tasks:         []string{"task1", "task2"},
@@ -23,7 +23,7 @@ func TestWorkerCreation(t *testing.T) {
 	assert.Equal(t, "test-worker", worker.Name)
 	assert.Equal(t, "Test Worker", worker.DisplayName)
 	assert.Equal(t, "yakbox-test-worker", worker.ContainerName)
-	assert.Equal(t, "sandboxed", worker.Runtime)
+	assert.Equal(t, "devcontainer", worker.Runtime)
 	assert.Equal(t, "/tmp/test", worker.CWD)
 	assert.Equal(t, ".yaks", worker.YakPath)
 	assert.Len(t, worker.Tasks, 2)

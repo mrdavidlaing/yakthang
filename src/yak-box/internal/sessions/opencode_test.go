@@ -189,8 +189,8 @@ func TestDiscoverOpenCodeSessions(t *testing.T) {
 		wantCmd    string
 	}{
 		{
-			name:       "sandboxed worker discovers via docker exec",
-			session:    &Session{Runtime: "sandboxed", Container: "yak-worker-test"},
+			name:       "devcontainer worker discovers via docker exec",
+			session:    &Session{Runtime: "devcontainer", Container: "yak-worker-test"},
 			mockOutput: []byte(validJSON),
 			wantCount:  1,
 			wantCmd:    "docker",
@@ -204,7 +204,7 @@ func TestDiscoverOpenCodeSessions(t *testing.T) {
 		},
 		{
 			name:       "command failure returns error",
-			session:    &Session{Runtime: "sandboxed", Container: "yak-worker-test"},
+			session:    &Session{Runtime: "devcontainer", Container: "yak-worker-test"},
 			mockOutput: []byte("container not running"),
 			mockErr:    fmt.Errorf("exit status 1"),
 			wantErr:    true,
@@ -235,7 +235,7 @@ func TestDiscoverOpenCodeSessions(t *testing.T) {
 
 func TestDiscoverOpenCodeSessionsDockerArgs(t *testing.T) {
 	runner := &mockRunner{output: []byte("[]")}
-	session := &Session{Runtime: "sandboxed", Container: "yak-worker-api"}
+	session := &Session{Runtime: "devcontainer", Container: "yak-worker-api"}
 
 	_, err := DiscoverOpenCodeSessions(runner, session)
 	require.NoError(t, err)
@@ -272,8 +272,8 @@ func TestSendMessage(t *testing.T) {
 		wantCmd    string
 	}{
 		{
-			name:       "sandboxed worker sends via docker exec",
-			session:    &Session{Runtime: "sandboxed", Container: "yak-worker-test"},
+			name:       "devcontainer worker sends via docker exec",
+			session:    &Session{Runtime: "devcontainer", Container: "yak-worker-test"},
 			sessionID:  "ses_1",
 			message:    "hello worker",
 			format:     "",
@@ -328,7 +328,7 @@ func TestSendMessage(t *testing.T) {
 
 func TestSendMessageDockerArgs(t *testing.T) {
 	runner := &mockRunner{output: []byte("ok")}
-	session := &Session{Runtime: "sandboxed", Container: "yak-worker-api"}
+	session := &Session{Runtime: "devcontainer", Container: "yak-worker-api"}
 
 	_, err := SendMessage(runner, session, "ses_1", "hello", "json")
 	require.NoError(t, err)

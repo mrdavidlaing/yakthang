@@ -409,11 +409,11 @@ func TestGenerateRunScript_HostGitAndGhConfigMountedAndExported(t *testing.T) {
 
 func TestCreateZellijLayout(t *testing.T) {
 	worker := &types.Worker{DisplayName: "Test Worker", CWD: "/workspace"}
-	layout := zellij.GenerateLayout(worker, "sandboxed", "claude")
+	layout := zellij.GenerateLayout(worker, "devcontainer", "claude")
 
 	expected := []string{
 		`tab name="Test Worker"`,
-		"claude", "build", "sandbox",
+		"claude", "build", "devcontainer",
 		"WRAPPER",
 		"SHELL_EXEC_SCRIPT",
 		"CONTAINER_NAME",
@@ -551,7 +551,7 @@ func TestSetupClaudeSettings_PreseededClaudeJSON(t *testing.T) {
 	}
 
 	// .claude.json must exist at both locations:
-	//   homeDir/.claude.json      — for sandboxed workers (HOME=homeDir, no CLAUDE_CONFIG_DIR)
+	//   homeDir/.claude.json      — for devcontainer workers (HOME=homeDir, no CLAUDE_CONFIG_DIR)
 	//   homeDir/.claude/.claude.json — for native workers (CLAUDE_CONFIG_DIR=homeDir/.claude)
 	data, err := os.ReadFile(filepath.Join(homeDir, ".claude.json"))
 	if err != nil {

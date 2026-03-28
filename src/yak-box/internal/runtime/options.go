@@ -1,4 +1,4 @@
-// Package runtime provides sandboxed worker management for yak-box.
+// Package runtime provides devcontainer worker management for yak-box.
 package runtime
 
 import (

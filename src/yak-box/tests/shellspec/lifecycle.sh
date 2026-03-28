@@ -6,21 +6,21 @@ Skip if "zellij not available" zellij_unavailable
 Skip if "yak-shaver:latest image not found" image_unavailable
 Skip if "yak-box binary not found" yakbox_binary_unavailable
 
-It 'spawns a sandboxed worker'
+It 'spawns a devcontainer worker'
 run_spawn() {
 	echo "    → spawning container + zellij tab..." >/dev/tty
 	yak-box spawn \
 		--cwd "$TEST_WORK_DIR" \
 		--name "$TEST_WORKER_NAME" \
 		--session "$TEST_ZELLIJ_SESSION" \
-		--runtime sandboxed \
+		--runtime devcontainer \
 		--yak-path "$TEST_WORK_DIR/.yaks" \
 		--yaks test-task
 }
 When call run_spawn
 The status should be success
 The output should include "Spawned"
-The output should include "sandboxed"
+The output should include "devcontainer"
 End
 
 It 'creates a Docker container (running or exited)'
@@ -43,8 +43,8 @@ check_session() {
 		echo "worker not in sessions.json"
 		return 1
 	}
-	grep -q '"runtime": "sandboxed"' "$sessions_file" || {
-		echo "runtime not sandboxed"
+	grep -q '"runtime": "devcontainer"' "$sessions_file" || {
+		echo "runtime not devcontainer"
 		return 1
 	}
 	grep -q '"task": "test-task"' "$sessions_file" || {

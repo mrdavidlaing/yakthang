@@ -86,7 +86,7 @@ var authLoginShaver string
 var authLoginCmd = &cobra.Command{
 	Use:   "login",
 	Short: "Log a shaver in to Claude via OAuth device flow",
-	Long: `Run 'claude login' inside a sandboxed container for the named shaver.
+	Long: `Run 'claude login' inside a devcontainer for the named shaver.
 
 The device-flow URL is printed to stdout. Open it in a browser to authorize.
 OAuth credentials are stored in the shaver's persistent home directory and

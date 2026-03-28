@@ -98,9 +98,9 @@ func TestOptionError(t *testing.T) {
 		return errors.New("option failed")
 	}
 
-	err := SpawnSandboxedWorker(context.Background(), errOption)
+	err := SpawnDevcontainerWorker(context.Background(), errOption)
 	if err == nil {
-		t.Error("SpawnSandboxedWorker expected error but got nil")
+		t.Error("SpawnDevcontainerWorker expected error but got nil")
 	}
 	if err != nil && !strings.Contains(err.Error(), "option error: option failed") {
 		t.Errorf("Expected 'option error: option failed' in error, got '%v'", err)

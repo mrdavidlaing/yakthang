@@ -57,8 +57,8 @@ func (tc *TestCommander) hasCommand(cmd string) bool {
 	return false
 }
 
-// TestSpawnSandboxedWorker_SuccessfulSpawnWithDefaults tests basic spawn
-func TestSpawnSandboxedWorker_SuccessfulSpawnWithDefaults(t *testing.T) {
+// TestSpawnDevcontainerWorker_SuccessfulSpawnWithDefaults tests basic spawn
+func TestSpawnDevcontainerWorker_SuccessfulSpawnWithDefaults(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -72,7 +72,7 @@ func TestSpawnSandboxedWorker_SuccessfulSpawnWithDefaults(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -81,7 +81,7 @@ func TestSpawnSandboxedWorker_SuccessfulSpawnWithDefaults(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	scriptDir := filepath.Join(tmpDir, "scripts")
@@ -98,8 +98,8 @@ func TestSpawnSandboxedWorker_SuccessfulSpawnWithDefaults(t *testing.T) {
 	}
 }
 
-// TestSpawnSandboxedWorker_WithSessionName tests spawn with session name
-func TestSpawnSandboxedWorker_WithSessionName(t *testing.T) {
+// TestSpawnDevcontainerWorker_WithSessionName tests spawn with session name
+func TestSpawnDevcontainerWorker_WithSessionName(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -113,7 +113,7 @@ func TestSpawnSandboxedWorker_WithSessionName(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -122,7 +122,7 @@ func TestSpawnSandboxedWorker_WithSessionName(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	found := false
@@ -137,11 +137,11 @@ func TestSpawnSandboxedWorker_WithSessionName(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_MissingWorker(t *testing.T) {
+func TestSpawnDevcontainerWorker_MissingWorker(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithPrompt("test prompt"),
 		WithHomeDir(tmpDir),
@@ -155,12 +155,12 @@ func TestSpawnSandboxedWorker_MissingWorker(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_OptionError(t *testing.T) {
+func TestSpawnDevcontainerWorker_OptionError(t *testing.T) {
 	failingOption := func(c *spawnConfig) error {
 		return errors.New("test option error")
 	}
 
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		failingOption,
 	)
@@ -173,7 +173,7 @@ func TestSpawnSandboxedWorker_OptionError(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_InvalidHomeDir(t *testing.T) {
+func TestSpawnDevcontainerWorker_InvalidHomeDir(t *testing.T) {
 	invalidDir := "/nonexistent/path/that/does/not/exist/yak-boxes"
 
 	worker := &types.Worker{
@@ -184,7 +184,7 @@ func TestSpawnSandboxedWorker_InvalidHomeDir(t *testing.T) {
 		WorkerName:  "TestBot",
 	}
 
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -199,7 +199,7 @@ func TestSpawnSandboxedWorker_InvalidHomeDir(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_CustomResourceProfile(t *testing.T) {
+func TestSpawnDevcontainerWorker_CustomResourceProfile(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -218,7 +218,7 @@ func TestSpawnSandboxedWorker_CustomResourceProfile(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -228,7 +228,7 @@ func TestSpawnSandboxedWorker_CustomResourceProfile(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -242,7 +242,7 @@ func TestSpawnSandboxedWorker_CustomResourceProfile(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_WithDevConfig(t *testing.T) {
+func TestSpawnDevcontainerWorker_WithDevConfig(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -264,7 +264,7 @@ func TestSpawnSandboxedWorker_WithDevConfig(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -274,7 +274,7 @@ func TestSpawnSandboxedWorker_WithDevConfig(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -291,7 +291,7 @@ func TestSpawnSandboxedWorker_WithDevConfig(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_WithWorktreePath(t *testing.T) {
+func TestSpawnDevcontainerWorker_WithWorktreePath(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -308,7 +308,7 @@ func TestSpawnSandboxedWorker_WithWorktreePath(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -317,7 +317,7 @@ func TestSpawnSandboxedWorker_WithWorktreePath(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -331,7 +331,7 @@ func TestSpawnSandboxedWorker_WithWorktreePath(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_PromptFileContent(t *testing.T) {
+func TestSpawnDevcontainerWorker_PromptFileContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -346,7 +346,7 @@ func TestSpawnSandboxedWorker_PromptFileContent(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt(testPrompt),
@@ -355,7 +355,7 @@ func TestSpawnSandboxedWorker_PromptFileContent(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	promptPath := filepath.Join(tmpDir, "scripts", "prompt.txt")
@@ -368,7 +368,7 @@ func TestSpawnSandboxedWorker_PromptFileContent(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_ZellijLayoutContent(t *testing.T) {
+func TestSpawnDevcontainerWorker_ZellijLayoutContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -381,7 +381,7 @@ func TestSpawnSandboxedWorker_ZellijLayoutContent(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -390,7 +390,7 @@ func TestSpawnSandboxedWorker_ZellijLayoutContent(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	layoutPath := filepath.Join(tmpDir, "scripts", "layout.kdl")
@@ -413,7 +413,7 @@ func TestSpawnSandboxedWorker_ZellijLayoutContent(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_InnerScriptContent(t *testing.T) {
+func TestSpawnDevcontainerWorker_InnerScriptContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -426,7 +426,7 @@ func TestSpawnSandboxedWorker_InnerScriptContent(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -435,7 +435,7 @@ func TestSpawnSandboxedWorker_InnerScriptContent(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	innerPath := filepath.Join(tmpDir, "scripts", "inner.sh")
@@ -457,7 +457,7 @@ func TestSpawnSandboxedWorker_InnerScriptContent(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_PasswdFileContent(t *testing.T) {
+func TestSpawnDevcontainerWorker_PasswdFileContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -470,7 +470,7 @@ func TestSpawnSandboxedWorker_PasswdFileContent(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -479,7 +479,7 @@ func TestSpawnSandboxedWorker_PasswdFileContent(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	passwdPath := filepath.Join(tmpDir, "scripts", "passwd")
@@ -517,9 +517,9 @@ func TestGetNetworkMode_ContextCancellation(t *testing.T) {
 	}
 }
 
-// TestStopSandboxedWorker_Success tests that stopping a nonexistent container returns an error
-func TestStopSandboxedWorker_Success(t *testing.T) {
-	err := StopSandboxedWorker("nonexistent-worker", 30*time.Second)
+// TestStopDevcontainerWorker_Success tests that stopping a nonexistent container returns an error
+func TestStopDevcontainerWorker_Success(t *testing.T) {
+	err := StopDevcontainerWorker("nonexistent-worker", 30*time.Second)
 
 	if err == nil {
 		t.Error("Expected error for nonexistent container")
@@ -530,8 +530,8 @@ func TestStopSandboxedWorker_Success(t *testing.T) {
 	}
 }
 
-func TestStopSandboxedWorker_ContainerNotFound(t *testing.T) {
-	err := StopSandboxedWorker("definitely-not-a-real-container", 30*time.Second)
+func TestStopDevcontainerWorker_ContainerNotFound(t *testing.T) {
+	err := StopDevcontainerWorker("definitely-not-a-real-container", 30*time.Second)
 
 	if err == nil {
 		t.Error("Expected error when container not found")
@@ -613,12 +613,12 @@ func TestGetResourceProfile_UnknownName(t *testing.T) {
 
 func TestDetectRuntime(t *testing.T) {
 	runtime := DetectRuntime()
-	if runtime != "sandboxed" && runtime != "native" && runtime != "unknown" {
+	if runtime != "devcontainer" && runtime != "native" && runtime != "unknown" {
 		t.Errorf("Unknown runtime detected: %s", runtime)
 	}
 }
 
-func TestSpawnSandboxedWorker_ContainerNameGeneration(t *testing.T) {
+func TestSpawnDevcontainerWorker_ContainerNameGeneration(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -631,7 +631,7 @@ func TestSpawnSandboxedWorker_ContainerNameGeneration(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -640,7 +640,7 @@ func TestSpawnSandboxedWorker_ContainerNameGeneration(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -655,7 +655,7 @@ func TestSpawnSandboxedWorker_ContainerNameGeneration(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_WorkerEnvVars(t *testing.T) {
+func TestSpawnDevcontainerWorker_WorkerEnvVars(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -668,7 +668,7 @@ func TestSpawnSandboxedWorker_WorkerEnvVars(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -677,7 +677,7 @@ func TestSpawnSandboxedWorker_WorkerEnvVars(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -692,7 +692,7 @@ func TestSpawnSandboxedWorker_WorkerEnvVars(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_ShaverNameEnvVar(t *testing.T) {
+func TestSpawnDevcontainerWorker_ShaverNameEnvVar(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -706,7 +706,7 @@ func TestSpawnSandboxedWorker_ShaverNameEnvVar(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -715,7 +715,7 @@ func TestSpawnSandboxedWorker_ShaverNameEnvVar(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -729,7 +729,7 @@ func TestSpawnSandboxedWorker_ShaverNameEnvVar(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_ZellijCommandFails(t *testing.T) {
+func TestSpawnDevcontainerWorker_ZellijCommandFails(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -742,7 +742,7 @@ func TestSpawnSandboxedWorker_ZellijCommandFails(t *testing.T) {
 	}
 
 	failingCmdr := &TestCommander{failingCmd: "zellij"}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -763,12 +763,12 @@ func TestDetectRuntime_DockerUnavailable(t *testing.T) {
 	if runtime == "" {
 		t.Error("DetectRuntime returned empty string")
 	}
-	if runtime != "sandboxed" && runtime != "native" && runtime != "unknown" {
+	if runtime != "devcontainer" && runtime != "native" && runtime != "unknown" {
 		t.Errorf("Unexpected runtime: %s", runtime)
 	}
 }
 
-func TestSpawnSandboxedWorker_MultipleOptions(t *testing.T) {
+func TestSpawnDevcontainerWorker_MultipleOptions(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -791,7 +791,7 @@ func TestSpawnSandboxedWorker_MultipleOptions(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("complex prompt"),
@@ -802,7 +802,7 @@ func TestSpawnSandboxedWorker_MultipleOptions(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -820,15 +820,15 @@ func TestSpawnSandboxedWorker_MultipleOptions(t *testing.T) {
 	}
 }
 
-func TestStopSandboxedWorker_CheckContainerError(t *testing.T) {
-	err := StopSandboxedWorker("test-worker-that-doesnt-exist", 10*time.Second)
+func TestStopDevcontainerWorker_CheckContainerError(t *testing.T) {
+	err := StopDevcontainerWorker("test-worker-that-doesnt-exist", 10*time.Second)
 
 	if err == nil {
 		t.Error("Expected error when checking container fails")
 	}
 }
 
-func TestSpawnSandboxedWorker_WindowsLineEndings(t *testing.T) {
+func TestSpawnDevcontainerWorker_WindowsLineEndings(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -841,7 +841,7 @@ func TestSpawnSandboxedWorker_WindowsLineEndings(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt\nwith\nnewlines"),
@@ -850,7 +850,7 @@ func TestSpawnSandboxedWorker_WindowsLineEndings(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	promptPath := filepath.Join(tmpDir, "scripts", "prompt.txt")
@@ -863,7 +863,7 @@ func TestSpawnSandboxedWorker_WindowsLineEndings(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_EmptyPrompt(t *testing.T) {
+func TestSpawnDevcontainerWorker_EmptyPrompt(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -876,7 +876,7 @@ func TestSpawnSandboxedWorker_EmptyPrompt(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt(""),
@@ -885,7 +885,7 @@ func TestSpawnSandboxedWorker_EmptyPrompt(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed with empty prompt: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed with empty prompt: %v", err)
 	}
 
 	promptPath := filepath.Join(tmpDir, "scripts", "prompt.txt")
@@ -898,7 +898,7 @@ func TestSpawnSandboxedWorker_EmptyPrompt(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_SpecialCharactersInWorkerName(t *testing.T) {
+func TestSpawnDevcontainerWorker_SpecialCharactersInWorkerName(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -911,7 +911,7 @@ func TestSpawnSandboxedWorker_SpecialCharactersInWorkerName(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -920,7 +920,7 @@ func TestSpawnSandboxedWorker_SpecialCharactersInWorkerName(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	layoutPath := filepath.Join(tmpDir, "scripts", "layout.kdl")
@@ -934,7 +934,7 @@ func TestSpawnSandboxedWorker_SpecialCharactersInWorkerName(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_WorktreePathOptional(t *testing.T) {
+func TestSpawnDevcontainerWorker_WorktreePathOptional(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -948,7 +948,7 @@ func TestSpawnSandboxedWorker_WorktreePathOptional(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -957,7 +957,7 @@ func TestSpawnSandboxedWorker_WorktreePathOptional(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	runScriptPath := filepath.Join(tmpDir, "scripts", "run.sh")
@@ -972,7 +972,7 @@ func TestSpawnSandboxedWorker_WorktreePathOptional(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_DefaultCommanderUsed(t *testing.T) {
+func TestSpawnDevcontainerWorker_DefaultCommanderUsed(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -985,7 +985,7 @@ func TestSpawnSandboxedWorker_DefaultCommanderUsed(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -994,11 +994,11 @@ func TestSpawnSandboxedWorker_DefaultCommanderUsed(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker with mocked commander failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker with mocked commander failed: %v", err)
 	}
 }
 
-func TestSpawnSandboxedWorker_GroupFileContent(t *testing.T) {
+func TestSpawnDevcontainerWorker_GroupFileContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1011,7 +1011,7 @@ func TestSpawnSandboxedWorker_GroupFileContent(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -1020,7 +1020,7 @@ func TestSpawnSandboxedWorker_GroupFileContent(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	groupPath := filepath.Join(tmpDir, "scripts", "group")
@@ -1038,7 +1038,7 @@ func TestSpawnSandboxedWorker_GroupFileContent(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_ShellExecScriptContent(t *testing.T) {
+func TestSpawnDevcontainerWorker_ShellExecScriptContent(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1051,7 +1051,7 @@ func TestSpawnSandboxedWorker_ShellExecScriptContent(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -1060,7 +1060,7 @@ func TestSpawnSandboxedWorker_ShellExecScriptContent(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	shellExecPath := filepath.Join(tmpDir, "scripts", "shell-exec.sh")
@@ -1081,7 +1081,7 @@ func TestSpawnSandboxedWorker_ShellExecScriptContent(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_LargePrompt(t *testing.T) {
+func TestSpawnDevcontainerWorker_LargePrompt(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1096,7 +1096,7 @@ func TestSpawnSandboxedWorker_LargePrompt(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt(largePrompt),
@@ -1105,7 +1105,7 @@ func TestSpawnSandboxedWorker_LargePrompt(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed with large prompt: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed with large prompt: %v", err)
 	}
 
 	promptPath := filepath.Join(tmpDir, "scripts", "prompt.txt")
@@ -1118,7 +1118,7 @@ func TestSpawnSandboxedWorker_LargePrompt(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorker_UnicodeCharacters(t *testing.T) {
+func TestSpawnDevcontainerWorker_UnicodeCharacters(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1131,7 +1131,7 @@ func TestSpawnSandboxedWorker_UnicodeCharacters(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("Prompt with unicode: 你好 مرحبا"),
@@ -1140,7 +1140,7 @@ func TestSpawnSandboxedWorker_UnicodeCharacters(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed with unicode: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed with unicode: %v", err)
 	}
 
 	promptPath := filepath.Join(tmpDir, "scripts", "prompt.txt")
@@ -1153,7 +1153,7 @@ func TestSpawnSandboxedWorker_UnicodeCharacters(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorkerNullBytePath(t *testing.T) {
+func TestSpawnDevcontainerWorkerNullBytePath(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1167,7 +1167,7 @@ func TestSpawnSandboxedWorkerNullBytePath(t *testing.T) {
 		WorkerName:  "TestBot",
 	}
 
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test"),
@@ -1179,7 +1179,7 @@ func TestSpawnSandboxedWorkerNullBytePath(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorkerContextCancellation(t *testing.T) {
+func TestSpawnDevcontainerWorkerContextCancellation(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1194,7 +1194,7 @@ func TestSpawnSandboxedWorkerContextCancellation(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		ctx,
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -1202,11 +1202,11 @@ func TestSpawnSandboxedWorkerContextCancellation(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Logf("SpawnSandboxedWorker with cancelled context error: %v", err)
+		t.Logf("SpawnDevcontainerWorker with cancelled context error: %v", err)
 	}
 }
 
-func TestSpawnSandboxedWorkerScriptFileCorruption(t *testing.T) {
+func TestSpawnDevcontainerWorkerScriptFileCorruption(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1227,7 +1227,7 @@ func TestSpawnSandboxedWorkerScriptFileCorruption(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test"),
@@ -1236,11 +1236,11 @@ func TestSpawnSandboxedWorkerScriptFileCorruption(t *testing.T) {
 	)
 
 	if err == nil {
-		t.Logf("SpawnSandboxedWorker succeeded despite corruption (may be acceptable)")
+		t.Logf("SpawnDevcontainerWorker succeeded despite corruption (may be acceptable)")
 	}
 }
 
-func TestSpawnSandboxedWorker_ClaudeJsonPreseeded(t *testing.T) {
+func TestSpawnDevcontainerWorker_ClaudeJsonPreseeded(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1253,7 +1253,7 @@ func TestSpawnSandboxedWorker_ClaudeJsonPreseeded(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt("test prompt"),
@@ -1262,7 +1262,7 @@ func TestSpawnSandboxedWorker_ClaudeJsonPreseeded(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed: %v", err)
 	}
 
 	// .claude.json lives at $HOME/.claude.json, not inside the .claude/ subdir.
@@ -1276,7 +1276,7 @@ func TestSpawnSandboxedWorker_ClaudeJsonPreseeded(t *testing.T) {
 	}
 }
 
-func TestSpawnSandboxedWorkerExtremelyLongPrompt(t *testing.T) {
+func TestSpawnDevcontainerWorkerExtremelyLongPrompt(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
 
@@ -1291,7 +1291,7 @@ func TestSpawnSandboxedWorkerExtremelyLongPrompt(t *testing.T) {
 	}
 
 	cmdr := &TestCommander{}
-	err := SpawnSandboxedWorker(
+	err := SpawnDevcontainerWorker(
 		context.Background(),
 		WithWorker(worker),
 		WithPrompt(massivePrompt),
@@ -1300,7 +1300,7 @@ func TestSpawnSandboxedWorkerExtremelyLongPrompt(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("SpawnSandboxedWorker failed with long prompt: %v", err)
+		t.Errorf("SpawnDevcontainerWorker failed with long prompt: %v", err)
 	}
 
 	promptPath := filepath.Join(tmpDir, "scripts", "prompt.txt")

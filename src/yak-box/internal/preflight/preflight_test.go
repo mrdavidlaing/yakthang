@@ -127,45 +127,45 @@ func TestSpawnNativeDeps_Opencode(t *testing.T) {
 	requireContains(t, names, "opencode")
 }
 
-func TestSpawnSandboxedDeps(t *testing.T) {
-	deps := preflight.SpawnSandboxedDeps()
+func TestSpawnDevcontainerDeps(t *testing.T) {
+	deps := preflight.SpawnDevcontainerDeps()
 	names := depNames(deps)
 	requireContains(t, names, "docker")
 	requireContains(t, names, "zellij")
 	requireContains(t, names, "yx")
 }
 
-func TestEnsureClaudeAuthEnv_SandboxedClaudeMissing(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", "", func(string) (string, bool) {
+func TestEnsureClaudeAuthEnv_DevcontainerClaudeMissing(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "devcontainer", "", func(string) (string, bool) {
 		return "", false
 	})
 	if err == nil {
-		t.Fatal("expected error when no auth configured for sandboxed claude")
+		t.Fatal("expected error when no auth configured for devcontainer claude")
 	}
-	if !strings.Contains(err.Error(), "sandboxed") {
-		t.Errorf("error should mention sandboxed runtime, got: %v", err)
+	if !strings.Contains(err.Error(), "devcontainer") {
+		t.Errorf("error should mention devcontainer runtime, got: %v", err)
 	}
 }
 
-func TestEnsureClaudeAuthEnv_SandboxedClaudeEmpty(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", "", func(string) (string, bool) {
+func TestEnsureClaudeAuthEnv_DevcontainerClaudeEmpty(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "devcontainer", "", func(string) (string, bool) {
 		return "   ", true
 	})
 	if err == nil {
-		t.Fatal("expected error when _ANTHROPIC_API_KEY is blank for sandboxed claude")
+		t.Fatal("expected error when _ANTHROPIC_API_KEY is blank for devcontainer claude")
 	}
 }
 
-func TestEnsureClaudeAuthEnv_SandboxedClaudePresent(t *testing.T) {
-	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", "", func(string) (string, bool) {
+func TestEnsureClaudeAuthEnv_DevcontainerClaudePresent(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "devcontainer", "", func(string) (string, bool) {
 		return "sk-ant-valid", true
 	})
 	if err != nil {
-		t.Fatalf("expected no error when _ANTHROPIC_API_KEY is set for sandboxed claude, got: %v", err)
+		t.Fatalf("expected no error when _ANTHROPIC_API_KEY is set for devcontainer claude, got: %v", err)
 	}
 }
 
-func TestEnsureClaudeAuthEnv_SandboxedClaudeOAuth(t *testing.T) {
+func TestEnsureClaudeAuthEnv_DevcontainerClaudeOAuth(t *testing.T) {
 	// Create a temp home dir with a fake OAuth credential file.
 	tmpHome := t.TempDir()
 	claudeDir := tmpHome + "/.claude"
@@ -175,7 +175,7 @@ func TestEnsureClaudeAuthEnv_SandboxedClaudeOAuth(t *testing.T) {
 	if err := os.WriteFile(claudeDir+"/credentials.json", []byte(`{"token":"fake"}`), 0600); err != nil {
 		t.Fatal(err)
 	}
-	err := preflight.EnsureClaudeAuthEnv("claude", "sandboxed", tmpHome, func(string) (string, bool) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "devcontainer", tmpHome, func(string) (string, bool) {
 		return "", false
 	})
 	if err != nil {
@@ -204,7 +204,7 @@ func TestEnsureClaudeAuthEnv_NativeWithKeyStillWorks(t *testing.T) {
 func TestEnsureClaudeAuthEnv_NonClaudeIgnored(t *testing.T) {
 	tools := []string{"cursor", "opencode"}
 	for _, tool := range tools {
-		err := preflight.EnsureClaudeAuthEnv(tool, "sandboxed", "", func(string) (string, bool) {
+		err := preflight.EnsureClaudeAuthEnv(tool, "devcontainer", "", func(string) (string, bool) {
 			return "", false
 		})
 		if err != nil {

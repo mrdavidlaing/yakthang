@@ -78,11 +78,11 @@ func GetResourceProfile(name string) types.ResourceProfile {
 	}
 }
 
-// DetectRuntime detects the available runtime (sandboxed/docker or native/zellij)
+// DetectRuntime detects the available runtime (devcontainer/docker or native/zellij)
 func DetectRuntime() string {
 	if _, err := exec.LookPath("docker"); err == nil {
 		if err := exec.Command("docker", "ps").Run(); err == nil {
-			return "sandboxed"
+			return "devcontainer"
 		}
 	}
 	if _, err := exec.LookPath("zellij"); err == nil {
@@ -100,8 +100,8 @@ func GetNetworkMode(ctx context.Context) string {
 	return networkName
 }
 
-// SpawnSandboxedWorker spawns a worker in a Docker container via Zellij tab
-func SpawnSandboxedWorker(ctx context.Context, opts ...SpawnOption) error {
+// SpawnDevcontainerWorker spawns a worker in a Docker container via Zellij tab
+func SpawnDevcontainerWorker(ctx context.Context, opts ...SpawnOption) error {
 	cfg := &spawnConfig{
 		commander: &defaultCommander{},
 		profile:   GetResourceProfile("default"),
@@ -178,7 +178,7 @@ func SpawnSandboxedWorker(ctx context.Context, opts ...SpawnOption) error {
 
 	// Create Zellij layout file (single generator from internal/zellij)
 	layoutFile := filepath.Join(workerDir, "layout.kdl")
-	layoutContent := zellij.GenerateLayout(cfg.worker, "sandboxed", cfg.worker.Tool)
+	layoutContent := zellij.GenerateLayout(cfg.worker, "devcontainer", cfg.worker.Tool)
 	layoutContent = strings.ReplaceAll(layoutContent, "%WRAPPER%", wrapperScript)
 	layoutContent = strings.ReplaceAll(layoutContent, "%SHELL_EXEC_SCRIPT%", shellExecScript)
 	layoutContent = strings.ReplaceAll(layoutContent, "%CONTAINER_NAME%", containerName)
@@ -197,14 +197,14 @@ func SpawnSandboxedWorker(ctx context.Context, opts ...SpawnOption) error {
 	}
 
 	if err := zellijCmd.Run(); err != nil {
-		return fmt.Errorf("failed to create Zellij tab: %w. Suggestion: Ensure Zellij is installed and you're in a Zellij session, or use --runtime=sandboxed", err)
+		return fmt.Errorf("failed to create Zellij tab: %w. Suggestion: Ensure Zellij is installed and you're in a Zellij session, or use --runtime=devcontainer", err)
 	}
 
 	return nil
 }
 
-// StopSandboxedWorker stops a sandboxed worker with timeout
-func StopSandboxedWorker(name string, timeout time.Duration) error {
+// StopDevcontainerWorker stops a devcontainer worker with timeout
+func StopDevcontainerWorker(name string, timeout time.Duration) error {
 	containerName := containerNamePrefix + name
 
 	// Check if container exists

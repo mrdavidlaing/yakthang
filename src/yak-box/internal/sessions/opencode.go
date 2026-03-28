@@ -44,7 +44,7 @@ func DiscoverOpenCodeSessions(runner CommandRunner, session *Session) ([]OpenCod
 	var output []byte
 	var err error
 
-	if session.Runtime == "sandboxed" {
+	if session.Runtime == "devcontainer" {
 		output, err = runner.Run("docker", "exec", session.Container, "opencode", "session", "list", "--format", "json")
 	} else {
 		output, err = runner.Run("opencode", "session", "list", "--format", "json", "--dir", session.CWD)
@@ -98,13 +98,13 @@ func SendMessage(runner CommandRunner, session *Session, openCodeSessionID strin
 	baseCmd := "opencode"
 	var args []string
 
-	if session.Runtime == "sandboxed" {
+	if session.Runtime == "devcontainer" {
 		baseCmd = "docker"
 		args = append(args, "exec", session.Container, "opencode")
 	}
 
 	args = append(args, "run", "--session", openCodeSessionID)
-	if session.Runtime != "sandboxed" && session.CWD != "" {
+	if session.Runtime != "devcontainer" && session.CWD != "" {
 		args = append(args, "--dir", session.CWD)
 	}
 	if format != "" && format != "default" {

@@ -10,7 +10,7 @@ var version string
 var rootCmd = &cobra.Command{
 	Use:   "yak-box",
 	Short: "Docker-based worker orchestration CLI",
-	Long:  "yak-box is a CLI tool for managing sandboxed and native workers",
+	Long:  "yak-box is a CLI tool for managing devcontainer and native workers",
 }
 
 // Execute runs the root CLI command.

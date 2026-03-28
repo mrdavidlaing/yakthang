@@ -118,8 +118,8 @@ func SpawnNativeDeps(tool string) []Dep {
 	return deps
 }
 
-// SpawnSandboxedDeps returns the deps required to spawn a sandboxed worker.
-func SpawnSandboxedDeps() []Dep {
+// SpawnDevcontainerDeps returns the deps required to spawn a devcontainer worker.
+func SpawnDevcontainerDeps() []Dep {
 	return []Dep{Docker, Zellij, Yx}
 }
 
@@ -135,7 +135,7 @@ func CheckDeps() []Dep {
 
 // EnsureClaudeAuthEnv verifies that Claude authentication is available when spawning
 // a worker. Native workers inherit the host's OAuth session (~/.claude/) so the API
-// key is not required. For sandboxed workers, either an API key env var OR OAuth
+// key is not required. For devcontainer workers, either an API key env var OR OAuth
 // credentials already present in shaverHomeDir/.claude/ are acceptable.
 // Pass shaverHomeDir="" to skip the OAuth credential check (e.g. before homeDir is created).
 func EnsureClaudeAuthEnv(tool, runtime, shaverHomeDir string, lookupEnv func(string) (string, bool)) error {
@@ -167,7 +167,7 @@ func EnsureClaudeAuthEnv(tool, runtime, shaverHomeDir string, lookupEnv func(str
 	} else {
 		hint = "\n  Option 1 (OAuth): run 'yak-box auth-login --shaver <name>' to log in via device flow\n  Option 2 (API key): export _ANTHROPIC_API_KEY=your-key"
 	}
-	return fmt.Errorf("preflight check failed — no Claude auth configured for sandboxed runtime.%s", hint)
+	return fmt.Errorf("preflight check failed — no Claude auth configured for devcontainer runtime.%s", hint)
 }
 
 // hasOAuthCreds returns true when homeDir/.claude/ contains at least one non-empty JSON file.

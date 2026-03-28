@@ -196,7 +196,7 @@ func TestSpawnValidation(t *testing.T) {
 			spawnName: "test-worker",
 			mode:      "build",
 			resources: "heavy",
-			runtime:   "sandboxed",
+			runtime:   "devcontainer",
 			wantErr:   false,
 		},
 		{
@@ -731,7 +731,7 @@ func TestResolveInheritedWorktrees(t *testing.T) {
 }
 
 func TestSpawnRuntimeOptions(t *testing.T) {
-	validRuntimes := []string{"auto", "sandboxed", "native"}
+	validRuntimes := []string{"auto", "devcontainer", "native"}
 
 	for _, runtime := range validRuntimes {
 		t.Run("valid_runtime_"+runtime, func(t *testing.T) {

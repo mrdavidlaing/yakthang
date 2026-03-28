@@ -1,6 +1,6 @@
 # yak-box
 
-Docker-based worker orchestration CLI for managing sandboxed and native workers.
+Docker-based worker orchestration CLI for managing devcontainer and native workers.
 
 ## Build
 
@@ -12,7 +12,7 @@ go build -o yak-box .
 
 yak-box spawns, manages, and stops containerized worker environments. It provides commands for:
 
-- **spawn** - Start a new worker (sandboxed via Docker or native)
+- **spawn** - Start a new worker (devcontainer via Docker or native)
 - **stop** - Stop a running worker
 - **check** - Verify environment and prerequisites
 - **message** - Send messages to workers

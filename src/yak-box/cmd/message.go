@@ -27,7 +27,7 @@ The message command:
 2. Discovers its OpenCode session (via docker exec or opencode --dir)
 3. Sends the message via opencode run --session
 
-Works with both sandboxed (Docker) and native workers.`,
+Works with both devcontainer (Docker) and native workers.`,
 	Example: `  # Send a message to a worker
   yak-box message api-auth "Add error handling to the login endpoint"
 

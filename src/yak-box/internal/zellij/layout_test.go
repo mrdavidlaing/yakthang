@@ -7,22 +7,22 @@ import (
 	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
-func TestGenerateLayout_Sandboxed(t *testing.T) {
+func TestGenerateLayout_Devcontainer(t *testing.T) {
 	worker := &types.Worker{DisplayName: "My Worker", CWD: "/workspace"}
-	out := GenerateLayout(worker, "sandboxed", "claude")
+	out := GenerateLayout(worker, "devcontainer", "claude")
 	if !strings.Contains(out, "My Worker") {
 		t.Error("DisplayName should appear")
 	}
-	// Sandboxed layout has no tab cwd; CWD may appear in shell pane name for container
+	// Devcontainer layout has no tab cwd; CWD may appear in shell pane name for container
 	// Pane name is tool (build) [runtimeKind]
-	if !strings.Contains(out, "claude") || !strings.Contains(out, "build") || !strings.Contains(out, "sandbox") {
-		t.Error("sandboxed layout should have tool and runtime in pane name")
+	if !strings.Contains(out, "claude") || !strings.Contains(out, "build") || !strings.Contains(out, "devcontainer") {
+		t.Error("devcontainer layout should have tool and runtime in pane name")
 	}
 	if !strings.Contains(out, "WRAPPER") {
 		t.Error("layout should contain WRAPPER placeholder")
 	}
 	if !strings.Contains(out, "SHELL_EXEC_SCRIPT") {
-		t.Error("sandboxed layout should contain SHELL_EXEC_SCRIPT placeholder")
+		t.Error("devcontainer layout should contain SHELL_EXEC_SCRIPT placeholder")
 	}
 	if !strings.Contains(out, "compact-bar") {
 		t.Error("layout should include compact-bar plugin")
@@ -32,7 +32,7 @@ func TestGenerateLayout_Sandboxed(t *testing.T) {
 		t.Error("shell pane should have size=5")
 	}
 	// Main build pane should flex-fill (no size= attribute)
-	if !strings.Contains(out, `pane name="claude (build) [sandboxed]" focus=true`) {
+	if !strings.Contains(out, `pane name="claude (build) [devcontainer]" focus=true`) {
 		t.Error("main build pane should not have a size= attribute")
 	}
 }

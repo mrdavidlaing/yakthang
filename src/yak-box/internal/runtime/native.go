@@ -302,7 +302,7 @@ func setupClaudeSettings(homeDir, apiKey string) error {
 	// Pre-seed .claude.json so Claude Code starts without blocking on
 	// onboarding or permissions prompts, and pre-approves the key suffix.
 	// Write to both locations:
-	//   homeDir/.claude.json        — used by sandboxed workers (HOME=homeDir, no CLAUDE_CONFIG_DIR)
+	//   homeDir/.claude.json        — used by devcontainer workers (HOME=homeDir, no CLAUDE_CONFIG_DIR)
 	//   claudeDir/.claude.json      — used by native workers (CLAUDE_CONFIG_DIR=claudeDir)
 	suffix := apiKey
 	if len(apiKey) > 20 {

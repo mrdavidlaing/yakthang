@@ -98,7 +98,7 @@ func runStop() error {
 			for _, w := range workers {
 				if w == containerName {
 					session = &sessions.Session{
-						Runtime:     "sandboxed",
+						Runtime:     "devcontainer",
 						Container:   containerName,
 						DisplayName: stopName,
 					}
@@ -155,7 +155,7 @@ func runStop() error {
 		}
 	}
 
-	if session.Runtime == "sandboxed" {
+	if session.Runtime == "devcontainer" {
 		if stopDryRun {
 			fmt.Printf("[dry-run] Would close Zellij tab: %s\n", session.DisplayName)
 			fmt.Printf("[dry-run] Would stop container: %s\n", session.Container)
@@ -165,7 +165,7 @@ func runStop() error {
 				fmt.Printf("Warning: failed to close tab: %v\n", err)
 			}
 			ui.Info("⏳ Stopping container...\n")
-			if err := runtime.StopSandboxedWorker(stopName, timeout); err != nil {
+			if err := runtime.StopDevcontainerWorker(stopName, timeout); err != nil {
 				fmt.Printf("Warning: %v\n", err)
 			}
 		}
@@ -200,7 +200,7 @@ func runStop() error {
 }
 
 func extractWorkerCost(session *sessions.Session) string {
-	if session.Runtime == "sandboxed" {
+	if session.Runtime == "devcontainer" {
 		cmd := exec.Command("docker", "exec", session.Container, "goccc", "-days", "0", "-json")
 		output, err := cmd.Output()
 		if err == nil {
