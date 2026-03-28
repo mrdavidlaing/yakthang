@@ -1,1 +1,1 @@
-found all 4 items, making changes now
+done — removed resolveAnthropicKeySuffix, messageCmd (+ tests), generateDevContainerID dead branch, simplified generateNativeWrapperScript return; go build && go test pass
