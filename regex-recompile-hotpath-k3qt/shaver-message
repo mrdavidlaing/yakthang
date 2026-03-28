@@ -1,1 +1,1 @@
-starting work — verifying previous agent's fix
+done — verified: varPattern compiled once as package-level var (line 17 of variables.go), go build and go test ./... both pass
