@@ -1,1 +1,1 @@
-writing new integration tests from scratch
+done — rewrote sandbox smoke tests as yak-box integration tests; 6 examples, 0 failures, full shellspec suite green
