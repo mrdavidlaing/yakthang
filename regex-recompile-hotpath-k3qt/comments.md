@@ -1,0 +1,1 @@
+Extracted regexp.MustCompile from substituteString body to package-level var 'varPattern' in pkg/devcontainer/variables.go. The regex was being recompiled on every call to substituteString (and recursively for containerWorkspaceFolder resolution). Now compiled once at package init. Straightforward change — no behavioral difference, just eliminates redundant compilation.
