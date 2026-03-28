@@ -1,1 +1,1 @@
-starting work, reading the codebase
+done — sandbox flag accepted, stubs SpawnSandboxWorker and StopSandboxWorker in place, all tests pass
