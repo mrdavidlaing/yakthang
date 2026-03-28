@@ -1,1 +1,1 @@
-done — mtime check added to timer refresh, 'r' key forces full rebuild, plugin compiles and all 70 tests pass
+done — reads .git/refs/notes/yaks hash to detect changes; catches all yx operations, 'r' forces rebuild, plugin compiles and 70 tests pass
