@@ -177,10 +177,12 @@ Say "yak wrap" at any point to close out early.
 **Start the heartbeat** before spawning the first shaver:
 
 ```
-/loop 5m yx ls
+/loop 5m [heartbeat] yx ls
 ```
 
 This runs `yx ls` every 5 minutes so Yakob sees shaver progress between turns.
+The `[heartbeat]` prefix lets Yakob distinguish automated pulses from operator
+messages (see "Heartbeat Recognition" below).
 
 Then begin shaving.
 
@@ -216,6 +218,18 @@ the wip state indicators directly. If the count meets the limit:
 **90-minute break prompt** — if session duration > 90 minutes and no break taken:
 > "You've been shaving for 90 minutes. Take a break before the next shaver?"
 > (Consequential prompt — wait for response before spawning.)
+
+**Heartbeat recognition** — messages starting with `[heartbeat]` are automated
+cron pulses, not operator input. When Yakob sees a `[heartbeat]` message:
+- Process the `yx ls` output to update your mental model of shaver progress
+- Check for session enforcement (WIP ceiling, hard stop, break prompt)
+- Do NOT generate a conversational response — no greetings, no summaries,
+  no "everything looks good" replies
+- If enforcement action is needed (e.g. hard stop reached), take that action
+  silently without preamble
+
+Messages **without** the `[heartbeat]` prefix are from the operator — engage
+fully as normal.
 
 ---
 

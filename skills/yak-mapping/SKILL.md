@@ -236,7 +236,7 @@ Which would you like?
 - Independent leaves can be worked in parallel
 - Each worker gets `--cwd` scoped to the right repo
 - One worker per directory to avoid conflicts
-- Use `--runtime native` for interactive Claude Code sessions
+- Use `--runtime sandbox` for interactive Claude Code sessions
 
 ## Common Mistakes
 

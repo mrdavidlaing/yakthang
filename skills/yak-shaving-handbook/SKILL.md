@@ -245,9 +245,12 @@ Heartbeat is **Yakob's responsibility**, not the shaver's. Shavers don't need to
 Yakob uses `/loop` to schedule recurring status checks:
 
 ```
-/loop 5m yx ls; yx field --show <id> shaver-message
+/loop 5m [heartbeat] yx ls
 ```
 
+- The `[heartbeat]` prefix tells Yakob the message is an automated pulse, not
+  an operator typing. Yakob responds minimally to heartbeat messages — just
+  process the `yx ls` output silently, no conversational response needed.
 - `/loop` uses `CronCreate` under the hood — session-only, auto-expires after 3 days.
 - No external scripts, no fswatch dependency, no manual relaunching required.
 - Yakob relaunches the loop as needed; shavers just keep their `shaver-message` updated.

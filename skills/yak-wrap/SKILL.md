@@ -226,6 +226,40 @@ Review the remaining yak map and tidy it for next time.
 4. **Naming** — any yaks whose names no longer reflect their scope after
    the day's work?
 
+### Auto-sleep old session yaks
+
+Session yaks older than 7 days are visual noise. Before any manual
+reorganization, automatically set their `wip-state` to `sleeping`. This
+keeps recent sessions visible while archiving older ones out of the active
+view.
+
+Only target yaks whose name starts with `session-` under the `worklogs`
+parent. Extract the date from the name (`session-YYYY-MM-DD-HHMM`) and
+compare to today.
+
+```bash
+# Auto-sleep session yaks older than 7 days
+cutoff=$(date -d "-7 days" +%Y-%m-%d 2>/dev/null || date -v-7d +%Y-%m-%d)
+
+yx ls --format plain | grep -oP 'session-[^\s]+' | while read -r name; do
+  # Extract date from session name (session-YYYY-MM-DD-HHMM or session-nightshift-YYYY-MM-DD-HHMM)
+  session_date=$(echo "$name" | grep -oP '\d{4}-\d{2}-\d{2}' | head -1)
+  if [ -z "$session_date" ]; then continue; fi
+
+  # Skip if already sleeping
+  current_state=$(yx field --show "$name" wip-state 2>/dev/null)
+  if [ "$current_state" = "sleeping" ]; then continue; fi
+
+  # Compare dates — if session_date < cutoff, sleep it
+  if [[ "$session_date" < "$cutoff" ]]; then
+    echo "sleeping" | yx field "$name" wip-state
+    echo "Auto-slept session yak: $name (older than 7 days)"
+  fi
+done
+```
+
+Report what was auto-slept before proceeding to manual reorganization.
+
 ### How to reorganize
 
 ```bash

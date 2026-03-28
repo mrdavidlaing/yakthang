@@ -118,8 +118,11 @@ EOF
 ### Start the heartbeat
 
 ```
-/loop 5m yx ls
+/loop 5m [heartbeat] yx ls
 ```
+
+The `[heartbeat]` prefix lets Yakob distinguish automated pulses from operator
+messages (see "Heartbeat Recognition" in yak-triage).
 
 **Capture the heartbeat job ID** so it can be cancelled when the queue is
 exhausted. After `/loop` creates the cron, run `CronList` and note the job ID

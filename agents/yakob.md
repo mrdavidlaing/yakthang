@@ -191,7 +191,11 @@ Use `yak-box spawn` to launch a Claude Code instance in a new Zellij tab.
 - `--yak-name` (required): Worker name (used in tabs, logs, metadata)
 - `--shaver-name` (required): The shaver's identity — pick from the name pool below
 - `--tool claude`: Uses Claude Code (default). Workers get interactive Claude sessions.
-- `--runtime native`: Runs directly on the host. **Use this for interactive Claude Code sessions.** The default `sandboxed` runtime uses `--print` mode (non-interactive).
+- `--runtime sandbox` (default for spawns): Filesystem isolation + network allowlist.
+  **Use this for implementation shavers** (writing code, refactoring, tests).
+- `--runtime native`: Runs directly on the host with full network access.
+  **Use only for research tasks** that need unrestricted network (web fetches, browsing
+  external repos, API exploration) or tasks that need git push access.
 - `--yaks`: Task names to assign (can be repeated)
 - `--mode plan`: For analysis/planning tasks (worker stops after planning)
 - `--skill`: Skill folder to copy into the worker's home (can be repeated)
@@ -274,7 +278,7 @@ yak-box spawn \
   --yak-name "api-auth" \
   --shaver-name "$shaver_name" \
   --tool claude \
-  --runtime native \
+  --runtime sandbox \
   --yaks auth-login --yaks auth-logout \
   $(echo $skill_flags) \
   "Your supervisor is $supervisor. When you start each yak, run:
@@ -408,12 +412,25 @@ Shavers write free text — no prefix convention. Yakob interprets intent:
 11. **Start the heartbeat.** After triage, before the first spawn, run
     `/loop 5m yx ls`. No heartbeat = no visibility between turns.
 
+### Runtime Selection
+
+When spawning shavers, **default to `--runtime sandbox`**. Use `--runtime native`
+only when the task genuinely needs it.
+
+| Task type | Runtime | Why |
+|-----------|---------|-----|
+| Implementation (code, refactor, tests) | `sandbox` | Filesystem isolation; network allowlist prevents accidental external calls |
+| Research (web fetch, API exploration) | `native` | Network allowlist too restrictive for arbitrary web access |
+| Nightshift (needs git push) | `native` | Sandbox may not have git credentials mounted |
+| Review subagents | n/a | Use the Agent tool, not yak-box spawn |
+
 ### Pre-Spawn Checklist
 
 Before EVERY `yak-box spawn`, verify ALL of the following:
 1. Session yak exists: `yx ls` shows a `session-` yak in wip state
 2. Heartbeat is running: `/loop` was started after triage
 3. WIP count < limit: count wip yaks (excluding session yak) against wip-limit field
+4. Runtime selected: `--runtime sandbox` unless the task needs unrestricted network or git push
 
 If ANY check fails, STOP. Do not spawn. Fix the missing piece first.
 If no session yak exists, run `/yak-triage` before proceeding.
