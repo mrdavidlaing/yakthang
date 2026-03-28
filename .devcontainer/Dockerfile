@@ -9,10 +9,12 @@ ENV CI=true
 # Install essential build tools first
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    bubblewrap \
     ca-certificates \
     curl \
     git \
     bash \
+    socat \
     unzip \
     wget \
     && rm -rf /var/lib/apt/lists/*
