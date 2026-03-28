@@ -1,1 +1,1 @@
-starting work, reading the duplicate OAuth code in auth.go and preflight.go
+done — deduplicated OAuth credential detection; shared HasOAuthCredentials in auth.go, preflight.go uses it via import alias, duplicate removed. go build, go test ./..., shellspec all pass.
