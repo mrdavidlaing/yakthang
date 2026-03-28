@@ -1,1 +1,1 @@
-starting work, reading the codebase
+done — mtime check added to timer refresh, 'r' key forces full rebuild, plugin compiles and all 70 tests pass
