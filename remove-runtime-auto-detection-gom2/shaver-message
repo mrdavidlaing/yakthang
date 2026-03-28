@@ -1,1 +1,1 @@
-reading codebase, identifying all changes needed
+done — removed DetectRuntime(), made --runtime required, all tests pass
