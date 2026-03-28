@@ -1,1 +1,1 @@
-starting work, reading srt_config.go
+done — toolchain cache dirs added to allowWrite (GOPATH, CARGO_HOME, ~/.cache, mise, RUSTUP_HOME, ~/.bun); env vars respected with ~ fallbacks; tests pass
