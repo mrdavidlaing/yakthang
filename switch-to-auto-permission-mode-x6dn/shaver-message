@@ -1,1 +1,0 @@
-done — replaced --dangerously-skip-permissions with --permission-mode auto for native and sandbox workers; devcontainer unchanged; all tests pass
