@@ -1,1 +1,1 @@
-done — refactored Config.UnmarshalJSON to use embedded Alias pattern (same as BuildConfig), eliminating 70+ lines of duplicated field declarations and manual copies. go build, go test ./... all pass. shellspec failures are pre-existing (read-only filesystem in sandbox).
+starting work — checking current state of both config files
