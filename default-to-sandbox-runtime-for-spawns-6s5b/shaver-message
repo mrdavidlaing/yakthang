@@ -1,1 +1,1 @@
-found Yakob instructions, updating spawn defaults now
+done — updated agents/yakob.md to default --runtime sandbox for implementation spawns, with runtime selection table and pre-spawn checklist item
