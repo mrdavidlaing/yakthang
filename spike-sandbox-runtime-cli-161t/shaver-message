@@ -1,1 +1,0 @@
-done — CLI interface fully documented with invocation patterns, filesystem/network config, platform differences, sample yak-box wrapper, and 10 gotchas including the denyWrite precedence issue that affects .yaks/ protection
