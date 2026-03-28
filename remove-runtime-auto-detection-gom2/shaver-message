@@ -1,1 +1,0 @@
-done — removed DetectRuntime(), made --runtime required, removed sandboxed alias, all tests pass

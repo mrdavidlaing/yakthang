@@ -1,1 +1,0 @@
-Removed DetectRuntime() from spawn_devcontainer.go, removed 'auto' from --runtime validation, made --runtime a required flag with no default. Valid values: native, sandbox, devcontainer (sandboxed kept as deprecated alias). Updated help text, tests, and error messages. All tests pass.
