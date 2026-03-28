@@ -1,1 +1,0 @@
-Removed the 'skip if exists' guard (lines 202-204) in copyHostOAuthCredentials() in spawn_sandbox.go. Updated the corresponding test from TestCopyHostOAuthCredentials_SkipsExistingFiles to TestCopyHostOAuthCredentials_OverwritesExistingFiles — now asserts credentials are always copied fresh from host.
