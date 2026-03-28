@@ -731,7 +731,7 @@ func TestResolveInheritedWorktrees(t *testing.T) {
 }
 
 func TestSpawnRuntimeOptions(t *testing.T) {
-	validRuntimes := []string{"auto", "devcontainer", "native"}
+	validRuntimes := []string{"auto", "devcontainer", "sandbox", "native"}
 
 	for _, runtime := range validRuntimes {
 		t.Run("valid_runtime_"+runtime, func(t *testing.T) {

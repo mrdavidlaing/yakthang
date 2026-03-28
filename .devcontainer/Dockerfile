@@ -41,6 +41,13 @@ ENV CARGO_HOME=/opt/cargo
 
 RUN rustup target add wasm32-wasip1
 
+# Install just (command runner)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+
+# Install Bun (for sandbox-runtime / srt build)
+RUN curl -fsSL https://bun.sh/install | bash
+ENV PATH="/root/.bun/bin:${PATH}"
+
 # Install OpenCode CLI
 RUN curl -fsSL https://opencode.ai/install | bash && \
     cp /root/.opencode/bin/opencode /usr/local/bin/opencode && \

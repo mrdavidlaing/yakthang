@@ -1,3 +1,6 @@
 [submodule "src/yaks"]
 	path = src/yaks
 	url = https://github.com/mattwynne/yaks.git
+[submodule "src/sandbox-runtime"]
+	path = src/sandbox-runtime
+	url = https://github.com/anthropic-experimental/sandbox-runtime

@@ -169,6 +169,15 @@ func runStop() error {
 				fmt.Printf("Warning: %v\n", err)
 			}
 		}
+	} else if session.Runtime == "sandbox" {
+		if stopDryRun {
+			fmt.Printf("[dry-run] Would stop sandbox worker: %s\n", stopName)
+		} else {
+			ui.Info("⏳ Stopping sandbox worker...\n")
+			if err := runtime.StopSandboxWorker(stopName, timeout); err != nil {
+				fmt.Printf("Warning: %v\n", err)
+			}
+		}
 	} else if session.Runtime == "native" {
 		if stopDryRun {
 			fmt.Printf("[dry-run] Would kill native process tree via PID file: %s\n", session.PidFile)

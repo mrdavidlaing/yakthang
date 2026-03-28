@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -101,6 +102,26 @@ var (
 		Required: false,
 		Hint:     "cost tracking will be disabled (install with: go install github.com/backstabslash/goccc@latest)",
 	}
+	Srt = Dep{
+		Name:     "srt",
+		Required: true,
+		Hint:     "install with: just install-srt (or: npm install -g @anthropic-ai/sandbox-runtime)",
+	}
+	Bwrap = Dep{
+		Name:     "bwrap",
+		Required: true,
+		Hint:     "install bubblewrap: apt install bubblewrap (Debian/Ubuntu) or pacman -S bubblewrap (Arch)",
+	}
+	Socat = Dep{
+		Name:     "socat",
+		Required: true,
+		Hint:     "install socat: apt install socat (Debian/Ubuntu) or pacman -S socat (Arch)",
+	}
+	SandboxExec = Dep{
+		Name:     "sandbox-exec",
+		Required: true,
+		Hint:     "sandbox-exec should be included with macOS — check your system installation",
+	}
 )
 
 // SpawnNativeDeps returns the deps required to spawn a native worker for the
@@ -121,6 +142,19 @@ func SpawnNativeDeps(tool string) []Dep {
 // SpawnDevcontainerDeps returns the deps required to spawn a devcontainer worker.
 func SpawnDevcontainerDeps() []Dep {
 	return []Dep{Docker, Zellij, Yx}
+}
+
+// SpawnSandboxDeps returns the deps required to spawn a sandbox worker.
+// Platform-specific deps are included based on the current OS.
+func SpawnSandboxDeps() []Dep {
+	deps := []Dep{Srt, Zellij, Yx}
+	switch runtime.GOOS {
+	case "linux":
+		deps = append(deps, Bwrap, Socat)
+	case "darwin":
+		deps = append(deps, SandboxExec)
+	}
+	return deps
 }
 
 // StopDeps returns the deps checked before stopping a worker.

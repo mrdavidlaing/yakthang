@@ -85,8 +85,8 @@ Tool selection:
 			errs = append(errs, fmt.Errorf("--resources must be 'light', 'default', 'heavy', or 'ram', got '%s'", spawnResources))
 		}
 
-		if spawnRuntime != "auto" && spawnRuntime != "devcontainer" && spawnRuntime != "sandboxed" && spawnRuntime != "native" {
-			errs = append(errs, fmt.Errorf("--runtime must be 'auto', 'devcontainer', 'sandboxed' (deprecated), or 'native', got '%s'", spawnRuntime))
+		if spawnRuntime != "auto" && spawnRuntime != "devcontainer" && spawnRuntime != "sandboxed" && spawnRuntime != "native" && spawnRuntime != "sandbox" {
+			errs = append(errs, fmt.Errorf("--runtime must be 'auto', 'devcontainer', 'sandboxed' (deprecated), 'sandbox', or 'native', got '%s'", spawnRuntime))
 		}
 
 		if spawnTool != "opencode" && spawnTool != "claude" && spawnTool != "cursor" {
@@ -188,9 +188,12 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 	}
 
 	var preflightDeps []preflight.Dep
-	if runtimeType == "devcontainer" {
+	switch runtimeType {
+	case "devcontainer":
 		preflightDeps = preflight.SpawnDevcontainerDeps()
-	} else {
+	case "sandbox":
+		preflightDeps = preflight.SpawnSandboxDeps()
+	default:
 		preflightDeps = preflight.SpawnNativeDeps(spawnTool)
 	}
 	if err := preflight.Run(preflightDeps, os.Stderr); err != nil {
@@ -378,7 +381,8 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		ShaverName:    shaverName,
 	}
 
-	if runtimeType == "devcontainer" {
+	switch runtimeType {
+	case "devcontainer":
 		ui.Info("⏳ Building container...\n")
 		if err := runtime.EnsureDevcontainer(); err != nil {
 			ui.Error("❌ Build failed: %v\n", err)
@@ -396,7 +400,19 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 			return fmt.Errorf("failed to spawn devcontainer worker: %w\n\nSuggestion: Check Docker is running and has enough resources.\nTo try native mode instead, run:\n  yak-box spawn --runtime=native [same options]", err)
 		}
 		ui.Success("✅ Container ready\n")
-	} else {
+	case "sandbox":
+		ui.Info("⏳ Starting sandbox worker...\n")
+		if err := runtime.SpawnSandboxWorker(ctx,
+			runtime.WithWorker(worker),
+			runtime.WithPrompt(workerPrompt),
+			runtime.WithResourceProfile(profile),
+			runtime.WithHomeDir(homeDir),
+		); err != nil {
+			ui.Error("❌ Failed to spawn sandbox worker: %v\n", err)
+			return fmt.Errorf("failed to spawn sandbox worker: %w", err)
+		}
+		ui.Success("✅ Sandbox worker started\n")
+	default:
 		ui.Info("⏳ Starting native worker...\n")
 		pidFile, err := runtime.SpawnNativeWorker(worker, workerPrompt, homeDir)
 		if err != nil {
@@ -752,7 +768,7 @@ func init() {
 	spawnCmd.Flags().StringSliceVar(&spawnYaks, "yaks", []string{}, "Yak paths from .yaks/ to assign (can be repeated)")
 	spawnCmd.Flags().StringSliceVar(&spawnYaks, "task", []string{}, "Alias for --yaks")
 	spawnCmd.Flags().StringVar(&spawnYakPath, "yak-path", ".yaks", "Path to task state directory")
-	spawnCmd.Flags().StringVar(&spawnRuntime, "runtime", "auto", "Runtime: 'auto', 'devcontainer', or 'native'")
+	spawnCmd.Flags().StringVar(&spawnRuntime, "runtime", "auto", "Runtime: 'auto', 'devcontainer', 'sandbox', or 'native'")
 	spawnCmd.Flags().StringVar(&spawnTool, "tool", "claude", "AI tool: 'opencode', 'claude', or 'cursor'")
 	spawnCmd.Flags().StringVar(&spawnModel, "model", "", "Optional model override (defaults: claude='default', cursor='auto')")
 	spawnCmd.Flags().BoolVar(&spawnClean, "clean", false, "Clean worker home directory before spawning")

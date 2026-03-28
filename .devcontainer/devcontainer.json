@@ -7,7 +7,7 @@
   "features": {},
   "workspaceFolder": "/workspace",
   "remoteUser": "root",
-  "postCreateCommand": "git config --global --add safe.directory '*'",
+  "postCreateCommand": "git config --global --add safe.directory '*' && git submodule update --init --recursive && just install-srt",
   "customizations": {
     "vscode": {
       "extensions": [

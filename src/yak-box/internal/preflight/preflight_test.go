@@ -3,6 +3,7 @@ package preflight_test
 import (
 	"bytes"
 	"os"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -125,6 +126,23 @@ func TestSpawnNativeDeps_Opencode(t *testing.T) {
 	requireContains(t, names, "zellij")
 	requireContains(t, names, "yx")
 	requireContains(t, names, "opencode")
+}
+
+func TestSpawnSandboxDeps(t *testing.T) {
+	deps := preflight.SpawnSandboxDeps()
+	names := depNames(deps)
+	requireContains(t, names, "srt")
+	requireContains(t, names, "zellij")
+	requireContains(t, names, "yx")
+
+	// Platform-specific deps should be present based on the current OS.
+	switch runtime.GOOS {
+	case "linux":
+		requireContains(t, names, "bwrap")
+		requireContains(t, names, "socat")
+	case "darwin":
+		requireContains(t, names, "sandbox-exec")
+	}
 }
 
 func TestSpawnDevcontainerDeps(t *testing.T) {
