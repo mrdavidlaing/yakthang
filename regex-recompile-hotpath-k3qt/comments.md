@@ -1,1 +1,0 @@
-Previous agent already applied the fix correctly. Verified: regexp.MustCompile moved to package-level var 'varPattern' at variables.go:17, substituteString references it without recompiling. go build ./... and go test ./... both pass clean.
