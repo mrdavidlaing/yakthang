@@ -1,0 +1,1 @@
+Review failed: 5 of 6 tests bypass yak-box and test srt directly with synthetic configs. Need integration tests that go through yak-box spawn and verify the actual generated config. Missing: preflight test, network filtering test, StopSandboxWorker cleanup test. See review-notes for full details.
