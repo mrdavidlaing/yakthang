@@ -1,1 +1,1 @@
-starting work, reading the codebase
+analyzing code, found the duplication in Config.UnmarshalJSON — BuildConfig shows the clean pattern
