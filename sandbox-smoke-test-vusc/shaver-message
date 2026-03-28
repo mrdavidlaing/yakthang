@@ -1,1 +1,1 @@
-writing shellspec sandbox smoke test
+done — sandbox smoke test implemented: 6 shellspec tests passing, all skip gracefully if deps missing
