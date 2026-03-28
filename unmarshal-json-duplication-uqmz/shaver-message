@@ -1,1 +1,0 @@
-done — UnmarshalJSON dedup already completed by previous agent. pkg/devcontainer/config.go uses clean embedded *Alias pattern. internal/config/config.go has no UnmarshalJSON (no dedup needed). go build, go test ./..., and shellspec all pass.
