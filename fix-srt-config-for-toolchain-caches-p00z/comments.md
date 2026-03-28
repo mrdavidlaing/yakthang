@@ -1,1 +1,0 @@
-Added toolchainCacheDirs() to srt_config.go returning 6 expanded paths: GOPATH/~/go, CARGO_HOME/~/.cargo, ~/.cache, ~/.local/share/mise, RUSTUP_HOME/~/.rustup, ~/.bun. Uses envOrDefault helper for GOPATH, CARGO_HOME, RUSTUP_HOME env vars. Tests added for the new helpers and env var override behavior. All tests pass.
