@@ -1,1 +1,0 @@
-done — deduplicated OAuth credential detection; shared HasOAuthCredentials in auth.go, preflight.go uses it via import alias, duplicate removed. go build, go test ./..., shellspec all pass.

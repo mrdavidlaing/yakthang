@@ -1,1 +1,0 @@
-Exported HasOAuthCredentials from internal/runtime/auth.go, updated preflight.go to import and use it via yakruntime alias, removed duplicate hasOAuthCreds. Build passes, all go tests pass, shellspec passes.
