@@ -1,0 +1,1 @@
+Added sandbox_smoke.sh with 6 test cases covering: simple command execution, allowWrite persistence, write blocking outside allowed paths, denyRead enforcement, config cleanup, and Go config generation validation. Tests use srt -c directly (not yak-box spawn) to avoid claude auth complexity. All tests skip gracefully if srt/bwrap/socat are missing.
