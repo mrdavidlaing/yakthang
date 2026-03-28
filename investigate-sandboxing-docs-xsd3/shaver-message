@@ -1,1 +1,0 @@
-done — findings written to comments.md covering all four questions; key insight is native sandbox could protect .yaks/ in native mode but --dangerously-skip-permissions interaction needs investigation
