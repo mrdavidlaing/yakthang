@@ -433,11 +433,8 @@ func TestGenerateNativeWrapperScript_ClaudeUsesCLAUDE_CONFIG_DIR(t *testing.T) {
 		CWD:     "/test/cwd",
 	}
 	homeDir := "/test/worker-home"
-	content, paneName := generateNativeWrapperScript(worker, homeDir, "/test/prompt.txt", "/test/worker.pid", "")
+	content := generateNativeWrapperScript(worker, homeDir, "/test/prompt.txt", "/test/worker.pid", "")
 
-	if paneName != "claude (build) [native]" {
-		t.Errorf("unexpected paneName: %q", paneName)
-	}
 	// CLAUDE_CONFIG_DIR must point to the worker's .claude/ dir for config isolation.
 	if !strings.Contains(content, `export CLAUDE_CONFIG_DIR="/test/worker-home/.claude"`) {
 		t.Errorf("native claude wrapper must set CLAUDE_CONFIG_DIR, got:\n%s", content)
@@ -468,7 +465,7 @@ func TestGenerateNativeWrapperScript_ClaudeAnthropicKeyIncluded(t *testing.T) {
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "test-key-abc")
+	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "test-key-abc")
 	if !strings.Contains(content, `export _ANTHROPIC_API_KEY="test-key-abc"`) {
 		t.Errorf("native claude wrapper must include _ANTHROPIC_API_KEY, got:\n%s", content)
 	}
@@ -484,7 +481,7 @@ func TestGenerateNativeWrapperScript_ClaudeNoAnthropicKeyWhenEmpty(t *testing.T)
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if strings.Contains(content, `ANTHROPIC_API_KEY`) {
 		t.Errorf("native claude wrapper must not include ANTHROPIC_API_KEY when empty, got:\n%s", content)
 	}
@@ -497,10 +494,7 @@ func TestGenerateNativeWrapperScript_CursorNoHomeOverride(t *testing.T) {
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content, paneName := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
-	if paneName != "cursor (build) [native]" {
-		t.Errorf("unexpected paneName: %q", paneName)
-	}
+	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	// cursor does not need HOME override
 	if strings.Contains(content, "export HOME=") {
 		t.Errorf("cursor wrapper should not override HOME, got:\n%s", content)
@@ -516,7 +510,7 @@ func TestGenerateNativeWrapperScript_ClaudeNoKeychainSetup(t *testing.T) {
 			YakPath: "/test/yaks",
 			CWD:     "/test/cwd",
 		}
-		content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+		content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 		if strings.Contains(content, "keychain") {
 			t.Errorf("%s wrapper must not contain keychain setup, got:\n%s", tool, content)
 		}
@@ -530,13 +524,13 @@ func TestGenerateNativeWrapperScript_ShaverNameEnvVar(t *testing.T) {
 		CWD:        "/test/cwd",
 		ShaverName: "Yakoff",
 	}
-	content, _ := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if !strings.Contains(content, `export YAK_SHAVER_NAME="Yakoff"`) {
 		t.Errorf("native wrapper must set YAK_SHAVER_NAME when worker.ShaverName is set, got:\n%s", content)
 	}
 
 	worker.ShaverName = ""
-	content, _ = generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content = generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
 	if strings.Contains(content, "YAK_SHAVER_NAME") {
 		t.Errorf("native wrapper must not set YAK_SHAVER_NAME when worker.ShaverName is empty, got:\n%s", content)
 	}

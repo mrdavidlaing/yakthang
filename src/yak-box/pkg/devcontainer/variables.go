@@ -13,6 +13,9 @@ import (
 	"strings"
 )
 
+// varPattern matches ${...} variable substitution patterns
+var varPattern = regexp.MustCompile(`\$\{([^}]+)\}`)
+
 // Substitute performs variable substitution on any JSON-compatible value
 // Recursively processes strings, arrays, and objects
 // Preserves non-string types (numbers, booleans, null)
@@ -46,10 +49,7 @@ func Substitute(ctx *SubstituteContext, value interface{}) interface{} {
 // substituteString performs variable substitution on a string
 // Supports patterns: ${varType:varName:default:more:colons}
 func substituteString(ctx *SubstituteContext, s string) string {
-	// Match ${...} patterns
-	re := regexp.MustCompile(`\$\{([^}]+)\}`)
-
-	return re.ReplaceAllStringFunc(s, func(match string) string {
+	return varPattern.ReplaceAllStringFunc(s, func(match string) string {
 		// Remove ${ and }
 		inner := match[2 : len(match)-1]
 
@@ -131,9 +131,6 @@ func generateDevContainerID(labels map[string]string) string {
 	encoded := base32.StdEncoding.EncodeToString(hash[:])
 	encoded = strings.ToLower(encoded)
 
-	// Return first 52 characters
-	if len(encoded) > 52 {
-		return encoded[:52]
-	}
-	return encoded
+	// SHA-256 → base32 always produces ≥52 chars; truncate to 52.
+	return encoded[:52]
 }

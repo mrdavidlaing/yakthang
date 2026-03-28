@@ -296,16 +296,6 @@ func resolveAnthropicKey() string {
 	return ""
 }
 
-// resolveAnthropicKeySuffix returns the last 20 characters of the Anthropic API key,
-// which is how Claude Code identifies approved custom API keys in .claude.json.
-func resolveAnthropicKeySuffix() string {
-	key := resolveAnthropicKey()
-	if len(key) >= 20 {
-		return key[len(key)-20:]
-	}
-	return key
-}
-
 // buildClaudeJSONContent returns the JSON content for $HOME/.claude.json.
 // If apiKeySuffix is non-empty, the key is pre-approved so Claude Code does
 // not prompt for confirmation when the same API key is used.

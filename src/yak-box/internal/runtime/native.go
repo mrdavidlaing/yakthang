@@ -41,7 +41,7 @@ func SpawnNativeWorker(worker *types.Worker, prompt string, homeDir string) (pid
 		}
 	}
 
-	wrapperContent, _ := generateNativeWrapperScript(worker, homeDir, promptFile, pidFile, apiKey)
+	wrapperContent := generateNativeWrapperScript(worker, homeDir, promptFile, pidFile, apiKey)
 
 	wrapperScript := filepath.Join(workerDir, "run.sh")
 	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
@@ -208,7 +208,7 @@ func KillNativeProcessTree(pidFile string, timeout time.Duration) error {
 // keeps all macOS/system tooling (Keychain, git, etc.) pointing at the real
 // user home — no keychain workaround needed.
 // apiKey is embedded directly when non-empty.
-func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidFile, apiKey string) (content, paneName string) {
+func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidFile, apiKey string) string {
 	shaverNameLine := ""
 	if worker.ShaverName != "" {
 		shaverNameLine = fmt.Sprintf("export YAK_SHAVER_NAME=%q\n", worker.ShaverName)
@@ -216,7 +216,6 @@ func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidF
 
 	switch worker.Tool {
 	case "claude":
-		paneName = "claude (build) [native]"
 		// Point CLAUDE_CONFIG_DIR at the worker's .claude/ dir so each worker
 		// has isolated Claude settings and skills without redirecting HOME.
 		// With HOME unchanged, macOS Keychain, git, and other host tooling
@@ -227,7 +226,7 @@ func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidF
 		}
 		claudeConfigDir := filepath.Join(homeDir, ".claude")
 		// Clean CLAUDECODE env var to avoid nested session conflicts.
-		content = fmt.Sprintf(`#!/usr/bin/env bash
+		return fmt.Sprintf(`#!/usr/bin/env bash
 export CLAUDE_CONFIG_DIR=%q
 %sexport IS_DEMO=true
 export YAK_PATH="%s"
@@ -244,8 +243,7 @@ echo $$ > "%s"
 claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"
 `, claudeConfigDir, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
 	case "cursor":
-		paneName = "cursor (build) [native]"
-		content = fmt.Sprintf(`#!/usr/bin/env bash
+		return fmt.Sprintf(`#!/usr/bin/env bash
 %sexport YAK_PATH="%s"
 PROMPT="$(cat "%s")"
 MODEL=%q
@@ -258,8 +256,7 @@ else
 fi
 `, shaverNameLine, worker.YakPath, promptFile, worker.Model, pidFile, worker.CWD, worker.CWD)
 	default:
-		paneName = "opencode (build) [native]"
-		content = fmt.Sprintf(`#!/usr/bin/env bash
+		return fmt.Sprintf(`#!/usr/bin/env bash
 %sexport YAK_PATH="%s"
 PROMPT="$(cat "%s")"
 # Write PID before exec so yak-box stop can find and kill the process tree.
@@ -268,7 +265,7 @@ echo $$ > "%s"
 exec opencode --prompt "$PROMPT" --agent build
 `, shaverNameLine, worker.YakPath, promptFile, pidFile)
 	}
-	return content, paneName
+	return "" // unreachable; all cases return above
 }
 
 // setupClaudeSettings configures Claude Code settings for the worker.
