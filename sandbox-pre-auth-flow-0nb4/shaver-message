@@ -1,1 +1,0 @@
-done — pre-auth credential copy implemented in spawn_sandbox.go, 3 new tests pass, full go test ./... green
