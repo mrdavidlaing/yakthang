@@ -1,1 +1,1 @@
-done — removed DetectRuntime(), made --runtime required, all tests pass
+done — removed DetectRuntime(), made --runtime required, removed sandboxed alias, all tests pass
