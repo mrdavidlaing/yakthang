@@ -1,0 +1,1 @@
+Created GenerateSrtConfig in srt_config.go — builds hardcoded JSON sandbox config with filesystem (allowWrite: cwd+/tmp, denyRead: ~/.ssh+~/.aws/credentials) and network (9 standard dev domains) rules. Writes to temp file, expands ~ to real HOME. Tests pass.
