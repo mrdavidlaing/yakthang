@@ -1,1 +1,1 @@
-starting work, reading spawn_sandbox.go
+done — removed skip-if-exists check in copyHostOAuthCredentials, updated test to match; go build and go test ./... pass
