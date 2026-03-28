@@ -1,1 +1,1 @@
-starting work, reading the codebase
+done — added SpawnSandboxDeps() with srt + platform deps (bwrap/socat on Linux, sandbox-exec on macOS); wired into spawn dispatch for --runtime=sandbox; all tests pass
