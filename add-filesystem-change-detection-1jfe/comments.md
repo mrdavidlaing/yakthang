@@ -1,0 +1,1 @@
+Added mtime-based change detection to handle_timer in main.rs. The timer now stats the .yaks/ root directory and skips the full tree rebuild (walk_dir + field reads) when mtime hasn't changed. The 'r' key always forces a full refresh and updates the cached mtime. Build (wasm32-wasip1) and all 70 tests pass.
