@@ -201,7 +201,7 @@ func TestCopyHostOAuthCredentials_CopiesOAuthFiles(t *testing.T) {
 	}
 }
 
-func TestCopyHostOAuthCredentials_SkipsExistingFiles(t *testing.T) {
+func TestCopyHostOAuthCredentials_OverwritesExistingFiles(t *testing.T) {
 	hostHome := t.TempDir()
 	t.Setenv("HOME", hostHome)
 
@@ -219,10 +219,10 @@ func TestCopyHostOAuthCredentials_SkipsExistingFiles(t *testing.T) {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
-	// Existing file should be preserved
+	// Credentials should always be copied fresh from host
 	data, _ := os.ReadFile(filepath.Join(workerClaudeDir, "oauth-token.json"))
-	if string(data) != `{"existing":"token"}` {
-		t.Errorf("existing OAuth file should not be overwritten, got: %s", string(data))
+	if string(data) != `{"new":"token"}` {
+		t.Errorf("OAuth file should be overwritten with host version, got: %s", string(data))
 	}
 }
 

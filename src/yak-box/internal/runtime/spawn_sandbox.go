@@ -199,11 +199,6 @@ func copyHostOAuthCredentials(workerHomeDir string) error {
 		src := filepath.Join(hostClaudeDir, name)
 		dst := filepath.Join(workerClaudeDir, name)
 
-		// Skip if the destination already exists (don't overwrite).
-		if _, err := os.Stat(dst); err == nil {
-			continue
-		}
-
 		if err := copyFile(src, dst); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to copy OAuth credential %s: %v\n", name, err)
 		}
