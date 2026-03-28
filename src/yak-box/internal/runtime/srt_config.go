@@ -18,8 +18,9 @@ type SrtFilesystemConfig struct {
 
 // SrtNetworkConfig defines network access rules for the srt sandbox.
 type SrtNetworkConfig struct {
-	AllowedDomains []string `json:"allowedDomains"`
-	DeniedDomains  []string `json:"deniedDomains"`
+	AllowedDomains    []string `json:"allowedDomains"`
+	DeniedDomains     []string `json:"deniedDomains"`
+	AllowLocalBinding bool     `json:"allowLocalBinding"`
 }
 
 // SrtConfig is the top-level srt sandbox configuration.
@@ -55,11 +56,14 @@ func GenerateSrtConfig(cwd string) (string, error) {
 			AllowedDomains: []string{
 				"github.com", "*.github.com",
 				"api.anthropic.com", "*.anthropic.com",
+				"anthropic.com", "console.anthropic.com",
+				"claude.ai", "*.claude.ai",
 				"registry.npmjs.org",
 				"crates.io", "static.crates.io",
 				"proxy.golang.org", "sum.golang.org",
 			},
-			DeniedDomains: []string{},
+			DeniedDomains:     []string{},
+			AllowLocalBinding: true,
 		},
 	}
 

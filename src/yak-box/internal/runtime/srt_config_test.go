@@ -62,11 +62,31 @@ func TestGenerateSrtConfig(t *testing.T) {
 	}
 
 	// Verify network config
-	if len(cfg.Network.AllowedDomains) != 9 {
-		t.Errorf("expected 9 allowedDomains, got %d", len(cfg.Network.AllowedDomains))
+	if len(cfg.Network.AllowedDomains) != 13 {
+		t.Errorf("expected 13 allowedDomains, got %d", len(cfg.Network.AllowedDomains))
 	}
 	if cfg.Network.AllowedDomains[0] != "github.com" {
 		t.Errorf("allowedDomains[0] = %q, want %q", cfg.Network.AllowedDomains[0], "github.com")
+	}
+
+	// Verify OAuth-related domains are present
+	wantDomains := []string{"anthropic.com", "console.anthropic.com", "claude.ai", "*.claude.ai"}
+	for _, want := range wantDomains {
+		found := false
+		for _, d := range cfg.Network.AllowedDomains {
+			if d == want {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("allowedDomains missing %q", want)
+		}
+	}
+
+	// Verify AllowLocalBinding is enabled for OAuth callback
+	if !cfg.Network.AllowLocalBinding {
+		t.Error("AllowLocalBinding should be true for OAuth callback support")
 	}
 }
 

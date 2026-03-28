@@ -9,7 +9,7 @@ name = "yak-map"
 path = "src/main.rs"
 
 [dependencies]
-zellij-tile = "0.43"
+zellij-tile = "0.44"
 serde = "1.0"
 unicode-width = "0.1"
 
@@ -22,7 +22,7 @@ opt-level = "s"
 
 # Patch the unmaintained atty crate (RUSTSEC-2021-0145: potential unaligned read).
 # atty is pulled in transitively via zellij-tile -> zellij-utils -> clap v3.
-# zellij-tile 0.43.1 is the latest release; upgrading is not yet possible.
+# zellij-utils 0.44.0 still uses clap v3 which depends on atty.
 # This stub reimplements the atty API using std::io::IsTerminal (safe, stable since Rust 1.70).
 [patch.crates-io]
 atty = { path = "atty-stub" }

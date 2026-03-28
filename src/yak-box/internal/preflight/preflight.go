@@ -176,9 +176,9 @@ func EnsureClaudeAuthEnv(tool, runtime, shaverHomeDir string, lookupEnv func(str
 	if tool != "claude" {
 		return nil
 	}
-	// Native runtime always passes: it inherits OAuth credentials from the host's
-	// ~/.claude/ via the HOME override set in the native wrapper script.
-	if runtime == "native" {
+	// Native and sandbox runtimes always pass: both run on the host and inherit
+	// OAuth credentials from the host's ~/.claude/ directory.
+	if runtime == "native" || runtime == "sandbox" {
 		return nil
 	}
 	if lookupEnv == nil {

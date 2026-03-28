@@ -3,6 +3,7 @@ package runtime
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -60,6 +61,12 @@ func SpawnSandboxWorker(ctx context.Context, opts ...SpawnOption) error {
 		apiKey = resolveAnthropicKey()
 		if err := setupClaudeSettings(cfg.homeDir, apiKey); err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to setup Claude settings: %v\n", err)
+		}
+		// Copy host OAuth credentials into the worker's .claude/ dir so sandbox
+		// workers can authenticate without completing an OAuth flow (which fails
+		// because bubblewrap isolates the network namespace).
+		if err := copyHostOAuthCredentials(cfg.homeDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to copy OAuth credentials: %v\n", err)
 		}
 	}
 
@@ -148,6 +155,83 @@ func findWorkerHomeDir(name string) (string, error) {
 		dir = parent
 	}
 	return "", fmt.Errorf("worker home dir not found for %q", name)
+}
+
+// copyHostOAuthCredentials copies OAuth credential files from the host's
+// ~/.claude/ directory into the worker's homeDir/.claude/. This pre-seeds
+// the worker with valid OAuth tokens so Claude Code doesn't attempt a
+// localhost OAuth flow that can't complete inside bubblewrap's network namespace.
+//
+// Files already written by setupClaudeSettings are skipped to avoid overwriting
+// worker-specific configuration.
+func copyHostOAuthCredentials(workerHomeDir string) error {
+	hostHome, err := os.UserHomeDir()
+	if err != nil {
+		return fmt.Errorf("cannot determine host home dir: %w", err)
+	}
+	hostClaudeDir := filepath.Join(hostHome, ".claude")
+	workerClaudeDir := filepath.Join(workerHomeDir, ".claude")
+
+	entries, err := os.ReadDir(hostClaudeDir)
+	if err != nil {
+		return nil // no host .claude/ dir — nothing to copy
+	}
+
+	// Files managed by setupClaudeSettings; skip these to preserve worker config.
+	managed := map[string]bool{
+		".claude.json":        true,
+		"api-key-helper.sh":   true,
+		"settings.json":       true,
+		"remote-settings.json": true,
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+		name := entry.Name()
+		if managed[name] {
+			continue
+		}
+		if !strings.HasSuffix(name, ".json") {
+			continue
+		}
+		src := filepath.Join(hostClaudeDir, name)
+		dst := filepath.Join(workerClaudeDir, name)
+
+		// Skip if the destination already exists (don't overwrite).
+		if _, err := os.Stat(dst); err == nil {
+			continue
+		}
+
+		if err := copyFile(src, dst); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to copy OAuth credential %s: %v\n", name, err)
+		}
+	}
+	return nil
+}
+
+// copyFile copies a single file from src to dst, preserving permissions.
+func copyFile(src, dst string) error {
+	in, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer in.Close()
+
+	info, err := in.Stat()
+	if err != nil {
+		return err
+	}
+
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, info.Mode())
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	_, err = io.Copy(out, in)
+	return err
 }
 
 // generateSandboxWrapperScript builds the run.sh wrapper that invokes the tool

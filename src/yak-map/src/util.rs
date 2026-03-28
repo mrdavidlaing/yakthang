@@ -123,7 +123,9 @@ pub fn clip_line(s: &str, max_cols: usize) -> String {
     while let Some(c) = chars.next() {
         if c == '\x1b' && chars.peek() == Some(&'[') {
             out.push(c);
-            out.push(chars.next().unwrap()); // '['
+            if let Some(bracket) = chars.next() {
+                out.push(bracket);
+            }
             for inner in chars.by_ref() {
                 out.push(inner);
                 if inner.is_ascii_alphabetic() {

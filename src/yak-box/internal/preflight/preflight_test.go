@@ -219,6 +219,24 @@ func TestEnsureClaudeAuthEnv_NativeWithKeyStillWorks(t *testing.T) {
 	}
 }
 
+func TestEnsureClaudeAuthEnv_SandboxSkipsKeyCheck(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandbox", "", func(string) (string, bool) {
+		return "", false
+	})
+	if err != nil {
+		t.Fatalf("expected no error for sandbox runtime without API key, got: %v", err)
+	}
+}
+
+func TestEnsureClaudeAuthEnv_SandboxWithKeyStillWorks(t *testing.T) {
+	err := preflight.EnsureClaudeAuthEnv("claude", "sandbox", "", func(string) (string, bool) {
+		return "sk-ant-valid", true
+	})
+	if err != nil {
+		t.Fatalf("expected no error for sandbox runtime with API key, got: %v", err)
+	}
+}
+
 func TestEnsureClaudeAuthEnv_NonClaudeIgnored(t *testing.T) {
 	tools := []string{"cursor", "opencode"}
 	for _, tool := range tools {

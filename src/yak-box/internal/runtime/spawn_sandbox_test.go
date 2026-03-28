@@ -133,6 +133,111 @@ func TestFindWorkerHomeDir_Found(t *testing.T) {
 	}
 }
 
+func TestCopyHostOAuthCredentials_CopiesOAuthFiles(t *testing.T) {
+	// Set up a fake host home with OAuth credential files
+	hostHome := t.TempDir()
+	t.Setenv("HOME", hostHome)
+
+	hostClaudeDir := filepath.Join(hostHome, ".claude")
+	os.MkdirAll(hostClaudeDir, 0755)
+
+	// OAuth token file (should be copied)
+	os.WriteFile(filepath.Join(hostClaudeDir, "oauth-token-abc123.json"), []byte(`{"token":"secret"}`), 0644)
+
+	// Another OAuth file (should be copied)
+	os.WriteFile(filepath.Join(hostClaudeDir, "credentials.json"), []byte(`{"cred":"data"}`), 0644)
+
+	// Managed files (should NOT be copied)
+	os.WriteFile(filepath.Join(hostClaudeDir, ".claude.json"), []byte(`{"managed":true}`), 0644)
+	os.WriteFile(filepath.Join(hostClaudeDir, "settings.json"), []byte(`{"managed":true}`), 0644)
+	os.WriteFile(filepath.Join(hostClaudeDir, "remote-settings.json"), []byte(`{}`), 0644)
+
+	// Non-JSON file (should NOT be copied)
+	os.WriteFile(filepath.Join(hostClaudeDir, "api-key-helper.sh"), []byte("#!/bin/bash"), 0755)
+	os.WriteFile(filepath.Join(hostClaudeDir, "some-log.txt"), []byte("log data"), 0644)
+
+	// Directory (should be skipped)
+	os.MkdirAll(filepath.Join(hostClaudeDir, "debug"), 0755)
+
+	// Set up worker home
+	workerHome := t.TempDir()
+	workerClaudeDir := filepath.Join(workerHome, ".claude")
+	os.MkdirAll(workerClaudeDir, 0755)
+
+	// Pre-existing worker settings (should NOT be overwritten)
+	os.WriteFile(filepath.Join(workerClaudeDir, "settings.json"), []byte(`{"worker":true}`), 0644)
+
+	err := copyHostOAuthCredentials(workerHome)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// OAuth files should be copied
+	for _, name := range []string{"oauth-token-abc123.json", "credentials.json"} {
+		data, err := os.ReadFile(filepath.Join(workerClaudeDir, name))
+		if err != nil {
+			t.Errorf("expected %s to be copied, got error: %v", name, err)
+			continue
+		}
+		if len(data) == 0 {
+			t.Errorf("expected %s to have content", name)
+		}
+	}
+
+	// Managed files should NOT be copied (worker's settings.json preserved)
+	data, _ := os.ReadFile(filepath.Join(workerClaudeDir, "settings.json"))
+	if string(data) != `{"worker":true}` {
+		t.Errorf("worker settings.json should not be overwritten, got: %s", string(data))
+	}
+
+	// .claude.json should NOT exist in worker dir (it's in managed list)
+	if _, err := os.Stat(filepath.Join(workerClaudeDir, ".claude.json")); err == nil {
+		t.Error(".claude.json should not be copied (managed file)")
+	}
+
+	// Non-JSON files should NOT be copied
+	if _, err := os.Stat(filepath.Join(workerClaudeDir, "some-log.txt")); err == nil {
+		t.Error("non-JSON files should not be copied")
+	}
+}
+
+func TestCopyHostOAuthCredentials_SkipsExistingFiles(t *testing.T) {
+	hostHome := t.TempDir()
+	t.Setenv("HOME", hostHome)
+
+	hostClaudeDir := filepath.Join(hostHome, ".claude")
+	os.MkdirAll(hostClaudeDir, 0755)
+	os.WriteFile(filepath.Join(hostClaudeDir, "oauth-token.json"), []byte(`{"new":"token"}`), 0644)
+
+	workerHome := t.TempDir()
+	workerClaudeDir := filepath.Join(workerHome, ".claude")
+	os.MkdirAll(workerClaudeDir, 0755)
+	os.WriteFile(filepath.Join(workerClaudeDir, "oauth-token.json"), []byte(`{"existing":"token"}`), 0644)
+
+	err := copyHostOAuthCredentials(workerHome)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Existing file should be preserved
+	data, _ := os.ReadFile(filepath.Join(workerClaudeDir, "oauth-token.json"))
+	if string(data) != `{"existing":"token"}` {
+		t.Errorf("existing OAuth file should not be overwritten, got: %s", string(data))
+	}
+}
+
+func TestCopyHostOAuthCredentials_NoHostDir(t *testing.T) {
+	hostHome := t.TempDir()
+	t.Setenv("HOME", hostHome)
+	// No .claude/ directory on host — should return nil (no error)
+
+	workerHome := t.TempDir()
+	err := copyHostOAuthCredentials(workerHome)
+	if err != nil {
+		t.Fatalf("expected no error when host .claude/ missing, got: %v", err)
+	}
+}
+
 func TestStopSandboxWorker_CleansUpSrtConfig(t *testing.T) {
 	// Create a fake workspace with worker home, PID file (non-existent process), and srt config
 	tmp := t.TempDir()

@@ -22,6 +22,8 @@ pub(crate) struct State {
     toast_message: Option<String>,
     toast_ticks_remaining: u8,
     pending_clipboard: Option<String>,
+    notes_ref_path: PathBuf,
+    last_notes_hash: Option<String>,
 }
 
 impl Default for State {
@@ -37,6 +39,8 @@ impl Default for State {
             toast_message: None,
             toast_ticks_remaining: 0,
             pending_clipboard: None,
+            notes_ref_path: PathBuf::new(),
+            last_notes_hash: None,
         }
     }
 }
@@ -71,19 +75,39 @@ impl State {
             Some("96%".to_string()),
             Some("94%".to_string()),
             None,
+            None,
         );
         open_command_pane_floating(command, coords, BTreeMap::new());
     }
 
-    fn handle_timer(&mut self) {
-        set_timeout(2.0);
-        self.refresh_tasks();
+    fn read_notes_hash(&self) -> Option<String> {
+        std::fs::read_to_string(&self.notes_ref_path)
+            .ok()
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+    }
+
+    fn check_and_refresh_if_changed(&mut self) {
+        let current_hash = self.read_notes_hash();
+        if current_hash != self.last_notes_hash {
+            self.last_notes_hash = current_hash;
+            self.refresh_tasks();
+        }
+    }
+
+    fn tick_toast(&mut self) {
         if self.toast_ticks_remaining > 0 {
             self.toast_ticks_remaining -= 1;
             if self.toast_ticks_remaining == 0 {
                 self.toast_message = None;
             }
         }
+    }
+
+    fn handle_timer(&mut self) {
+        set_timeout(2.0);
+        self.check_and_refresh_if_changed();
+        self.tick_toast();
     }
 
     fn handle_navigate_up(&mut self) {
@@ -129,6 +153,7 @@ impl State {
 
     fn handle_refresh(&mut self) {
         self.refresh_tasks();
+        self.last_notes_hash = self.read_notes_hash();
     }
 
     fn handle_key(&mut self, key: KeyWithModifier) -> bool {
@@ -181,10 +206,13 @@ impl ZellijPlugin for State {
             return;
         }
 
+        self.notes_ref_path = PathBuf::from("/host/.git/refs/notes/yaks");
+
         let repo = TaskRepository::new(yaks_dir);
         self.source = Box::new(TaskRepository::new(repo.yaks_dir().clone()));
         self.repository = repo;
         self.refresh_tasks();
+        self.last_notes_hash = self.read_notes_hash();
     }
 
     fn update(&mut self, event: Event) -> bool {
@@ -253,6 +281,8 @@ register_plugin!(State);
 #[cfg(test)]
 mod tests {
     use super::*;
+    use tempfile::NamedTempFile;
+    use std::io::Write;
 
     #[test]
     fn refresh_tasks_handles_empty_source() {
@@ -279,5 +309,107 @@ mod tests {
         state.refresh_tasks();
 
         assert_eq!(state.selected_index, 0);
+    }
+
+    // --- Change detection tests ---
+
+    fn state_with_hash_file(path: PathBuf) -> State {
+        let mut src = InMemoryTaskSource::new();
+        src.add_task("task-a", 0);
+        State {
+            source: Box::new(src),
+            notes_ref_path: path,
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn check_and_refresh_skips_rebuild_when_hash_unchanged() {
+        let mut tmp = NamedTempFile::new().unwrap();
+        write!(tmp, "abc123").unwrap();
+
+        let mut state = state_with_hash_file(tmp.path().to_path_buf());
+        state.last_notes_hash = Some("abc123".to_string());
+
+        // Pre-populate tasks so we can detect if refresh_tasks ran
+        state.refresh_tasks();
+        let tasks_before = state.tasks.len();
+
+        state.check_and_refresh_if_changed();
+
+        // Hash unchanged — tasks untouched, hash stays the same
+        assert_eq!(state.tasks.len(), tasks_before);
+        assert_eq!(state.last_notes_hash, Some("abc123".to_string()));
+    }
+
+    #[test]
+    fn check_and_refresh_triggers_rebuild_when_hash_changes() {
+        let mut tmp = NamedTempFile::new().unwrap();
+        write!(tmp, "def456").unwrap();
+
+        let mut state = state_with_hash_file(tmp.path().to_path_buf());
+        state.last_notes_hash = Some("abc123".to_string());
+
+        state.check_and_refresh_if_changed();
+
+        // Hash changed — tasks refreshed and hash updated
+        assert_eq!(state.last_notes_hash, Some("def456".to_string()));
+        assert_eq!(state.tasks.len(), 1); // source has one task
+    }
+
+    #[test]
+    fn handle_refresh_bypasses_cache() {
+        let mut tmp = NamedTempFile::new().unwrap();
+        write!(tmp, "abc123").unwrap();
+
+        let mut state = state_with_hash_file(tmp.path().to_path_buf());
+        state.last_notes_hash = Some("abc123".to_string());
+
+        // Clear tasks to detect if refresh_tasks runs
+        state.tasks.clear();
+
+        state.handle_refresh();
+
+        // Same hash, but handle_refresh always calls refresh_tasks
+        assert_eq!(state.tasks.len(), 1);
+        assert_eq!(state.last_notes_hash, Some("abc123".to_string()));
+    }
+
+    #[test]
+    fn read_notes_hash_returns_none_for_missing_file() {
+        let state = State {
+            notes_ref_path: PathBuf::from("/nonexistent/path/to/notes"),
+            ..Default::default()
+        };
+
+        assert_eq!(state.read_notes_hash(), None);
+    }
+
+    #[test]
+    fn read_notes_hash_returns_none_for_empty_file() {
+        let tmp = NamedTempFile::new().unwrap();
+        // File exists but is empty
+
+        let state = State {
+            notes_ref_path: tmp.path().to_path_buf(),
+            ..Default::default()
+        };
+
+        assert_eq!(state.read_notes_hash(), None);
+    }
+
+    #[test]
+    fn first_timer_tick_with_no_prior_hash_always_rebuilds() {
+        let mut tmp = NamedTempFile::new().unwrap();
+        write!(tmp, "abc123").unwrap();
+
+        let mut state = state_with_hash_file(tmp.path().to_path_buf());
+        // last_notes_hash is None by default
+
+        state.check_and_refresh_if_changed();
+
+        // None != Some("abc123") — triggers rebuild
+        assert_eq!(state.last_notes_hash, Some("abc123".to_string()));
+        assert_eq!(state.tasks.len(), 1);
     }
 }
