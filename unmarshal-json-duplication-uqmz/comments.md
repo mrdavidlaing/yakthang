@@ -1,7 +1,8 @@
-Refactored Config.UnmarshalJSON in pkg/devcontainer/config.go to use the embedded *Alias pattern (matching BuildConfig.UnmarshalJSON in build.go). This eliminates:
-- 37-line duplicate Alias struct with all Config fields re-declared
-- 35-line manual field-copy block (c.X = aux.X for every field)
+Verified the previous agent's work is complete and correct:
+- pkg/devcontainer/config.go: UnmarshalJSON uses clean embedded *Alias pattern (no field duplication)
+- internal/config/config.go: No UnmarshalJSON method exists — no Alias pattern to deduplicate
+- go build ./... passes
+- go test ./... passes (16 packages, 0 failures)
+- shellspec passes (19 examples, 0 failures, 1 pre-existing warning)
 
-The entrypoint string-or-array handling is preserved using a json.RawMessage field in the aux struct. New fields added to Config will automatically be unmarshaled — no triple-site maintenance.
-
-shellspec sandbox_smoke failures are pre-existing: caused by read-only go cache filesystem in the sandbox, not by this change.
+No additional changes needed.
