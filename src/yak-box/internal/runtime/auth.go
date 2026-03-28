@@ -33,15 +33,15 @@ func DetectClaudeAuth(shaverHomeDir string, lookupEnv func(string) (string, bool
 			return AuthDetection{Mode: AuthModeAPIKey, APIKey: strings.TrimSpace(key)}
 		}
 	}
-	if shaverHomeDir != "" && hasOAuthCredentials(shaverHomeDir) {
+	if shaverHomeDir != "" && HasOAuthCredentials(shaverHomeDir) {
 		return AuthDetection{Mode: AuthModeOAuth}
 	}
 	return AuthDetection{Mode: AuthModeNone}
 }
 
-// hasOAuthCredentials returns true when shaverHomeDir/.claude/ contains at least
+// HasOAuthCredentials returns true when shaverHomeDir/.claude/ contains at least
 // one non-empty JSON file (the shape Claude Code uses for OAuth token storage).
-func hasOAuthCredentials(shaverHomeDir string) bool {
+func HasOAuthCredentials(shaverHomeDir string) bool {
 	claudeDir := filepath.Join(shaverHomeDir, ".claude")
 	entries, err := os.ReadDir(claudeDir)
 	if err != nil {

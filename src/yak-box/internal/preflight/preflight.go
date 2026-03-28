@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 
+	yakruntime "github.com/wellmaintained/yakthang/src/yak-box/internal/runtime"
 	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
 )
 
@@ -194,7 +195,7 @@ func EnsureClaudeAuthEnv(tool, runtime, shaverHomeDir string, lookupEnv func(str
 		return nil
 	}
 	// Check for OAuth credentials in the shaver's persistent home dir.
-	if shaverHomeDir != "" && hasOAuthCreds(shaverHomeDir) {
+	if shaverHomeDir != "" && yakruntime.HasOAuthCredentials(shaverHomeDir) {
 		return nil
 	}
 	hint := ""
@@ -204,23 +205,4 @@ func EnsureClaudeAuthEnv(tool, runtime, shaverHomeDir string, lookupEnv func(str
 		hint = "\n  Option 1 (OAuth): run 'yak-box auth-login --shaver <name>' to log in via device flow\n  Option 2 (API key): export _ANTHROPIC_API_KEY=your-key"
 	}
 	return fmt.Errorf("preflight check failed — no Claude auth configured for devcontainer runtime.%s", hint)
-}
-
-// hasOAuthCreds returns true when homeDir/.claude/ contains at least one non-empty JSON file.
-func hasOAuthCreds(homeDir string) bool {
-	claudeDir := homeDir + "/.claude"
-	entries, err := os.ReadDir(claudeDir)
-	if err != nil {
-		return false
-	}
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
-			continue
-		}
-		info, err := e.Info()
-		if err == nil && info.Size() > 0 {
-			return true
-		}
-	}
-	return false
 }
