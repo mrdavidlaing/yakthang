@@ -1,1 +1,1 @@
-upgrading Cargo.toml to zellij-tile 0.44, attempting first build
+done — zellij-tile upgraded to 0.44, FloatingPaneCoordinates API updated, unwrap() at util.rs:126 replaced with safe if-let, all 70 tests pass, plugin compiles clean
