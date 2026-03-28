@@ -1,1 +1,0 @@
-done — typed constants for Runtime, Tool, Mode, Severity; all raw comparisons replaced; go build + go test pass
