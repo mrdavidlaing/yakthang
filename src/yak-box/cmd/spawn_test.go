@@ -37,8 +37,8 @@ func TestSpawnFlags(t *testing.T) {
 	yakPath, _ := spawnCmd.Flags().GetString("yak-path")
 	assert.Equal(t, ".yaks", yakPath)
 
-	runtime, _ := spawnCmd.Flags().GetString("runtime")
-	assert.Equal(t, "auto", runtime)
+	runtimeFlag, _ := spawnCmd.Flags().GetString("runtime")
+	assert.Equal(t, "", runtimeFlag)
 
 	model, _ := spawnCmd.Flags().GetString("model")
 	assert.Equal(t, "", model)
@@ -128,7 +128,7 @@ func TestSpawnValidation(t *testing.T) {
 			spawnName: "",
 			mode:      "build",
 			resources: "default",
-			runtime:   "auto",
+			runtime:   "native",
 			wantErr:   true,
 			errMsg:    "--yak-name is required",
 		},
@@ -138,7 +138,7 @@ func TestSpawnValidation(t *testing.T) {
 			spawnName: "test-worker",
 			mode:      "invalid",
 			resources: "default",
-			runtime:   "auto",
+			runtime:   "native",
 			wantErr:   true,
 			errMsg:    "--mode must be 'plan' or 'build'",
 		},
@@ -148,7 +148,7 @@ func TestSpawnValidation(t *testing.T) {
 			spawnName: "test-worker",
 			mode:      "build",
 			resources: "invalid",
-			runtime:   "auto",
+			runtime:   "native",
 			wantErr:   true,
 			errMsg:    "--resources must be",
 		},
@@ -160,7 +160,7 @@ func TestSpawnValidation(t *testing.T) {
 			resources: "default",
 			runtime:   "invalid",
 			wantErr:   true,
-			errMsg:    "--runtime must be",
+			errMsg:    "--runtime is required",
 		},
 		{
 			name:      "multiple validation errors batched",
@@ -178,7 +178,7 @@ func TestSpawnValidation(t *testing.T) {
 			spawnName: "test-worker",
 			mode:      "build",
 			resources: "default",
-			runtime:   "auto",
+			runtime:   "native",
 			wantErr:   false,
 		},
 		{
@@ -205,7 +205,7 @@ func TestSpawnValidation(t *testing.T) {
 			spawnName: "test-worker",
 			mode:      "build",
 			resources: "ram",
-			runtime:   "auto",
+			runtime:   "native",
 			wantErr:   false,
 		},
 	}
@@ -254,7 +254,7 @@ func TestSpawnToolOptions(t *testing.T) {
 			spawnName = "test-worker"
 			spawnMode = "build"
 			spawnResources = "default"
-			spawnRuntime = "auto"
+			spawnRuntime = "native"
 			spawnTool = tool
 
 			err := spawnCmd.PreRunE(cmd, []string{})
@@ -270,7 +270,7 @@ func TestSpawnToolOptions(t *testing.T) {
 		spawnName = "test-worker"
 		spawnMode = "build"
 		spawnResources = "default"
-		spawnRuntime = "auto"
+		spawnRuntime = "native"
 		spawnTool = "invalid"
 
 		err := spawnCmd.PreRunE(cmd, []string{})
@@ -437,7 +437,7 @@ func TestSpawnValidationBatching(t *testing.T) {
 	assert.Contains(t, errMsg, "--yak-name is required")
 	assert.Contains(t, errMsg, "--mode must be")
 	assert.Contains(t, errMsg, "--resources must be")
-	assert.Contains(t, errMsg, "--runtime must be")
+	assert.Contains(t, errMsg, "--runtime is required")
 }
 
 func TestSpawnFlagTypes(t *testing.T) {
@@ -452,7 +452,7 @@ func TestSpawnFlagTypes(t *testing.T) {
 		{name: "mode string flag", flagName: "mode", want: "build"},
 		{name: "resources string flag", flagName: "resources", want: "default"},
 		{name: "yak-path string flag", flagName: "yak-path", want: ".yaks"},
-		{name: "runtime string flag", flagName: "runtime", want: "auto"},
+		{name: "runtime string flag", flagName: "runtime", want: ""},
 		{name: "model string flag", flagName: "model", want: ""},
 		{name: "shaver-name string flag", flagName: "shaver-name", want: ""},
 		{name: "clean bool flag", flagName: "clean", want: false},
@@ -479,7 +479,7 @@ func TestSpawnResourceOptions(t *testing.T) {
 			spawnName = "test-worker"
 			spawnMode = "build"
 			spawnResources = resource
-			spawnRuntime = "auto"
+			spawnRuntime = "native"
 
 			err := spawnCmd.PreRunE(cmd, []string{})
 			assert.NoError(t, err)
@@ -499,7 +499,7 @@ func TestSpawnModeOptions(t *testing.T) {
 			spawnName = "test-worker"
 			spawnMode = mode
 			spawnResources = "default"
-			spawnRuntime = "auto"
+			spawnRuntime = "native"
 
 			err := spawnCmd.PreRunE(cmd, []string{})
 			assert.NoError(t, err)
@@ -731,7 +731,7 @@ func TestResolveInheritedWorktrees(t *testing.T) {
 }
 
 func TestSpawnRuntimeOptions(t *testing.T) {
-	validRuntimes := []string{"auto", "devcontainer", "sandbox", "native"}
+	validRuntimes := []string{"devcontainer", "sandbox", "native"}
 
 	for _, runtime := range validRuntimes {
 		t.Run("valid_runtime_"+runtime, func(t *testing.T) {

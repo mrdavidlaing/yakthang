@@ -235,7 +235,7 @@ export YAK_PATH="%s"
 unset CLAUDECODE
 MODEL=%q
 PROMPT_FILE=%q
-CLAUDE_ARGS=(--dangerously-skip-permissions)
+CLAUDE_ARGS=(--permission-mode auto)
 if [[ -n "$MODEL" ]]; then
   CLAUDE_ARGS+=(--model "$MODEL")
 fi

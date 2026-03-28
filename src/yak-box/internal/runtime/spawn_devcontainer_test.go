@@ -611,13 +611,6 @@ func TestGetResourceProfile_UnknownName(t *testing.T) {
 	}
 }
 
-func TestDetectRuntime(t *testing.T) {
-	runtime := DetectRuntime()
-	if runtime != "devcontainer" && runtime != "native" && runtime != "unknown" {
-		t.Errorf("Unknown runtime detected: %s", runtime)
-	}
-}
-
 func TestSpawnDevcontainerWorker_ContainerNameGeneration(t *testing.T) {
 	tmpDir := t.TempDir()
 	defer os.RemoveAll(tmpDir)
@@ -755,16 +748,6 @@ func TestSpawnDevcontainerWorker_ZellijCommandFails(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "failed to create Zellij tab") {
 		t.Errorf("Wrong error message: %v", err)
-	}
-}
-
-func TestDetectRuntime_DockerUnavailable(t *testing.T) {
-	runtime := DetectRuntime()
-	if runtime == "" {
-		t.Error("DetectRuntime returned empty string")
-	}
-	if runtime != "devcontainer" && runtime != "native" && runtime != "unknown" {
-		t.Errorf("Unexpected runtime: %s", runtime)
 	}
 }
 

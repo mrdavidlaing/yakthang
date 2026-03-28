@@ -456,8 +456,8 @@ func TestGenerateNativeWrapperScript_ClaudeUsesCLAUDE_CONFIG_DIR(t *testing.T) {
 	if !strings.Contains(content, `export YAK_PATH="/test/yaks"`) {
 		t.Errorf("native claude wrapper missing YAK_PATH, got:\n%s", content)
 	}
-	if !strings.Contains(content, "--dangerously-skip-permissions") {
-		t.Errorf("native claude wrapper missing --dangerously-skip-permissions, got:\n%s", content)
+	if !strings.Contains(content, "--permission-mode auto") {
+		t.Errorf("native claude wrapper missing --permission-mode auto, got:\n%s", content)
 	}
 }
 

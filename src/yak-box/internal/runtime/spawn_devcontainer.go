@@ -78,19 +78,6 @@ func GetResourceProfile(name string) types.ResourceProfile {
 	}
 }
 
-// DetectRuntime detects the available runtime (devcontainer/docker or native/zellij)
-func DetectRuntime() string {
-	if _, err := exec.LookPath("docker"); err == nil {
-		if err := exec.Command("docker", "ps").Run(); err == nil {
-			return "devcontainer"
-		}
-	}
-	if _, err := exec.LookPath("zellij"); err == nil {
-		return "native"
-	}
-	return "unknown"
-}
-
 // GetNetworkMode returns the network mode for Docker
 func GetNetworkMode(ctx context.Context) string {
 	cmd := exec.CommandContext(ctx, "docker", "network", "inspect", networkName)

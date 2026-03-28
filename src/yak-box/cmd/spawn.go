@@ -52,8 +52,10 @@ var spawnCmd = &cobra.Command{
 The spawn command creates a new worker (devcontainer or native) with the provided
 name, assembles the appropriate prompt, and assigns tasks.
 
-Devcontainer mode (default): Uses Docker container with resource limits and isolation.
-Native mode: Runs the AI tool directly on the host with full system access.
+Runtime modes (--runtime is required):
+  devcontainer: Uses Docker container with resource limits and isolation.
+  sandbox: Uses bubblewrap sandbox with resource limits.
+  native: Runs the AI tool directly on the host with full system access.
 
 Tool selection:
   --tool claude (default): Uses Claude Code with --print mode and agent prompts.
@@ -85,8 +87,8 @@ Tool selection:
 			errs = append(errs, fmt.Errorf("--resources must be 'light', 'default', 'heavy', or 'ram', got '%s'", spawnResources))
 		}
 
-		if spawnRuntime != "auto" && spawnRuntime != "devcontainer" && spawnRuntime != "sandboxed" && spawnRuntime != "native" && spawnRuntime != "sandbox" {
-			errs = append(errs, fmt.Errorf("--runtime must be 'auto', 'devcontainer', 'sandboxed' (deprecated), 'sandbox', or 'native', got '%s'", spawnRuntime))
+		if spawnRuntime != "devcontainer" && spawnRuntime != "native" && spawnRuntime != "sandbox" {
+			errs = append(errs, fmt.Errorf("--runtime is required: must be 'native', 'sandbox', or 'devcontainer', got '%s'", spawnRuntime))
 		}
 
 		if spawnTool != "opencode" && spawnTool != "claude" && spawnTool != "cursor" {
@@ -176,16 +178,6 @@ func resolveSpawnSkills(explicitSkills []string) []string {
 
 func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 	runtimeType := spawnRuntime
-	if runtimeType == "sandboxed" {
-		ui.Warning("⚠️  --runtime=sandboxed is deprecated; use --runtime=devcontainer instead\n")
-		runtimeType = "devcontainer"
-	}
-	if runtimeType == "auto" {
-		runtimeType = runtime.DetectRuntime()
-		if runtimeType == "unknown" {
-			return fmt.Errorf("no runtime available (docker or zellij). Suggestion: Install Docker and start the daemon, or install Zellij. Force with --runtime=devcontainer or --runtime=native")
-		}
-	}
 
 	var preflightDeps []preflight.Dep
 	switch runtimeType {
@@ -768,7 +760,8 @@ func init() {
 	spawnCmd.Flags().StringSliceVar(&spawnYaks, "yaks", []string{}, "Yak paths from .yaks/ to assign (can be repeated)")
 	spawnCmd.Flags().StringSliceVar(&spawnYaks, "task", []string{}, "Alias for --yaks")
 	spawnCmd.Flags().StringVar(&spawnYakPath, "yak-path", ".yaks", "Path to task state directory")
-	spawnCmd.Flags().StringVar(&spawnRuntime, "runtime", "auto", "Runtime: 'auto', 'devcontainer', 'sandbox', or 'native'")
+	spawnCmd.Flags().StringVar(&spawnRuntime, "runtime", "", "Runtime: 'native', 'sandbox', or 'devcontainer'")
+	spawnCmd.MarkFlagRequired("runtime")
 	spawnCmd.Flags().StringVar(&spawnTool, "tool", "claude", "AI tool: 'opencode', 'claude', or 'cursor'")
 	spawnCmd.Flags().StringVar(&spawnModel, "model", "", "Optional model override (defaults: claude='default', cursor='auto')")
 	spawnCmd.Flags().BoolVar(&spawnClean, "clean", false, "Clean worker home directory before spawning")
