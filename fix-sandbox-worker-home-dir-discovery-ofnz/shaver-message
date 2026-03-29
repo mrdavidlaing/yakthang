@@ -1,1 +1,1 @@
-starting work, reading the codebase
+investigating: stopName != shaverName, so findWorkerHomeDir looks in wrong dir
