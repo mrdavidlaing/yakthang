@@ -1,1 +1,1 @@
-implementing fix: store HomeDir in Session, pass to StopSandboxWorker
+done — stored HomeDir in Session, StopSandboxWorker now uses it directly; all tests pass
