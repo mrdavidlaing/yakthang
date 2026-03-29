@@ -176,7 +176,7 @@ func runStop() error {
 			fmt.Printf("[dry-run] Would stop sandbox worker: %s\n", stopName)
 		} else {
 			ui.Info("⏳ Stopping sandbox worker...\n")
-			if err := runtime.StopSandboxWorker(stopName, timeout); err != nil {
+			if err := runtime.StopSandboxWorker(stopName, session.HomeDir, timeout); err != nil {
 				fmt.Printf("Warning: %v\n", err)
 			}
 		}

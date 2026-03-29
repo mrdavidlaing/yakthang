@@ -100,11 +100,15 @@ func SpawnSandboxWorker(ctx context.Context, opts ...SpawnOption) error {
 
 // StopSandboxWorker stops a sandbox worker by killing the process tree,
 // closing the Zellij tab, and cleaning up the srt config temp file.
-func StopSandboxWorker(name string, timeout time.Duration) error {
-	// Find the worker's home dir to locate PID file and srt config
-	homeDir, err := findWorkerHomeDir(name)
-	if err != nil {
-		return fmt.Errorf("failed to find worker home dir: %w", err)
+// homeDir is the worker's home directory (e.g. .yak-boxes/@home/<shaver>/).
+// If homeDir is empty, falls back to walking up from CWD (legacy behavior).
+func StopSandboxWorker(name string, homeDir string, timeout time.Duration) error {
+	if homeDir == "" {
+		var err error
+		homeDir, err = findWorkerHomeDir(name)
+		if err != nil {
+			return fmt.Errorf("failed to find worker home dir: %w", err)
+		}
 	}
 
 	workerDir := filepath.Join(homeDir, "scripts")

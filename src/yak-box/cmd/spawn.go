@@ -436,6 +436,7 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		DisplayName:   displayName,
 		ZellijSession: spawnSession,
 		PidFile:       worker.PidFile,
+		HomeDir:       homeDir,
 	}); err != nil {
 		fmt.Fprintf(os.Stderr, "Warning: failed to register session: %v\n", err)
 	}

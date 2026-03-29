@@ -261,7 +261,7 @@ func TestStopSandboxWorker_CleansUpSrtConfig(t *testing.T) {
 
 	// StopSandboxWorker will fail on the Zellij tab close (no Zellij running),
 	// but it should still clean up the srt config
-	_ = StopSandboxWorker("test-cleanup", 100)
+	_ = StopSandboxWorker("test-cleanup", workerHome, 100)
 
 	// Verify srt config was cleaned up
 	if fileExists(srtConfig) {
@@ -269,5 +269,30 @@ func TestStopSandboxWorker_CleansUpSrtConfig(t *testing.T) {
 	}
 	if fileExists(filepath.Join(workerDir, "srt-config-path")) {
 		t.Error("srt config ref file should have been removed")
+	}
+}
+
+func TestStopSandboxWorker_HomeDirDiffersFromName(t *testing.T) {
+	// The bug: stopName (yak-name) != shaverName (home dir name).
+	// When homeDir is passed explicitly, stop must work even though the
+	// names don't match.
+	tmp := t.TempDir()
+	shaverHome := filepath.Join(tmp, ".yak-boxes", "@home", "Yakoff")
+	workerDir := filepath.Join(shaverHome, "scripts")
+	os.MkdirAll(workerDir, 0755)
+
+	srtConfig := filepath.Join(tmp, "srt-config-test.json")
+	os.WriteFile(srtConfig, []byte("{}"), 0644)
+	os.WriteFile(filepath.Join(workerDir, "srt-config-path"), []byte(srtConfig), 0644)
+	os.WriteFile(filepath.Join(workerDir, "worker.pid"), []byte("999999999"), 0644)
+
+	// stopName is "fix-some-bug" but homeDir points to "Yakoff"
+	_ = StopSandboxWorker("fix-some-bug", shaverHome, 100)
+
+	if fileExists(srtConfig) {
+		t.Error("srt config should be cleaned up even when stopName != shaver dir name")
+	}
+	if fileExists(filepath.Join(workerDir, "srt-config-path")) {
+		t.Error("srt config ref should be cleaned up")
 	}
 }

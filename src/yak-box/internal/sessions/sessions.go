@@ -36,6 +36,7 @@ type Session struct {
 	DisplayName   string    `json:"display_name"`
 	ZellijSession string    `json:"zellij_session,omitempty"`
 	PidFile       string    `json:"pid_file,omitempty"`
+	HomeDir       string    `json:"home_dir,omitempty"`
 }
 
 // Sessions is the map of active sessions keyed by session ID
