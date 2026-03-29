@@ -1,1 +1,0 @@
-pass: all deliverables implemented — HOME no longer overridden, CLAUDE_CONFIG_DIR used instead, keychain workaround dropped, PATH pinning gone. Confirmed in commit 89db3d5.
