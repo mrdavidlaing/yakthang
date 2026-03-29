@@ -1,1 +1,1 @@
-investigating: stopName != shaverName, so findWorkerHomeDir looks in wrong dir
+implementing fix: store HomeDir in Session, pass to StopSandboxWorker
