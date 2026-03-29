@@ -1,0 +1,1 @@
+Changed findZellijTabIndex to use substring matching via a new matchTabIndex helper. The helper is extracted so the matching logic is unit-testable without exec.Command. Four tests added: exact match, substring match (display-name format), not found, and first-match priority.
