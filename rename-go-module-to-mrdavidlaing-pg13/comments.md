@@ -1,0 +1,1 @@
+Renamed module from wellmaintained/yakthang to mrdavidlaing/yakthang across 33 files. go.mod, all Go imports, SETUP.md, and LICENSE updated. go build, go test ./..., and shellspec all pass with 0 failures.
