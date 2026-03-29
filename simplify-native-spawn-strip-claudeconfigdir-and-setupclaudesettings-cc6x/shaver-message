@@ -1,1 +1,0 @@
-done — stripped CLAUDE_CONFIG_DIR, setupClaudeSettings call, and _ANTHROPIC_API_KEY pattern from native spawn; replaced with direct ANTHROPIC_API_KEY; all tests pass
