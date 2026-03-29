@@ -56,8 +56,6 @@ David likes whimsy, so this workflow unashamedly leans into the yak shaving meta
 
 The point isn't the puns. It's that when you build tools for yourself, you can make them *yours*. A tool you enjoy using is a tool you actually use.
 
-### 7. Workers are disposable, task state is durable
-
 ## Architecture (for the curious)
 
 ```
