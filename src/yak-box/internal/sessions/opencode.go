@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/types"
 )
 
 // OpenCodeSession represents a session returned by `opencode session list --format json`.

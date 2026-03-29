@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/preflight"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/preflight"
 )
 
 func TestCheck_RequiredMissing(t *testing.T) {

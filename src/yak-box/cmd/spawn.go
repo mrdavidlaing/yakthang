@@ -10,16 +10,16 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/errors"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/pathutil"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/preflight"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/prompt"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/runtime"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/sessions"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/ui"
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/devcontainer"
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/worktree"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/errors"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/pathutil"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/preflight"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/prompt"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/runtime"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/sessions"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/ui"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/devcontainer"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/types"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/worktree"
 )
 
 var (

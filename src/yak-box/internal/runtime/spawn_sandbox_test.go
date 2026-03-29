@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/types"
 )
 
 func TestGenerateSandboxWrapperScript_Claude(t *testing.T) {

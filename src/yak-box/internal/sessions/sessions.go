@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/workspace"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/workspace"
 )
 
 const (

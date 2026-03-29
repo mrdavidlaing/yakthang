@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/runtime"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/runtime"
 )
 
 func noEnv(string) (string, bool) { return "", false }

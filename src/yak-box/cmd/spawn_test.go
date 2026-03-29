@@ -9,8 +9,8 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/errors"
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/pathutil"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/errors"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/pathutil"
 )
 
 func TestSpawnFlags(t *testing.T) {

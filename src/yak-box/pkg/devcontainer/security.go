@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/pathutil"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/pathutil"
 )
 
 // Severity represents the severity level of a security warning.

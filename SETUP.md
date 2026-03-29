@@ -27,7 +27,7 @@ Install any that are missing before proceeding.
 If you don't already have it:
 
 ```bash
-git clone git@github.com:wellmaintained/yakthang.git <yakthang-path>
+git clone git@github.com:mrdavidlaing/yakthang.git <yakthang-path>
 ```
 
 If it's already cloned, note the path — you'll use `<yakthang-path>` throughout.

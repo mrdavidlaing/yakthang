@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/types"
 )
 
 func TestGenerateLayout_Devcontainer(t *testing.T) {

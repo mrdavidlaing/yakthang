@@ -8,8 +8,8 @@ import (
 	"runtime"
 	"strings"
 
-	yakruntime "github.com/wellmaintained/yakthang/src/yak-box/internal/runtime"
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
+	yakruntime "github.com/mrdavidlaing/yakthang/src/yak-box/internal/runtime"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/types"
 )
 
 // Dep describes a host dependency to verify before a command runs.

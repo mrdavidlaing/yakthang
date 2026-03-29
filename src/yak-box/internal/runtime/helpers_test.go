@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/wellmaintained/yakthang/src/yak-box/internal/zellij"
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/devcontainer"
-	"github.com/wellmaintained/yakthang/src/yak-box/pkg/types"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/zellij"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/devcontainer"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/types"
 )
 
 func TestGenerateInitScript(t *testing.T) {
