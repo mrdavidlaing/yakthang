@@ -133,13 +133,18 @@ func findZellijTabIndex(name, sessionName string) (int, error) {
 	}
 
 	tabs := strings.Split(strings.TrimSpace(string(output)), "\n")
+	return matchTabIndex(tabs, name), nil
+}
+
+// matchTabIndex returns the 1-based index of the first tab whose name contains
+// the given substring, or -1 if no match is found.
+func matchTabIndex(tabs []string, name string) int {
 	for i, tab := range tabs {
-		if tab == name {
-			return i + 1, nil // Zellij tabs are 1-indexed
+		if strings.Contains(tab, name) {
+			return i + 1 // Zellij tabs are 1-indexed
 		}
 	}
-
-	return -1, nil
+	return -1
 }
 
 func fileExists(path string) bool {

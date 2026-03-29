@@ -106,6 +106,34 @@ func TestKillNativeProcessTree_ProcessNotExist(t *testing.T) {
 	}
 }
 
+func TestMatchTabIndex_ExactMatch(t *testing.T) {
+	tabs := []string{"tab-one", "tab-two", "tab-three"}
+	if idx := matchTabIndex(tabs, "tab-two"); idx != 2 {
+		t.Errorf("expected 2, got %d", idx)
+	}
+}
+
+func TestMatchTabIndex_SubstringMatch(t *testing.T) {
+	tabs := []string{"SmokeTest 🪒🐃 smoke-stop-test", "Other Tab"}
+	if idx := matchTabIndex(tabs, "smoke-stop-test"); idx != 1 {
+		t.Errorf("expected 1, got %d", idx)
+	}
+}
+
+func TestMatchTabIndex_NotFound(t *testing.T) {
+	tabs := []string{"tab-one", "tab-two"}
+	if idx := matchTabIndex(tabs, "nonexistent"); idx != -1 {
+		t.Errorf("expected -1, got %d", idx)
+	}
+}
+
+func TestMatchTabIndex_ReturnsFirstMatch(t *testing.T) {
+	tabs := []string{"Yakira 🪒🐃 my-task", "Yakoff 🪒🐃 my-task"}
+	if idx := matchTabIndex(tabs, "my-task"); idx != 1 {
+		t.Errorf("expected 1 (first match), got %d", idx)
+	}
+}
+
 func TestSetupClaudeSettings_NoGocccSkipsStatusline(t *testing.T) {
 	homeDir := t.TempDir()
 	// When goccc is not in PATH, setupClaudeSettings should still create .claude dirs and remote-settings
