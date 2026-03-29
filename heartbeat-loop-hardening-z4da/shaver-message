@@ -1,0 +1,1 @@
+Smoke test: read context, native mode works. Brief plan: harden /loop skill with --until and --max-iterations flags; add diff-based change detection to suppress no-op heartbeats; enforce session hard-stop as termination condition.
