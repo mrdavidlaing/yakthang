@@ -1,260 +1,94 @@
 # Yakthang — Yak Orchestration System
 
-Yakthang is an autonomous software orchestration system. Think of it as a digital yak ranch — each "yak" is a task that needs shaving (completion), and "yak shavers" are autonomous agents that do the work.
+> **If your name isn't David Laing, you probably don't want to use this repository directly.** This is a personal workspace for exploring multi-agent orchestration patterns. Rather than cloning it, I recommend pointing your agent at this repo and exploring it for ideas that might work for your own agentic workflows.
 
-## The Philosophy of Yak Shaving
+## What is this?
 
-The term "yak shaving" describes a familiar situation: you have a goal, but along the way you discover a cascade of smaller tasks you must complete first. Want to deploy that feature? First you need tests. Want tests? First you need CI setup. Want CI? First you need infrastructure. Each "yak" that appears on the path to your goal wasn't planned — it just appeared.
+Yakthang is an experiment in **supervised multi-agent software development**. It explores the question: *what happens when you give a human supervisor a team of AI agents, a shared task board, and a terminal multiplexer?*
 
-Yakthang is designed to manage exactly this kind of work. When you're trying to accomplish something and find yourself shaving yaks to shave yaks, Yakthang helps you track all of them, organize them, and parallelize the work.
+The name is a play on the Tibetan ཡིག་ཐང་ (*yik tang*) — the high-altitude plateau where yaks roam free. Here, "yaks" are tasks that need shaving, and "shavers" are autonomous agents that do the work.
 
-### What is a Yakthang?
+## Ideas that might be worth stealing
 
-A play on the Tibetan: ཡིག་ཐང་, yik tang - the high-altitude plateau in Tibet where yaks roam free. In the context of this project its the place where yaks get discovered... organised and shaved.
+### 1. The Orchestrator pattern
 
-## The Big Picture
+A long-running AI agent (**Yakob**) acts as a supervisor — planning work, spawning workers, monitoring progress, and reacting to blockers. The human (mostly) talks to the orchestrator, not the workers directly.
 
-The primary interface is **Zellij** — a terminal multiplexer that provides the orchestration environment. When you run `./launch.sh`, you open **Yakob's Yurt**, which looks like this:
+This creates a natural division of labour: the human decides *what* and *when*, the orchestrator decides *how* and *who*, and the workers just execute.
 
-![Yakob's Yurt screenshot](./docs/yakthang-overview.png)
+### 2. Shared task state as coordination mechanism
 
-### YakMap — Visual Task Map
+All agents (orchestrator and workers) share a DAG-based task board (`.yaks/`, managed by the `yx` CLI). Workers read their briefs from it, write progress back to it, and the orchestrator watches it for state changes.
 
-The left pane runs a **YakMap Zellij plugin** that visualizes your yak map in real-time. It reads from `.yaks/` (maintained by the `yx` CLI) and displays:
-- All tasks and their states
-- Dependencies between tasks
-- Worker assignments
+This means agents don't need to talk to each other directly — the task board is the communication channel. Workers are stateless and disposable; the task board is the source of truth.
 
-### Yakob — The Orchestrator
+### 3. Session discipline
 
-The right pane runs **Yakob**, a long-running Claude instance that:
-- Plans and organizes work into the yak map
-- Spawns yak shavers to work on tasks
-- Monitors progress and handles blocked tasks
-- Coordinates parallel work
+Every work session starts with **triage** (hard stop time, WIP limit, scope) and ends with **wrap** (harvest done work, write a worklog, prune the map). This pre-commitment ritual prevents the common failure mode of agentic work: unbounded sessions with no stopping cues.
 
-You interact with Yakob directly in this pane — map new yaks, spawn yak shavers, check status, or give guidance.
+It's proving an effective pattern for the human in this loop to stay in control of the number of open loops, and thus their ability to stop working.
 
-### Yak Shavers — The Workers
+### 4. Defence in depth for agent isolation (partially implemented)
 
-Yak shavers spawn as **additional Zellij tabs**, each running a Claude Code instance with the context of a specific yak. They operate **semi-autonomously**:
-- Given a yak's context, they work independently
-- For straightforward tasks, they proceed without intervention
-- For complex issues, you can focus their tab and provide additional guidance
+Workers run inside layered isolation:
+- **Filesystem sandboxing** via [sandbox-runtime](https://github.com/anthropic-experimental/sandbox-runtime) (srt) — OS-level write restrictions and network allowlists
+- **Devcontainer isolation** via Docker — full container boundaries for heavier isolation
+- **Native mode** — no isolation, for research tasks that need unrestricted access
+
+The orchestrator chooses the isolation level per-task based on risk.
+
+### 5. Adversarial review as a quality gate
+
+When a worker reports done, the orchestrator spawns a **fresh, independent reviewer** with no knowledge of the worker's reasoning. The reviewer only sees the original brief, the done summary, and the actual code. This prevents anchoring bias and catches gaps that the implementer (or the orchestrator watching them) would miss.
+
+### 6. Tools with personality, tailored for an audience of one
+
+David likes whimsy, so this workflow unashamedly leans into the yak shaving metaphor. The result is a system where every component has a name that makes you smile — and that matters, because you spend all day looking at it.
+
+- **Yakob** — the orchestrator. A calm, methodical supervisor of yak shavers. He makes dry yak-related puns, sparingly.
+- **Shavers** — the workers. Each gets a yak-themed name from a pool: Yakira, Yakoff, Yakriel, Yakueline, Yaklyn, Yakon, Yakitty, and Bob (every group has a Bob).
+- **yak-map** — the visual task tree. Yaks graze in the pasture; shavers shave them.
+- **yak-box** — the worker launcher. It puts shavers in boxes (sandboxed or not).
+- **yak-branding** — the commit convention. Every commit is stamped with the yak-brand skill.
+- **sniff test** — the adversarial review. Does this yak smell right?
+- **yak triage** — sorting the herd at the gate. Session start ritual.
+- **yak wrap** — closing the barn. Session end ritual.
+
+The point isn't the puns. It's that when you build tools for yourself, you can make them *yours*. A tool you enjoy using is a tool you actually use.
+
+### 7. Workers are disposable, task state is durable
+
+## Architecture (for the curious)
 
 ```
-Yakob's 🛖 (main tab)
+Zellij (terminal multiplexer)
+├── Orchestrator tab
+│   ├── yak-map plugin (left) — real-time task visualization
+│   ├── Yakob / Claude (right) — orchestrator agent
+│   └── Shell (bottom) — manual commands
 │
-├── YakMap (left) — visual task map from .yaks/
-├── Yakob (right top) — orchestration agent
-└── Shell (right bottom) — manual commands
-
-[Tab: api-shasher] — shaver working on auth-api
-[Tab: frontend-shasher] — shaver working on frontend-refactor
+├── Worker tab 1 — Claude in sandbox, shaving a yak
+├── Worker tab 2 — Claude in sandbox, shaving another yak
+└── ...
 ```
 
-### Optional: Messaging Integration
+**Key tools:**
+- `yx` — DAG-based task CLI (Rust). Stores state in git notes.
+- `yak-box` — Worker lifecycle manager (Go). Spawns/stops workers with isolation.
+- `yak-map` — Zellij WASM plugin (Rust). Reads `.yaks/` and renders the tree.
+- `srt` — Sandbox runtime (TypeScript/Bun). OS-level filesystem and network sandboxing.
 
-You can optionally configure Slack/Telegram integration for:
-- Receiving notifications when yaks complete
-- Remote status queries
-- Triggering new yaks from chat
+## Exploring this repo
 
-But most interaction happens in Zellij — messaging is optional.
+Point your agent here and ask it questions like:
+- "How does the orchestrator decide when to spawn workers?"
+- "How does the adversarial review process work?"
+- "How are workers isolated from each other?"
+- "How does session discipline (triage/wrap) work?"
+- "How does the task board coordinate agents without direct communication?"
 
-## Key Components
-
-### yx — Task Tracker
-
-A DAG-based TODO list for tracking work:
-
-```
-$ yx ls
-NAME                      STATUS       PRIORITY
-yakthang-v2/add-overview  wip          high
-auth-api                  pending      medium
-frontend-refactor         blocked      low
-```
-
-Each task has:
-- **Context** — Detailed requirements and notes
-- **Status** — pending, wip, done, blocked
-- **Custom fields** — agent-status, priority, depends-on, etc.
-
-### yak-box — Worker Manager
-
-CLI tool for spawning yak shavers:
-
-```bash
-# Spawn a sandboxed shaver for API tasks
-yak-box spawn --cwd ./api --name api-shasher --yaks auth/api
-
-# Spawn a native shaver with heavy resources
-yak-box spawn --cwd ./backend --name backend-shasher --runtime native --resources heavy
-
-# Check status of all shavers
-yak-box check
-```
-
-Shavers run in two modes:
-- **Sandboxed** — Isolated Docker container with resource limits
-- **Native** — Direct execution on the host with full system access
-
-### .yaks/ — Task Directory
-
-Stores task state as a directory tree:
-
-```
-.yaks/
-├── yakthang-v2/
-│   ├── add-overview-docs/
-│   │   ├── context       # Task requirements
-│   │   └── agent-status  # Current worker status
-│   └── compile-yx/
-├── auth/
-│   └── api/
-└── frontend/
-```
-
-### .yak-boxes/ — Worker Metadata
-
-Runtime directory for shaver instances:
-
-```
-.yak-boxes/
-├── add-overview-docs.meta   # Shaver configuration
-├── api-shasher.meta
-└── api-shasher.log          # Execution log
-```
-
-## How It Works
-
-### 1. You Work with Yakob in the Main Pane
-
-In the Yakob pane, type your request:
-
-```
-Add user authentication to the API
-```
-
-### 2. Yakob Creates the Yak
-
-Yakob creates a task in `.yaks/` with context from your request.
-
-### 3. Yakob Spawns Yak Shavers
-
-Yakob calls `yak-box spawn` to create new Zellij tabs with shavers.
-
-### 4. Shavers Work (Semi-Autonomously)
-
-Each shaver runs in its own tab with the yak's context. For simple tasks, they proceed independently. For complex work, you can focus their tab and provide guidance.
-
-### 5. Progress Visible in YakMap
-
-The YakMap pane updates in real-time as shavers update task status.
-
-## Quick Start
-
-### Launch the Orchestrator
-
-```bash
-./launch.sh
-```
-
-This opens Zellij with YakobsYurt:
-- **Left pane**: YakMap — live task visualization
-- **Right top**: Yakob (Claude) — orchestration
-- **Right bottom**: Shell — manual commands
-
-### Work with Yakob
-
-In the main Yakob pane, ask for work:
-
-```
-Yakob: add a login endpoint to the API
-Yakob: creating yak: auth-api-login
-Yakob: spawning api-shasher...
-```
-
-### Monitor
-
-```bash
-# From shell pane - check all shavers and tasks
-yak-box check
-
-# Or just watch YakMap in the left pane
-```
-
-### Interact with a Shaver
-
-When a shaver needs guidance, focus their tab:
-
-```
-Can you also add logout? And handle token expiry properly.
-```
-
-### Handle Blocked Shavers
-
-```bash
-yx state my-feature blocked
-yx field my-feature agent-status "blocked: waiting for API spec"
-```
-
-## Workflow Examples
-
-### Basic Workflow
-
-```
-1. In Yakob pane: "implement user auth"
-2. Yakob creates yak, spawns shaver
-3. Watch progress in YakMap
-4. Shaver completes, YakMap shows done
-5. Optionally: focus shaver tab to review work
-```
-
-### Parallel Workflow
-
-```
-1. "add user, product, and order APIs"
-2. Yakob creates three yaks
-3. Yakob spawns three shavers in parallel
-4. YakMap shows all working simultaneously
-5. Each completes independently
-```
-
-### Interactive Workflow
-
-```
-1. Yakob spawns shaver for complex feature
-2. Shaver gets stuck on an edge case
-3. You focus their tab
-4. Give additional context: "check how other endpoints do validation"
-5. Shaver continues with new guidance
-```
-
-## Design Philosophy
-
-- **Zellij-first**: Primary interface is the terminal multiplexer
-- **Semi-autonomous**: Shavers work independently, but you can intervene
-- **Visual**: YakMap provides real-time task visualization
-- **Isolated**: Shavers run in containers or separate contexts
-- **Observable**: Task state always visible in YakMap
-
-## Directory Structure
-
-```
-yakthang/
-├── bin/
-│   ├── yak-box           # Worker manager CLI
-│   └── yak-map.wasm      # YakMap Zellij plugin
-├── docs/                 # Documentation
-├── orchestrator.kdl      # Zellij layout definition
-├── launch.sh             # Entry point
-├── .yaks/                # Task state directory
-└── .yak-boxes/           # Worker metadata directory
-```
-
-## See Also
-
-- [docs/worker-spawning.md](docs/worker-spawning.md) — Worker spawning details
-- [docs/orchestrator-layout.md](docs/orchestrator-layout.md) — Terminal layout
+Good starting points:
+- `agents/yakob.md` — The orchestrator's full instruction set
+- `skills/` — Skill definitions (triage, wrap, review, etc.)
+- `src/yak-box/` — Worker spawning and isolation
+- `src/yak-map/` — Real-time task visualization plugin
