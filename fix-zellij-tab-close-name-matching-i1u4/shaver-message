@@ -1,1 +1,0 @@
-done — changed exact match to substring match in findZellijTabIndex, extracted matchTabIndex helper, added 4 tests; go build and go test ./... pass
