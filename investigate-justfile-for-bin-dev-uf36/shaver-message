@@ -1,0 +1,1 @@
+Smoke test: read context, sandbox mode works. Context is about investigating Justfile as a replacement for bin/dev shell script (~978 lines). Would explore recipe mapping, composition, migration path. No implementation — this is a smoke test.
