@@ -425,30 +425,22 @@ func TestCreateZellijLayout(t *testing.T) {
 	}
 }
 
-func TestGenerateNativeWrapperScript_ClaudeUsesCLAUDE_CONFIG_DIR(t *testing.T) {
+func TestGenerateNativeWrapperScript_ClaudeUsesOperatorConfig(t *testing.T) {
 	worker := &types.Worker{
 		Tool:    "claude",
 		YakPath: "/test/yaks",
 		Model:   "default",
 		CWD:     "/test/cwd",
 	}
-	homeDir := "/test/worker-home"
-	content := generateNativeWrapperScript(worker, homeDir, "/test/prompt.txt", "/test/worker.pid", "")
+	content := generateNativeWrapperScript(worker, "/test/prompt.txt", "/test/worker.pid", "")
 
-	// CLAUDE_CONFIG_DIR must point to the worker's .claude/ dir for config isolation.
-	if !strings.Contains(content, `export CLAUDE_CONFIG_DIR="/test/worker-home/.claude"`) {
-		t.Errorf("native claude wrapper must set CLAUDE_CONFIG_DIR, got:\n%s", content)
+	// CLAUDE_CONFIG_DIR must NOT be set — native workers use the operator's real ~/.claude/.
+	if strings.Contains(content, `CLAUDE_CONFIG_DIR`) {
+		t.Errorf("native claude wrapper must not set CLAUDE_CONFIG_DIR, got:\n%s", content)
 	}
 	// HOME must NOT be overridden — keeps macOS Keychain, git, and other host tooling intact.
 	if strings.Contains(content, `export HOME=`) {
 		t.Errorf("native claude wrapper must not override HOME, got:\n%s", content)
-	}
-	// GIT_CONFIG_GLOBAL and GH_CONFIG_DIR workarounds are no longer needed.
-	if strings.Contains(content, `GIT_CONFIG_GLOBAL`) {
-		t.Errorf("native claude wrapper must not set GIT_CONFIG_GLOBAL (HOME is unchanged), got:\n%s", content)
-	}
-	if strings.Contains(content, `GH_CONFIG_DIR`) {
-		t.Errorf("native claude wrapper must not set GH_CONFIG_DIR (HOME is unchanged), got:\n%s", content)
 	}
 	if !strings.Contains(content, `export YAK_PATH="/test/yaks"`) {
 		t.Errorf("native claude wrapper missing YAK_PATH, got:\n%s", content)
@@ -465,12 +457,12 @@ func TestGenerateNativeWrapperScript_ClaudeAnthropicKeyIncluded(t *testing.T) {
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "test-key-abc")
-	if !strings.Contains(content, `export _ANTHROPIC_API_KEY="test-key-abc"`) {
-		t.Errorf("native claude wrapper must include _ANTHROPIC_API_KEY, got:\n%s", content)
+	content := generateNativeWrapperScript(worker, "/prompt.txt", "/worker.pid", "test-key-abc")
+	if !strings.Contains(content, `export ANTHROPIC_API_KEY="test-key-abc"`) {
+		t.Errorf("native claude wrapper must include ANTHROPIC_API_KEY, got:\n%s", content)
 	}
-	if strings.Contains(content, `export ANTHROPIC_API_KEY=`) {
-		t.Errorf("native claude wrapper must not include ANTHROPIC_API_KEY, got:\n%s", content)
+	if strings.Contains(content, `_ANTHROPIC_API_KEY`) {
+		t.Errorf("native claude wrapper must not include _ANTHROPIC_API_KEY, got:\n%s", content)
 	}
 }
 
@@ -481,7 +473,7 @@ func TestGenerateNativeWrapperScript_ClaudeNoAnthropicKeyWhenEmpty(t *testing.T)
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content := generateNativeWrapperScript(worker, "/prompt.txt", "/worker.pid", "")
 	if strings.Contains(content, `ANTHROPIC_API_KEY`) {
 		t.Errorf("native claude wrapper must not include ANTHROPIC_API_KEY when empty, got:\n%s", content)
 	}
@@ -494,7 +486,7 @@ func TestGenerateNativeWrapperScript_CursorNoHomeOverride(t *testing.T) {
 		Model:   "",
 		CWD:     "/test/cwd",
 	}
-	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content := generateNativeWrapperScript(worker, "/prompt.txt", "/worker.pid", "")
 	// cursor does not need HOME override
 	if strings.Contains(content, "export HOME=") {
 		t.Errorf("cursor wrapper should not override HOME, got:\n%s", content)
@@ -510,7 +502,7 @@ func TestGenerateNativeWrapperScript_ClaudeNoKeychainSetup(t *testing.T) {
 			YakPath: "/test/yaks",
 			CWD:     "/test/cwd",
 		}
-		content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+		content := generateNativeWrapperScript(worker, "/prompt.txt", "/worker.pid", "")
 		if strings.Contains(content, "keychain") {
 			t.Errorf("%s wrapper must not contain keychain setup, got:\n%s", tool, content)
 		}
@@ -524,13 +516,13 @@ func TestGenerateNativeWrapperScript_ShaverNameEnvVar(t *testing.T) {
 		CWD:        "/test/cwd",
 		ShaverName: "Yakoff",
 	}
-	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content := generateNativeWrapperScript(worker, "/prompt.txt", "/worker.pid", "")
 	if !strings.Contains(content, `export YAK_SHAVER_NAME="Yakoff"`) {
 		t.Errorf("native wrapper must set YAK_SHAVER_NAME when worker.ShaverName is set, got:\n%s", content)
 	}
 
 	worker.ShaverName = ""
-	content = generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content = generateNativeWrapperScript(worker, "/prompt.txt", "/worker.pid", "")
 	if strings.Contains(content, "YAK_SHAVER_NAME") {
 		t.Errorf("native wrapper must not set YAK_SHAVER_NAME when worker.ShaverName is empty, got:\n%s", content)
 	}

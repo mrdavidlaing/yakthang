@@ -40,7 +40,7 @@ func TestGenerateNativeWrapperScript_Opencode(t *testing.T) {
 		YakPath: "/test/yaks",
 		CWD:     "/test/cwd",
 	}
-	content := generateNativeWrapperScript(worker, "/home/worker", "/prompt.txt", "/worker.pid", "")
+	content := generateNativeWrapperScript(worker, "/prompt.txt", "/worker.pid", "")
 	if !strings.Contains(content, "opencode") {
 		t.Errorf("opencode wrapper must invoke opencode, got:\n%s", content)
 	}
@@ -58,7 +58,7 @@ func TestGenerateNativeWrapperScript_UnknownToolDefaultsToOpencode(t *testing.T)
 		YakPath: "/test/yaks",
 		CWD:     "/test/cwd",
 	}
-	content := generateNativeWrapperScript(worker, "/home/worker", "/p.txt", "/pid", "")
+	content := generateNativeWrapperScript(worker, "/p.txt", "/pid", "")
 	if !strings.Contains(content, "opencode") {
 		t.Errorf("unknown tool should default to opencode script, got:\n%s", content)
 	}

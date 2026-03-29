@@ -32,16 +32,13 @@ func SpawnNativeWorker(worker *types.Worker, prompt string, homeDir string) (pid
 
 	pidFile = filepath.Join(workerDir, "worker.pid")
 
-	// Resolve API key once; shared by setupClaudeSettings and generateNativeWrapperScript.
+	// Resolve API key once for embedding in the wrapper script.
 	apiKey := ""
 	if types.Tool(worker.Tool) == types.ToolClaude {
 		apiKey = resolveAnthropicKey()
-		if err := setupClaudeSettings(homeDir, apiKey); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to setup Claude settings: %v\n", err)
-		}
 	}
 
-	wrapperContent := generateNativeWrapperScript(worker, homeDir, promptFile, pidFile, apiKey)
+	wrapperContent := generateNativeWrapperScript(worker, promptFile, pidFile, apiKey)
 
 	wrapperScript := filepath.Join(workerDir, "run.sh")
 	if err := os.WriteFile(wrapperScript, []byte(wrapperContent), 0755); err != nil {
@@ -202,13 +199,11 @@ func KillNativeProcessTree(pidFile string, timeout time.Duration) error {
 	return nil
 }
 
-// generateNativeWrapperScript builds the run.sh wrapper content and pane name
-// for a native worker. For Claude, CLAUDE_CONFIG_DIR is set to homeDir/.claude
-// so each worker gets an isolated Claude config without overriding HOME. This
-// keeps all macOS/system tooling (Keychain, git, etc.) pointing at the real
-// user home — no keychain workaround needed.
-// apiKey is embedded directly when non-empty.
-func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidFile, apiKey string) string {
+// generateNativeWrapperScript builds the run.sh wrapper content for a native
+// worker. Native workers use the operator's real ~/.claude/ — no
+// CLAUDE_CONFIG_DIR override, no setupClaudeSettings. The API key is set
+// directly as ANTHROPIC_API_KEY when available.
+func generateNativeWrapperScript(worker *types.Worker, promptFile, pidFile, apiKey string) string {
 	shaverNameLine := ""
 	if worker.ShaverName != "" {
 		shaverNameLine = fmt.Sprintf("export YAK_SHAVER_NAME=%q\n", worker.ShaverName)
@@ -216,18 +211,12 @@ func generateNativeWrapperScript(worker *types.Worker, homeDir, promptFile, pidF
 
 	switch types.Tool(worker.Tool) {
 	case types.ToolClaude:
-		// Point CLAUDE_CONFIG_DIR at the worker's .claude/ dir so each worker
-		// has isolated Claude settings and skills without redirecting HOME.
-		// With HOME unchanged, macOS Keychain, git, and other host tooling
-		// continue to work normally — no keychain workaround required.
 		apiKeyLine := ""
 		if apiKey != "" {
-			apiKeyLine = fmt.Sprintf("export _ANTHROPIC_API_KEY=%q", apiKey)
+			apiKeyLine = fmt.Sprintf("export ANTHROPIC_API_KEY=%q", apiKey)
 		}
-		claudeConfigDir := filepath.Join(homeDir, ".claude")
 		// Clean CLAUDECODE env var to avoid nested session conflicts.
 		return fmt.Sprintf(`#!/usr/bin/env bash
-export CLAUDE_CONFIG_DIR=%q
 %sexport IS_DEMO=true
 export YAK_PATH="%s"
 %s
@@ -241,7 +230,7 @@ fi
 # Write PID before running Claude so yak-box stop can find and kill the process tree.
 echo $$ > "%s"
 claude "${CLAUDE_ARGS[@]}" @"$PROMPT_FILE"
-`, claudeConfigDir, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
+`, shaverNameLine, worker.YakPath, apiKeyLine, worker.Model, promptFile, pidFile)
 	case types.ToolCursor:
 		return fmt.Sprintf(`#!/usr/bin/env bash
 %sexport YAK_PATH="%s"
