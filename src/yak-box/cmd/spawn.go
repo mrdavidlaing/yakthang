@@ -17,6 +17,7 @@ import (
 	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/runtime"
 	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/sessions"
 	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/ui"
+	"github.com/mrdavidlaing/yakthang/src/yak-box/internal/workspace"
 	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/devcontainer"
 	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/types"
 	"github.com/mrdavidlaing/yakthang/src/yak-box/pkg/worktree"
@@ -95,23 +96,6 @@ Tool selection:
 			errs = append(errs, fmt.Errorf("--tool must be 'opencode', 'claude', or 'cursor', got '%s'", spawnTool))
 		}
 
-		resolvedSkills := resolveSpawnSkills(spawnSkills)
-		for _, skillPath := range resolvedSkills {
-			info, err := os.Stat(skillPath)
-			if err != nil {
-				errs = append(errs, fmt.Errorf("--skill %q: folder not found", skillPath))
-				continue
-			}
-			if !info.IsDir() {
-				errs = append(errs, fmt.Errorf("--skill %q: must be a directory", skillPath))
-				continue
-			}
-			skillMD := filepath.Join(skillPath, "SKILL.md")
-			if _, err := os.Stat(skillMD); err != nil {
-				errs = append(errs, fmt.Errorf("--skill %q: missing SKILL.md", skillPath))
-			}
-		}
-
 		if len(errs) > 0 {
 			return errors.CombineValidation(errs)
 		}
@@ -162,19 +146,6 @@ func resolveSpawnModel(tool, model string) string {
 	}
 }
 
-func resolveSpawnSkills(explicitSkills []string) []string {
-	skills := make([]string, 0, len(explicitSkills))
-	seen := make(map[string]struct{}, len(explicitSkills))
-	for _, skill := range explicitSkills {
-		cleanPath := filepath.Clean(skill)
-		if _, exists := seen[cleanPath]; exists {
-			continue
-		}
-		seen[cleanPath] = struct{}{}
-		skills = append(skills, cleanPath)
-	}
-	return skills
-}
 
 func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 	runtimeType := spawnRuntime
@@ -304,10 +275,18 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		fmt.Printf("Using worker home for multi-repo worktrees: %s\n", homeDir)
 	}
 
-	resolvedSkills := resolveSpawnSkills(spawnSkills)
+	skillNames := deduplicateSkills(spawnSkills)
 
-	if err := copySkillsToHome(resolvedSkills, homeDir, spawnTool); err != nil {
-		return fmt.Errorf("failed to copy skills: %w", err)
+	// Native workers use skills from the project root directly; only sandbox/devcontainer need copies.
+	if types.Runtime(runtimeType) != types.RuntimeNative && len(skillNames) > 0 {
+		root, err := workspace.FindRoot()
+		if err != nil {
+			return fmt.Errorf("failed to find workspace root for skill sync: %w", err)
+		}
+		projectSkillsDir := filepath.Join(root, ".claude", "skills")
+		if err := syncShaverSkills(skillNames, projectSkillsDir, homeDir, spawnTool); err != nil {
+			return fmt.Errorf("failed to sync shaver skills: %w", err)
+		}
 	}
 
 	devConfig, devWarnings, err := devcontainer.LoadConfig(absCWD)
@@ -325,10 +304,6 @@ func runSpawn(cmd *cobra.Command, ctx context.Context, args []string) error {
 		userPrompt = args[0]
 	}
 
-	skillNames := make([]string, 0, len(resolvedSkills))
-	for _, s := range resolvedSkills {
-		skillNames = append(skillNames, filepath.Base(s))
-	}
 	displayPaths := make([]string, len(resolvedYaks))
 	yakRwDirs := make([]string, 0, len(resolvedYaks))
 	for i := range resolvedYaks {
@@ -660,40 +635,77 @@ func resolveInheritedWorktrees(absYakPath, yakValue string) ([]string, string, e
 	return nil, "", nil
 }
 
-// copySkillsToHome copies each skill folder into the tool-appropriate location under homeDir.
-// For Claude:   <homeDir>/.claude/skills/<skill-folder-name>/
-// For Cursor:   <homeDir>/.claude/skills/<skill-folder-name>/
-// For OpenCode: <homeDir>/.config/opencode/skills/<skill-folder-name>/
-func copySkillsToHome(skillPaths []string, homeDir string, tool string) error {
-	if len(skillPaths) == 0 {
+// deduplicateSkills returns unique skill names preserving order.
+func deduplicateSkills(skills []string) []string {
+	seen := make(map[string]struct{}, len(skills))
+	out := make([]string, 0, len(skills))
+	for _, s := range skills {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			continue
+		}
+		if _, exists := seen[s]; exists {
+			continue
+		}
+		seen[s] = struct{}{}
+		out = append(out, s)
+	}
+	return out
+}
+
+// syncShaverSkills copies named skills into the worker's home for sandbox/devcontainer
+// runtimes where the project root isn't directly accessible. Copies fresh each spawn
+// so workers never run with stale skill definitions from a previous session.
+func syncShaverSkills(skillNames []string, projectSkillsDir string, homeDir string, tool string) error {
+	if len(skillNames) == 0 {
 		return nil
 	}
+
 	var destBase string
 	switch types.Tool(tool) {
-	case types.ToolClaude:
-		destBase = filepath.Join(homeDir, ".claude", "skills")
-	case types.ToolCursor:
+	case types.ToolClaude, types.ToolCursor:
 		destBase = filepath.Join(homeDir, ".claude", "skills")
 	case types.ToolOpencode:
 		destBase = filepath.Join(homeDir, ".config", "opencode", "skills")
 	default:
-		return errors.NewValidationError(fmt.Sprintf("unsupported tool %q for skill copy", tool), nil)
+		return errors.NewValidationError(fmt.Sprintf("unsupported tool %q for skill sync", tool), nil)
 	}
+
 	if err := os.MkdirAll(destBase, 0755); err != nil {
 		return fmt.Errorf("failed to create skills directory: %w", err)
 	}
-	for _, src := range skillPaths {
-		skillName := filepath.Base(src)
-		// Resolve symlinks so filepath.Walk sees the real directory.
-		resolved, err := filepath.EvalSymlinks(src)
-		if err != nil {
-			return fmt.Errorf("failed to resolve skill path %q: %w", skillName, err)
+
+	wanted := make(map[string]struct{}, len(skillNames))
+	for _, name := range skillNames {
+		wanted[name] = struct{}{}
+	}
+
+	entries, err := os.ReadDir(destBase)
+	if err != nil {
+		return fmt.Errorf("failed to read skills directory: %w", err)
+	}
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
 		}
-		dest := filepath.Join(destBase, skillName)
-		if err := copyDirRecursive(resolved, dest); err != nil {
-			return fmt.Errorf("failed to copy skill %q: %w", skillName, err)
+		if _, ok := wanted[entry.Name()]; !ok {
+			if err := os.RemoveAll(filepath.Join(destBase, entry.Name())); err != nil {
+				return fmt.Errorf("failed to remove stale skill %q: %w", entry.Name(), err)
+			}
 		}
 	}
+
+	for _, name := range skillNames {
+		src := filepath.Join(projectSkillsDir, name)
+		dest := filepath.Join(destBase, name)
+		if err := os.RemoveAll(dest); err != nil {
+			return fmt.Errorf("failed to clean skill %q: %w", name, err)
+		}
+		if err := copyDirRecursive(src, dest); err != nil {
+			return fmt.Errorf("failed to copy skill %q: %w", name, err)
+		}
+	}
+
 	return nil
 }
 
@@ -767,6 +779,6 @@ func init() {
 	spawnCmd.Flags().StringVar(&spawnModel, "model", "", "Optional model override (defaults: claude='default', cursor='auto')")
 	spawnCmd.Flags().BoolVar(&spawnClean, "clean", false, "Clean worker home directory before spawning")
 	spawnCmd.Flags().BoolVar(&spawnAutoWorktree, "auto-worktree", false, "Automatically create and use git worktree for the task")
-	spawnCmd.Flags().StringArrayVar(&spawnSkills, "skill", []string{}, "Path to a skill folder to copy into the worker's home (can be repeated)")
+	spawnCmd.Flags().StringArrayVar(&spawnSkills, "skill", []string{}, "Skill name to give the worker (resolved from .claude/skills/; can be repeated)")
 	spawnCmd.Flags().StringVar(&spawnShaverName, "shaver-name", "", "Shaver identity for tab title and assigned-to (sets YAK_SHAVER_NAME in worker); default: env YAK_SHAVER_NAME → USER → yak-shaver")
 }

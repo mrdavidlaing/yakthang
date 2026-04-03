@@ -300,124 +300,6 @@ func TestResolveSpawnModel(t *testing.T) {
 	})
 }
 
-func TestResolveSpawnSkills(t *testing.T) {
-	t.Run("returns nil when no skills given", func(t *testing.T) {
-		got := resolveSpawnSkills(nil)
-		assert.Empty(t, got)
-	})
-
-	t.Run("returns explicit skills only", func(t *testing.T) {
-		root := t.TempDir()
-		customSkill := filepath.Join(root, "skills", "custom")
-
-		assert.NoError(t, os.MkdirAll(customSkill, 0755))
-		assert.NoError(t, os.WriteFile(filepath.Join(customSkill, "SKILL.md"), []byte("name: custom"), 0644))
-
-		got := resolveSpawnSkills([]string{customSkill})
-		assert.Equal(t, []string{customSkill}, got)
-	})
-
-	t.Run("does not duplicate identical skill paths", func(t *testing.T) {
-		root := t.TempDir()
-		skill := filepath.Join(root, "skills", "yx-task-management")
-
-		assert.NoError(t, os.MkdirAll(skill, 0755))
-		assert.NoError(t, os.WriteFile(filepath.Join(skill, "SKILL.md"), []byte("name: yx-task-management"), 0644))
-
-		got := resolveSpawnSkills([]string{skill, skill})
-		assert.Equal(t, []string{skill}, got)
-	})
-}
-
-func TestCopySkillsToHome(t *testing.T) {
-	makeSkill := func(baseDir, name string) string {
-		skillDir := filepath.Join(baseDir, name)
-		assert.NoError(t, os.MkdirAll(skillDir, 0755))
-		assert.NoError(t, os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte("name: "+name), 0644))
-		return skillDir
-	}
-
-	tests := []struct {
-		name     string
-		tool     string
-		destBase string
-	}{
-		{
-			name:     "claude destination",
-			tool:     "claude",
-			destBase: filepath.Join(".claude", "skills"),
-		},
-		{
-			name:     "cursor destination",
-			tool:     "cursor",
-			destBase: filepath.Join(".claude", "skills"),
-		},
-		{
-			name:     "opencode destination",
-			tool:     "opencode",
-			destBase: filepath.Join(".config", "opencode", "skills"),
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			homeDir := t.TempDir()
-			srcDir := t.TempDir()
-			skillDir := makeSkill(srcDir, "yx-task-management")
-
-			assert.NoError(t, copySkillsToHome([]string{skillDir}, homeDir, tt.tool))
-
-			destSkillFile := filepath.Join(homeDir, tt.destBase, "yx-task-management", "SKILL.md")
-			info, err := os.Stat(destSkillFile)
-			assert.NoError(t, err)
-			assert.False(t, info.IsDir())
-		})
-	}
-
-	t.Run("copies symlinked skill directory", func(t *testing.T) {
-		homeDir := t.TempDir()
-		srcDir := t.TempDir()
-
-		// Create the real skill directory elsewhere.
-		realSkillDir := filepath.Join(srcDir, "real-skills", "yak-brand")
-		assert.NoError(t, os.MkdirAll(realSkillDir, 0755))
-		assert.NoError(t, os.WriteFile(filepath.Join(realSkillDir, "SKILL.md"), []byte("name: yak-brand"), 0644))
-		subDir := filepath.Join(realSkillDir, "subdir")
-		assert.NoError(t, os.MkdirAll(subDir, 0755))
-		assert.NoError(t, os.WriteFile(filepath.Join(subDir, "extra.md"), []byte("extra"), 0644))
-
-		// Create a symlink that points to the real skill directory.
-		symlinkDir := filepath.Join(srcDir, ".claude", "skills")
-		assert.NoError(t, os.MkdirAll(symlinkDir, 0755))
-		symlinkPath := filepath.Join(symlinkDir, "yak-brand")
-		assert.NoError(t, os.Symlink(realSkillDir, symlinkPath))
-
-		assert.NoError(t, copySkillsToHome([]string{symlinkPath}, homeDir, "claude"))
-
-		// Verify files were copied.
-		destSkillFile := filepath.Join(homeDir, ".claude", "skills", "yak-brand", "SKILL.md")
-		content, err := os.ReadFile(destSkillFile)
-		assert.NoError(t, err)
-		assert.Equal(t, "name: yak-brand", string(content))
-
-		// Verify subdirectory was copied too.
-		destSubFile := filepath.Join(homeDir, ".claude", "skills", "yak-brand", "subdir", "extra.md")
-		content, err = os.ReadFile(destSubFile)
-		assert.NoError(t, err)
-		assert.Equal(t, "extra", string(content))
-	})
-
-	t.Run("returns error for unknown tool", func(t *testing.T) {
-		homeDir := t.TempDir()
-		srcDir := t.TempDir()
-		skillDir := makeSkill(srcDir, "yx-task-management")
-
-		err := copySkillsToHome([]string{skillDir}, homeDir, "unknown")
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "unsupported tool")
-	})
-}
-
 func TestSpawnValidationBatching(t *testing.T) {
 	cmd := &cobra.Command{}
 	cmd.Flags().AddFlagSet(spawnCmd.Flags())
@@ -748,4 +630,103 @@ func TestSpawnRuntimeOptions(t *testing.T) {
 			assert.NoError(t, err)
 		})
 	}
+}
+
+func TestDeduplicateSkills(t *testing.T) {
+	t.Run("preserves order and removes duplicates", func(t *testing.T) {
+		got := deduplicateSkills([]string{"yak-brand", "yak-wrap", "yak-brand"})
+		assert.Equal(t, []string{"yak-brand", "yak-wrap"}, got)
+	})
+
+	t.Run("trims whitespace and skips blanks", func(t *testing.T) {
+		got := deduplicateSkills([]string{"  yak-brand  ", "", "  ", "yak-wrap"})
+		assert.Equal(t, []string{"yak-brand", "yak-wrap"}, got)
+	})
+
+	t.Run("returns empty for nil input", func(t *testing.T) {
+		got := deduplicateSkills(nil)
+		assert.Empty(t, got)
+	})
+}
+
+func TestSyncShaverSkills(t *testing.T) {
+	makeSkillDir := func(baseDir, name string) {
+		skillDir := filepath.Join(baseDir, name)
+		assert.NoError(t, os.MkdirAll(skillDir, 0755))
+		assert.NoError(t, os.WriteFile(filepath.Join(skillDir, "SKILL.md"), []byte("name: "+name), 0644))
+	}
+
+	t.Run("copies listed skills to home", func(t *testing.T) {
+		projectSkills := filepath.Join(t.TempDir(), ".claude", "skills")
+		assert.NoError(t, os.MkdirAll(projectSkills, 0755))
+		makeSkillDir(projectSkills, "yak-brand")
+		makeSkillDir(projectSkills, "yak-wrap")
+
+		homeDir := t.TempDir()
+
+		err := syncShaverSkills([]string{"yak-brand", "yak-wrap"}, projectSkills, homeDir, "claude")
+		assert.NoError(t, err)
+
+		content, err := os.ReadFile(filepath.Join(homeDir, ".claude", "skills", "yak-brand", "SKILL.md"))
+		assert.NoError(t, err)
+		assert.Equal(t, "name: yak-brand", string(content))
+
+		content, err = os.ReadFile(filepath.Join(homeDir, ".claude", "skills", "yak-wrap", "SKILL.md"))
+		assert.NoError(t, err)
+		assert.Equal(t, "name: yak-wrap", string(content))
+	})
+
+	t.Run("removes stale skills not in config", func(t *testing.T) {
+		projectSkills := filepath.Join(t.TempDir(), ".claude", "skills")
+		assert.NoError(t, os.MkdirAll(projectSkills, 0755))
+		makeSkillDir(projectSkills, "yak-brand")
+
+		homeDir := t.TempDir()
+		staleDir := filepath.Join(homeDir, ".claude", "skills", "old-skill")
+		assert.NoError(t, os.MkdirAll(staleDir, 0755))
+		assert.NoError(t, os.WriteFile(filepath.Join(staleDir, "SKILL.md"), []byte("stale"), 0644))
+
+		err := syncShaverSkills([]string{"yak-brand"}, projectSkills, homeDir, "claude")
+		assert.NoError(t, err)
+
+		_, err = os.Stat(filepath.Join(homeDir, ".claude", "skills", "yak-brand", "SKILL.md"))
+		assert.NoError(t, err)
+
+		_, err = os.Stat(filepath.Join(homeDir, ".claude", "skills", "old-skill"))
+		assert.True(t, os.IsNotExist(err))
+	})
+
+	t.Run("refreshes existing skills with updated content", func(t *testing.T) {
+		projectSkills := filepath.Join(t.TempDir(), ".claude", "skills")
+		assert.NoError(t, os.MkdirAll(projectSkills, 0755))
+		makeSkillDir(projectSkills, "yak-brand")
+
+		homeDir := t.TempDir()
+		oldDir := filepath.Join(homeDir, ".claude", "skills", "yak-brand")
+		assert.NoError(t, os.MkdirAll(oldDir, 0755))
+		assert.NoError(t, os.WriteFile(filepath.Join(oldDir, "SKILL.md"), []byte("old content"), 0644))
+
+		err := syncShaverSkills([]string{"yak-brand"}, projectSkills, homeDir, "claude")
+		assert.NoError(t, err)
+
+		content, err := os.ReadFile(filepath.Join(homeDir, ".claude", "skills", "yak-brand", "SKILL.md"))
+		assert.NoError(t, err)
+		assert.Equal(t, "name: yak-brand", string(content))
+	})
+
+	t.Run("no-op when skill list is empty", func(t *testing.T) {
+		homeDir := t.TempDir()
+		err := syncShaverSkills(nil, "/nonexistent", homeDir, "claude")
+		assert.NoError(t, err)
+	})
+
+	t.Run("returns error when listed skill not found in project", func(t *testing.T) {
+		projectSkills := filepath.Join(t.TempDir(), ".claude", "skills")
+		assert.NoError(t, os.MkdirAll(projectSkills, 0755))
+
+		homeDir := t.TempDir()
+		err := syncShaverSkills([]string{"nonexistent-skill"}, projectSkills, homeDir, "claude")
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "nonexistent-skill")
+	})
 }
