@@ -19,3 +19,13 @@ src/yak-box/yak-box
 **/.cargo/
 
 .opencode/plans/
+
+# Claude Code local state
+.claude/scheduled_tasks.lock
+.claude/projects/
+
+# Superpowers implementation plans (ephemeral)
+docs/superpowers/plans/
+
+# yak-map working state
+src/yak-map/.desloppify/
